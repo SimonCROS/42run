@@ -1,0 +1,16 @@
+# CMake generated files
+build/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# CMake files
+CMakeUserPresets.json
+
+# MacOS Finder files
+.DS_Store
+
+# Visual Studio Code files
+.vscode
