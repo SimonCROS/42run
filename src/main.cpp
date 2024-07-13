@@ -13,29 +13,29 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 
 // TODO Read from file
 const char *vertexShaderSource =
-    "#version 450\n"
+    "#version 410\n"
     "\n"
     "layout (location = 0) in vec3 i_pos;\n"
-    "// layout (location = 1) in vec3 i_color;\n"
+    // "layout (location = 1) in vec3 i_color;\n"
     "\n"
-    "layout (location = 0) out vec3 o_color;\n"
+    "layout (location = 0) out vec3 color;\n"
     "\n"
     "void main()\n"
     "{\n"
     "    gl_Position = vec4(i_pos, 1.0);\n"
-    "    o_color = i_pos;\n"
+    "    color = i_pos;\n"
     "}\0";
 
 // TODO Read from file
 const char *fragmentShaderSource =
-    "#version 450\n"
+    "#version 410\n"
     "\n"
-    "layout (location = 0) in vec3 i_color;\n"
+    "layout (location = 0) in vec3 color;\n"
     "\n"
-    "layout (location = 0) out vec3 o_color;\n"
+    "layout (location = 0) out vec4 o_color;\n"
     "\n"
     "void main() {\n"
-    "    o_color = i_color;\n"
+    "    o_color = vec4(color, 1.0);\n"
     "}\0";
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
@@ -44,15 +44,26 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 int main(void)
 {
     glfwInit();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    glfwSetErrorCallback(error_callback);
     GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "42run", NULL, NULL);
+    if (window == nullptr)
+    {
+        return 1;
+    }
+
     glfwMakeContextCurrent(window);
 
     glfwSetKeyCallback(window, key_callback);
@@ -118,8 +129,9 @@ int main(void)
         if (!success)
         {
             glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+            std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
                       << infoLog << std::endl;
+            return 1;
         }
     }
 
@@ -137,8 +149,9 @@ int main(void)
         if (!success)
         {
             glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
+            std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
                       << infoLog << std::endl;
+            return 1;
         }
     }
 
@@ -157,8 +170,9 @@ int main(void)
         if (!success)
         {
             glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::PRORGAM::LINKING_FAILED\n"
+            std::cerr << "ERROR::SHADER::PRORGAM::LINKING_FAILED\n"
                       << infoLog << std::endl;
+            return 1;
         }
     }
 

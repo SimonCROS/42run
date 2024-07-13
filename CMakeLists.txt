@@ -23,13 +23,12 @@ endif()
 find_package(glfw3 3.3 REQUIRED)
 
 add_subdirectory(lib/glad)
-add_subdirectory(lib/stb_image)
 
 add_executable(42run src/main.cpp)
 
 target_link_libraries(42run PRIVATE glfw)
 target_link_libraries(42run PRIVATE OpenGL::GL)
 target_link_libraries(42run PRIVATE glad)
-target_link_libraries(42run PRIVATE stb_image)
 
 target_include_directories(42run PUBLIC ${PROJECT_BINARY_DIR})
+target_include_directories(42run PUBLIC ${PROJECT_SOURCE_DIR}/lib/stb_image)
