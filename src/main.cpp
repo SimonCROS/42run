@@ -6,6 +6,9 @@
 
 #include "42runConfig.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 const GLuint WIDTH = 800, HEIGHT = 600;
 
 // TODO Read from file
@@ -69,6 +72,12 @@ int main(void)
         // note that we start from 0!
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
+    };
+
+    float texCoords[] = {
+        0.0f, 0.0f, // lower-left corner
+        1.0f, 0.0f, // lower-right corner
+        0.5f, 1.0f  // top-center corner
     };
 
     //! Generate buffers
