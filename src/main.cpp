@@ -110,11 +110,10 @@ static int run(GLFWwindow *window)
         stbi_image_free(data);
     }
 
-    // glm::mat4 trans = glm::mat4(1.0f);
-    // trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
-    // trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-    // shaderProgram.set_mat4("transform", trans);
-    shaderProgram.set_mat4("transform", glm::identity<glm::mat4>());
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+    shaderProgram.use();
+    shaderProgram.set_mat4("transform", trans);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -123,8 +122,12 @@ static int run(GLFWwindow *window)
         glClearColor(0.7f, 0.9f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        trans = glm::rotate(trans, glm::radians(1.0f), glm::vec3(0.0, 0.0, 1.0));
+
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         shaderProgram.use();
+        shaderProgram.set_mat4("transform", trans);
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
