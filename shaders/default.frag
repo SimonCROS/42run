@@ -1,9 +1,12 @@
-#version 450
+#version 410
 
-layout (location = 0) in vec3 i_color;
+layout (location = 0) in vec3 Color;
+layout (location = 1) in vec2 TexCoord;
 
-layout (location = 0) out vec3 o_color;
+layout (location = 0) out vec4 FragColor;
+
+uniform sampler2D Texture;
 
 void main() {
-    o_color = i_color;
+    FragColor = texture(Texture, TexCoord) * vec4(Color, 1.0);
 }

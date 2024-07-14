@@ -24,7 +24,7 @@ find_package(glfw3 3.3 REQUIRED)
 
 add_subdirectory(lib/glad)
 
-add_executable(42run src/main.cpp)
+add_executable(42run src/main.cpp src/Shader.cpp src/ShaderProgram.cpp)
 
 target_link_libraries(42run PRIVATE glfw)
 target_link_libraries(42run PRIVATE OpenGL::GL)
