@@ -2,6 +2,9 @@
 #include <sstream>
 #include <iostream>
 
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "glad/gl.h"
 #include "logger.hpp"
 #include "ShaderProgram.hpp"
@@ -35,19 +38,28 @@ void ShaderProgram::use() const
     glUseProgram(id);
 }
 
-void ShaderProgram::set_bool(const std::string &name, bool value) const
+void ShaderProgram::set_bool(const std::string &name, const bool value) const { set_bool(name.c_str(), value); }
+void ShaderProgram::set_bool(const char *name, const bool value) const
 {
-    glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
+    glUniform1i(glGetUniformLocation(id, name), (int)value);
 }
 
-void ShaderProgram::set_int(const std::string &name, int value) const
+void ShaderProgram::set_int(const std::string &name, const int value) const { set_int(name.c_str(), value); }
+void ShaderProgram::set_int(const char *name, const int value) const
 {
-    glUniform1i(glGetUniformLocation(id, name.c_str()), value);
+    glUniform1i(glGetUniformLocation(id, name), value);
 }
 
-void ShaderProgram::set_float(const std::string &name, float value) const
+void ShaderProgram::set_float(const std::string &name, const float value) const { set_float(name.c_str(), value); }
+void ShaderProgram::set_float(const char *name, const float value) const
 {
-    glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+    glUniform1f(glGetUniformLocation(id, name), value);
+}
+
+void ShaderProgram::set_mat4(const std::string &name, const glm::mat4 &value) const { set_mat4(name.c_str(), value); }
+void ShaderProgram::set_mat4(const char *name, const glm::mat4 &value) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(id, name), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 bool ShaderProgram::link_program(const GLuint id)

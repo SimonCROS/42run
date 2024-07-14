@@ -1,7 +1,11 @@
 #include <iostream>
 
 #include "glad/gl.h"
+
 #include <GLFW/glfw3.h>
+
+#include <glm/mat4x4.hpp>
+#include <glm/ext.hpp>
 
 #include "42runConfig.h"
 #define STBI_FAILURE_USERMSG
@@ -105,6 +109,12 @@ static int run(GLFWwindow *window)
 
         stbi_image_free(data);
     }
+
+    // glm::mat4 trans = glm::mat4(1.0f);
+    // trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+    // trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+    // shaderProgram.set_mat4("transform", trans);
+    shaderProgram.set_mat4("transform", glm::identity<glm::mat4>());
 
     while (!glfwWindowShouldClose(window))
     {
