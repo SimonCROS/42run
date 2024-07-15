@@ -42,4 +42,5 @@ target_link_libraries(42run PRIVATE glm::glm)
 target_link_libraries(42run PRIVATE glad)
 
 target_include_directories(42run PUBLIC ${PROJECT_BINARY_DIR})
-target_include_directories(42run PUBLIC ${PROJECT_SOURCE_DIR}/lib/stb_image)
+target_include_directories(42run PUBLIC ${PROJECT_SOURCE_DIR}/lib/stb)
+target_include_directories(42run PUBLIC ${PROJECT_SOURCE_DIR}/lib/tinygltf)

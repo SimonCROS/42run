@@ -8,6 +8,7 @@
 #include <glm/ext.hpp>
 
 #include "42runConfig.h"
+#define TINYGLTF_NO_STB_IMAGE_WRITE
 #define STBI_FAILURE_USERMSG
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
