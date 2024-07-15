@@ -7,15 +7,27 @@
 #include <glm/mat4x4.hpp>
 #include <glm/ext.hpp>
 
-#include "42runConfig.h"
+#define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE_WRITE
-#define STBI_FAILURE_USERMSG
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#define STBI_FAILURE_USERMSG
+#include "tiny_gltf.h"
+
+#include "42runConfig.h"
 #include "Shader.hpp"
 #include "ShaderProgram.hpp"
 
 const GLuint WIDTH = 800, HEIGHT = 600;
+
+static void CheckErrors(std::string desc)
+{
+    GLenum e = glGetError();
+    if (e != GL_NO_ERROR)
+    {
+        fprintf(stderr, "OpenGL error in \"%s\": %d (%d)\n", desc.c_str(), e, e);
+        exit(20);
+    }
+}
 
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
@@ -47,6 +59,59 @@ static int run(GLFWwindow *window)
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
     };
+
+    tinygltf::TinyGLTF loader;
+    tinygltf::Model model;
+
+    bool ret = loader.LoadBinaryFromFile(&model, nullptr, nullptr, "../assets/magic_laboratory.glb");
+    for (tinygltf::Mesh &mesh : model.meshes)
+    {
+        for (tinygltf::Primitive &primitive : mesh.primitives)
+        {
+            for (auto it : primitive.attributes)
+            {
+                tinygltf::Accessor accessor = model.accessors[it.second];
+
+                int size = 1;
+                switch (accessor.type)
+                {
+                case TINYGLTF_TYPE_SCALAR:
+                    size = 1;
+                    break;
+                case TINYGLTF_TYPE_VEC2:
+                    size = 2;
+                    break;
+                case TINYGLTF_TYPE_VEC3:
+                    size = 3;
+                    break;
+                case TINYGLTF_TYPE_VEC4:
+                    size = 4;
+                    break;
+                default:
+                    assert(0);
+                }
+                if ((it.first.compare("POSITION") == 0) ||
+                    (it.first.compare("NORMAL") == 0) ||
+                    (it.first.compare("TEXCOORD_0") == 0))
+                {
+                    // if (gGLProgramState.attribs[it.first] >= 0)
+                    // {
+                    //     // Compute byteStride from Accessor + BufferView combination.
+                    //     int byteStride =
+                    //         accessor.ByteStride(model.bufferViews[accessor.bufferView]);
+                    //     assert(byteStride != -1);
+                    //     glVertexAttribPointer(gGLProgramState.attribs[it.first], size,
+                    //                           accessor.componentType,
+                    //                           accessor.normalized ? GL_TRUE : GL_FALSE,
+                    //                           byteStride, BUFFER_OFFSET(accessor.byteOffset));
+                    //     CheckErrors("vertex attrib pointer");
+                    //     glEnableVertexAttribArray(gGLProgramState.attribs[it.first]);
+                    //     CheckErrors("enable vertex attrib array");
+                    // }
+                }
+            }
+        }
+    }
 
     //! Generate buffers
     unsigned int VBO;
