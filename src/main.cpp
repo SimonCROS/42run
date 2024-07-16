@@ -8,14 +8,12 @@
 #include <glm/ext.hpp>
 
 #define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_FAILURE_USERMSG
-#include "tiny_gltf.h"
 
 #include "42runConfig.h"
 #include "Shader.hpp"
 #include "ShaderProgram.hpp"
+#include "Model.hpp"
+#include "ModelLoader.hpp"
 
 const GLuint WIDTH = 800, HEIGHT = 600;
 
@@ -60,58 +58,8 @@ static int run(GLFWwindow *window)
         1, 2, 3  // second triangle
     };
 
-    tinygltf::TinyGLTF loader;
-    tinygltf::Model model;
-
-    bool ret = loader.LoadBinaryFromFile(&model, nullptr, nullptr, "../assets/magic_laboratory.glb");
-    for (tinygltf::Mesh &mesh : model.meshes)
-    {
-        for (tinygltf::Primitive &primitive : mesh.primitives)
-        {
-            for (auto it : primitive.attributes)
-            {
-                tinygltf::Accessor accessor = model.accessors[it.second];
-
-                int size = 1;
-                switch (accessor.type)
-                {
-                case TINYGLTF_TYPE_SCALAR:
-                    size = 1;
-                    break;
-                case TINYGLTF_TYPE_VEC2:
-                    size = 2;
-                    break;
-                case TINYGLTF_TYPE_VEC3:
-                    size = 3;
-                    break;
-                case TINYGLTF_TYPE_VEC4:
-                    size = 4;
-                    break;
-                default:
-                    assert(0);
-                }
-                if ((it.first.compare("POSITION") == 0) ||
-                    (it.first.compare("NORMAL") == 0) ||
-                    (it.first.compare("TEXCOORD_0") == 0))
-                {
-                    // if (gGLProgramState.attribs[it.first] >= 0)
-                    // {
-                    //     // Compute byteStride from Accessor + BufferView combination.
-                    //     int byteStride =
-                    //         accessor.ByteStride(model.bufferViews[accessor.bufferView]);
-                    //     assert(byteStride != -1);
-                    //     glVertexAttribPointer(gGLProgramState.attribs[it.first], size,
-                    //                           accessor.componentType,
-                    //                           accessor.normalized ? GL_TRUE : GL_FALSE,
-                    //                           byteStride, BUFFER_OFFSET(accessor.byteOffset));
-                    //     CheckErrors("vertex attrib pointer");
-                    //     glEnableVertexAttribArray(gGLProgramState.attribs[it.first]);
-                    //     CheckErrors("enable vertex attrib array");
-                    // }
-                }
-            }
-        }
-    }
+    Model model;
+    ModelLoader::loadBinary("../assets/magic_laboratory.glb", model);
 
     //! Generate buffers
     unsigned int VBO;

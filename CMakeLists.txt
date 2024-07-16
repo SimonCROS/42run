@@ -34,7 +34,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glm)
 
-add_executable(42run src/main.cpp src/Shader.cpp src/ShaderProgram.cpp)
+add_executable(42run src/main.cpp src/Shader.cpp src/ShaderProgram.cpp src/Model.cpp src/ModelLoader.cpp)
 
 target_link_libraries(42run PRIVATE glfw)
 target_link_libraries(42run PRIVATE OpenGL::GL)
