@@ -1,15 +1,15 @@
-#ifndef MODEL_H
-#define MODEL_H
+// #ifndef MODEL_H
+// #define MODEL_H
 
-class Model
-{
-public:
-    void draw();
+// class Model
+// {
+// public:
+//     void draw();
 
-    static bool loadAscii(const char *filename, Model &model);
-    static bool loadBinary(const char *filename, Model &model);
-private:
-    static bool load(const char *filename, Model &model, bool binary);
-};
+//     static bool loadAscii(const char *filename, Model &model);
+//     static bool loadBinary(const char *filename, Model &model);
+// private:
+//     static bool load(const char *filename, Model &model, bool binary);
+// };
 
-#endif
+// #endif

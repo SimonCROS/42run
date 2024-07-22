@@ -10,8 +10,8 @@
 
 namespace ModelLoader
 {
-    bool loadAscii(const char *filename, Model &model);
-    bool loadBinary(const char *filename, Model &model);
+    bool loadAscii(const char *filename, tinygltf::Model &model);
+    bool loadBinary(const char *filename, tinygltf::Model &model);
 
     std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model);
 };

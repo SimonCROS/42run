@@ -1,3 +1,5 @@
+#define TINYGLTF_IMPLEMENTATION
+
 #include <iostream>
 
 #include "glad/gl.h"
@@ -7,9 +9,6 @@
 #include <glm/mat4x4.hpp>
 #include <glm/ext.hpp>
 
-#define TINYGLTF_IMPLEMENTATION
-
-#include "42runConfig.h"
 #include "Shader.hpp"
 #include "ShaderProgram.hpp"
 #include "Model.hpp"
@@ -41,7 +40,6 @@ static void error_callback(int error, const char *description)
 static int run(GLFWwindow *window)
 {
     int version = gladLoadGL(glfwGetProcAddress);
-    std::cout << "42run " << PROJECT_VERSION_MAJOR << "." << PROJECT_VERSION_MINOR << std::endl;
     std::cout << "OpenGL " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
 
     float vertices[] = {
@@ -58,7 +56,7 @@ static int run(GLFWwindow *window)
         1, 2, 3  // second triangle
     };
 
-    Model model;
+    tinygltf::Model model;
     ModelLoader::loadBinary("../assets/magic_laboratory.glb", model);
 
     //! Generate buffers

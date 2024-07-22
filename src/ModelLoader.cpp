@@ -2,12 +2,16 @@
 
 #include "ModelLoader.hpp"
 
+#include "glad/gl.h"
+
+using namespace tinygltf;
+
 namespace ModelLoader
 {
-    static bool load(const char *filename, Model &model, bool binary)
+    static bool load(const char *filename, bool binary)
     {
-        tinygltf::TinyGLTF loader;
-        tinygltf::Model tinyModel;
+        TinyGLTF loader;
+        Model tinyModel;
         std::string err;
         std::string warn;
         bool res;
@@ -37,6 +41,10 @@ namespace ModelLoader
             std::cout << tinyModel << std::endl;
             std::cout << "Buffers : " << tinyModel.buffers.size() << std::endl;
             std::cout << "Buffer Views : " << tinyModel.bufferViews.size() << std::endl;
+
+            GLuint vao;
+            glGenVertexArrays(1, &vao);
+            glBindVertexArray(vao);
         }
         else
         {
@@ -48,28 +56,28 @@ namespace ModelLoader
 
     bool loadBinary(const char *filename, Model &model)
     {
-        return load(filename, model, true);
+        return load(filename, true);
     }
 
     bool loadAscii(const char *filename, Model &model)
     {
-        return load(filename, model, false);
+        return load(filename, false);
     }
 
-    std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model)
+    std::ostream &operator<<(std::ostream &os, const Model &model)
     {
         for (auto &mesh : model.meshes)
         {
             os << "mesh : " << mesh.name << '\n';
             for (auto &primitive : mesh.primitives)
             {
-                const tinygltf::Accessor &indexAccessor =
+                const Accessor &indexAccessor =
                     model.accessors[primitive.indices];
 
                 os << "indexaccessor: count " << indexAccessor.count << ", type "
                    << indexAccessor.componentType << '\n';
 
-                const tinygltf::Material &mat = model.materials[primitive.material];
+                const Material &mat = model.materials[primitive.material];
                 for (auto &mats : mat.values)
                 {
                     os << "mat : " << mats.first.c_str() << '\n';
