@@ -14,6 +14,8 @@
 #include "Model.hpp"
 #include "ModelLoader.hpp"
 
+#define RESOURCE_PATH "./resources/"
+
 const GLuint WIDTH = 800, HEIGHT = 600;
 
 static void CheckErrors(std::string desc)
@@ -57,7 +59,7 @@ static int run(GLFWwindow *window)
     };
 
     tinygltf::Model model;
-    ModelLoader::loadBinary("../assets/magic_laboratory.glb", model);
+    ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", model);
 
     //! Generate buffers
     unsigned int VBO;
@@ -91,8 +93,8 @@ static int run(GLFWwindow *window)
 
     //! Create shader program
     const ShaderProgram shaderProgram(
-        Shader("../shaders/default.vert", GL_VERTEX_SHADER),
-        Shader("../shaders/default.frag", GL_FRAGMENT_SHADER));
+        Shader(RESOURCE_PATH "shaders/default.vert", GL_VERTEX_SHADER),
+        Shader(RESOURCE_PATH "shaders/default.frag", GL_FRAGMENT_SHADER));
 
     //! Create texture
     unsigned int texture;
@@ -106,7 +108,7 @@ static int run(GLFWwindow *window)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         int width, height, nrChannels;
-        stbi_uc *data = stbi_load("../assets/textures/uvs.png", &width, &height, &nrChannels, 0);
+        stbi_uc *data = stbi_load(RESOURCE_PATH "textures/uvs.png", &width, &height, &nrChannels, 0);
 
         if (data == nullptr)
         {
@@ -154,6 +156,8 @@ static int run(GLFWwindow *window)
 
 int main(void)
 {
+    std::cout << "my directory is " << std::filesystem::current_path() << "\n";
+
     glfwInit();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
