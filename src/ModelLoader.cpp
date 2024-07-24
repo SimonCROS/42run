@@ -8,21 +8,21 @@ using namespace tinygltf;
 
 namespace ModelLoader
 {
-    static bool load(const char *filename, bool binary)
+    static bool load(const char* filename, bool binary)
     {
         TinyGLTF loader;
-        Model tinyModel;
+        Model model;
         std::string err;
         std::string warn;
         bool res;
 
         if (binary)
         {
-            res = loader.LoadBinaryFromFile(&tinyModel, &err, &warn, filename);
+            res = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
         }
         else
         {
-            res = loader.LoadASCIIFromFile(&tinyModel, &err, &warn, filename);
+            res = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
         }
 
         if (!warn.empty())
@@ -38,9 +38,7 @@ namespace ModelLoader
         if (res)
         {
             std::cout << "Loaded glTF: " << filename << std::endl;
-            std::cout << tinyModel << std::endl;
-            std::cout << "Buffers : " << tinyModel.buffers.size() << std::endl;
-            std::cout << "Buffer Views : " << tinyModel.bufferViews.size() << std::endl;
+            std::cout << model << std::endl;
 
             GLuint vao;
             glGenVertexArrays(1, &vao);
@@ -54,36 +52,38 @@ namespace ModelLoader
         return res;
     }
 
-    bool loadBinary(const char *filename, Model &model)
+    bool loadBinary(const char* filename, Model& model)
     {
         return load(filename, true);
     }
 
-    bool loadAscii(const char *filename, Model &model)
+    bool loadAscii(const char* filename, Model& model)
     {
         return load(filename, false);
     }
 
-    std::ostream &operator<<(std::ostream &os, const Model &model)
+    std::ostream& operator<<(std::ostream& os, const Model& model)
     {
-        for (auto &mesh : model.meshes)
+        os << "buffers : " << model.buffers.size() << '\n';
+        os << "bufferviews : " << model.bufferViews.size() << '\n';
+        for (auto& mesh : model.meshes)
         {
             os << "mesh : " << mesh.name << '\n';
-            for (auto &primitive : mesh.primitives)
+            for (auto& primitive : mesh.primitives)
             {
-                const Accessor &indexAccessor =
+                const Accessor& indexAccessor =
                     model.accessors[primitive.indices];
 
                 os << "indexaccessor: count " << indexAccessor.count << ", type "
-                   << indexAccessor.componentType << '\n';
+                    << indexAccessor.componentType << '\n';
 
-                const Material &mat = model.materials[primitive.material];
-                for (auto &mats : mat.values)
+                const Material& mat = model.materials[primitive.material];
+                for (auto& mats : mat.values)
                 {
                     os << "mat : " << mats.first.c_str() << '\n';
                 }
 
-                for (auto &image : model.images)
+                for (auto& image : model.images)
                 {
                     os << "image name : " << image.uri << '\n';
                     os << "  size : " << image.image.size() << '\n';
@@ -93,7 +93,7 @@ namespace ModelLoader
                 os << "indices : " << primitive.indices << '\n';
                 os << "mode : " << "(" << primitive.mode << ")" << '\n';
 
-                for (auto &attrib : primitive.attributes)
+                for (auto& attrib : primitive.attributes)
                 {
                     os << "attribute : " << attrib.first.c_str() << '\n';
                 }
