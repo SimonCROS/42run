@@ -212,6 +212,9 @@ _deps
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
+# CMake
+build/
+
 # Local History for Visual Studio Code
 .history/
 
