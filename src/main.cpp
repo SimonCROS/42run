@@ -1,5 +1,3 @@
-#define TINYGLTF_IMPLEMENTATION
-
 #include <iostream>
 
 #include "glad/gl.h"
