@@ -4,14 +4,13 @@
 
 #include "glad/gl.h"
 
-using namespace tinygltf;
-
 namespace ModelLoader
 {
-    static bool load(const char *filename, Model *outputModel, bool binary)
+    static bool load(const char* filename, tinygltf::Model* outputModel, GLuint* vao, std::map<int, GLuint>& buffers,
+                     bool binary)
     {
-        TinyGLTF loader;
-        Model model;
+        tinygltf::TinyGLTF loader;
+        tinygltf::Model model;
         std::string err;
         std::string warn;
         bool res;
@@ -38,21 +37,18 @@ namespace ModelLoader
         if (res)
         {
             std::cout << "Loaded glTF: " << filename << std::endl;
-            std::cout << model << std::endl;
 
-            GLuint vao;
-            glGenVertexArrays(1, &vao);
-            glBindVertexArray(vao);
+            glGenVertexArrays(1, vao);
+            glBindVertexArray(*vao);
 
-            std::map<int, GLuint> vbos;
-            for (auto mesh : model.meshes)
+            for (auto& mesh : model.meshes)
             {
-                for (const auto primitive : mesh.primitives)
+                for (const auto& primitive : mesh.primitives)
                 {
-                    for (const auto attribute : primitive.attributes)
+                    for (const auto& [attributeName, accessorId] : primitive.attributes)
                     {
-                        const auto accessor = model.accessors[attribute.second];
-                        const auto bufferView = model.bufferViews[accessor.bufferView];
+                        const auto& accessor = model.accessors[accessorId];
+                        const auto& bufferView = model.bufferViews[accessor.bufferView];
 
                         if (bufferView.target == 0)
                         {
@@ -60,22 +56,23 @@ namespace ModelLoader
                             continue; // Unsupported bufferView.
                         }
 
-                        if (vbos.count(accessor.bufferView) == 0)
+                        if (buffers.count(accessor.bufferView) == 0)
                         {
-                            const auto buffer = model.buffers[bufferView.buffer];
+                            const auto& buffer = model.buffers[bufferView.buffer];
                             GLuint glBuffer = 0;
 
                             glGenBuffers(1, &glBuffer);
                             glBindBuffer(bufferView.target, glBuffer);
-                            glBufferStorage(bufferView.target, bufferView.byteLength, &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+                            glBufferData(bufferView.target, static_cast<GLsizeiptr>(bufferView.byteLength),
+                                         &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
 
-                            vbos[accessor.bufferView] = glBuffer;
+                            buffers[accessor.bufferView] = glBuffer;
                         }
 
                         int byteStride = accessor.ByteStride(bufferView);
-                        glBindBuffer(GL_ARRAY_BUFFER, vbos[accessor.bufferView]);
+                        glBindBuffer(GL_ARRAY_BUFFER, buffers[accessor.bufferView]);
 
-                        int size = GetNumComponentsInType(accessor.type);
+                        const int size = tinygltf::GetNumComponentsInType(accessor.type);
                         if (size < 0 || size > 4)
                         {
                             std::cerr << "WARN: matrices are not supported as per vertex attribute";
@@ -83,11 +80,11 @@ namespace ModelLoader
                         }
 
                         int vaa = -1;
-                        if (attribute.first.compare("POSITION") == 0)
+                        if (attributeName == "POSITION")
                             vaa = 0;
-                        else if (attribute.first.compare("NORMAL") == 0)
+                        else if (attributeName == "NORMAL")
                             vaa = 1;
-                        else if (attribute.first.compare("TEXCOORD_0") == 0)
+                        else if (attributeName == "TEXCOORD_0")
                             vaa = 2;
 
                         if (vaa > -1)
@@ -95,34 +92,36 @@ namespace ModelLoader
                             glEnableVertexAttribArray(vaa);
                             glVertexAttribPointer(vaa, size, accessor.componentType,
                                                   accessor.normalized ? GL_TRUE : GL_FALSE,
-                                                  byteStride, (void *)accessor.byteOffset);
+                                                  byteStride, reinterpret_cast<const void*>(accessor.byteOffset));
                         }
                         else
                         {
-                            std::cerr << "WARN: unknown attribute `" << attribute.first << '`' << std::endl;
+                            std::cerr << "WARN: unknown attribute `" << attributeName << '`' << std::endl;
                         }
                     }
 
                     if (primitive.indices > 0)
                     {
-                        const auto accessor = model.accessors[primitive.indices];
-                        if (vbos.count(accessor.bufferView) == 0)
+                        const auto& accessor = model.accessors[primitive.indices];
+                        if (buffers.count(accessor.bufferView) == 0)
                         {
-                            const auto bufferView = model.bufferViews[accessor.bufferView];
-                            const auto buffer = model.buffers[bufferView.buffer];
+                            const auto& bufferView = model.bufferViews[accessor.bufferView];
+                            const auto& buffer = model.buffers[bufferView.buffer];
                             GLuint glBuffer = 0;
 
                             glGenBuffers(1, &glBuffer);
                             glBindBuffer(bufferView.target, glBuffer);
-                            glBufferStorage(bufferView.target, bufferView.byteLength, &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+                            glBufferData(bufferView.target, static_cast<GLsizeiptr>(bufferView.byteLength),
+                                         &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
 
-                            vbos[accessor.bufferView] = glBuffer;
+                            buffers[accessor.bufferView] = glBuffer;
                         }
                     }
                 }
             }
 
             *outputModel = model;
+            glBindVertexArray(0);
         }
         else
         {
@@ -132,37 +131,37 @@ namespace ModelLoader
         return res;
     }
 
-    bool loadBinary(const char *filename, Model *model)
+    bool loadBinary(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers)
     {
-        return load(filename, model, true);
+        return load(filename, model, vao, buffers, true);
     }
 
-    bool loadAscii(const char *filename, Model *model)
+    bool loadAscii(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers)
     {
-        return load(filename, model, false);
+        return load(filename, model, vao, buffers, false);
     }
 
-    std::ostream &operator<<(std::ostream &os, const Model &model)
+    std::ostream& operator<<(std::ostream& os, const tinygltf::Model& model)
     {
         os << "buffers : " << model.buffers.size() << '\n';
         os << "bufferviews : " << model.bufferViews.size() << '\n';
-        for (auto &mesh : model.meshes)
+        for (auto& mesh : model.meshes)
         {
             os << "mesh : " << mesh.name << '\n';
-            for (auto &primitive : mesh.primitives)
+            for (auto& primitive : mesh.primitives)
             {
-                const Accessor &indexAccessor = model.accessors[primitive.indices];
+                const auto& indexAccessor = model.accessors[primitive.indices];
 
                 os << "indexaccessor: count " << indexAccessor.count << ", type "
-                   << indexAccessor.componentType << '\n';
+                    << indexAccessor.componentType << '\n';
 
-                const Material &mat = model.materials[primitive.material];
-                for (auto &mats : mat.values)
+                const auto& mat = model.materials[primitive.material];
+                for (auto& mats : mat.values)
                 {
                     os << "mat : " << mats.first.c_str() << '\n';
                 }
 
-                for (auto &image : model.images)
+                for (auto& image : model.images)
                 {
                     os << "image name : " << image.uri << '\n';
                     os << "  size : " << image.image.size() << '\n';
@@ -172,7 +171,7 @@ namespace ModelLoader
                 os << "indices : " << primitive.indices << '\n';
                 os << "mode : " << "(" << primitive.mode << ")" << '\n';
 
-                for (auto &attrib : primitive.attributes)
+                for (auto& attrib : primitive.attributes)
                 {
                     os << "attribute : " << attrib.first.c_str() << '\n';
                 }
