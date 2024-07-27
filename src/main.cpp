@@ -62,7 +62,7 @@ static GLuint GetDrawMode(int tinygltfMode)
         return -1;
 }
 
-static void DrawMesh(tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::map<int, GLuint> buffers, const ShaderProgram &program)
+static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::map<int, GLuint> buffers, const ShaderProgram &program)
 {
     for (const auto &primitive : mesh.primitives)
     {
@@ -119,6 +119,41 @@ static void DrawMesh(tinygltf::Model &model, const tinygltf::Mesh &mesh, const s
     }
 }
 
+static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::map<int, GLuint> buffers, const ShaderProgram &program, glm::mat4 transform)
+{
+    if (node.matrix.size() == 16)
+    {
+        transform *= glm::make_mat4(node.matrix.data());
+    }
+    else
+    {
+        if (node.translation.size() == 3)
+        {
+            transform = glm::translate(transform, glm::vec3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]));
+        }
+
+        if (node.rotation.size() == 4)
+        {
+            transform *= glm::mat4_cast(glm::quat((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]));
+        }
+
+        if (node.scale.size() == 3)
+        {
+            transform = glm::translate(transform, glm::vec3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]));
+        }
+    }
+
+    if (node.mesh >= 0 && node.mesh < model.meshes.size())
+    {
+        program.SetMat4("transform", transform);
+        DrawMesh(model, model.meshes[node.mesh], buffers, program);
+    }
+    for (const int &child : node.children)
+    {
+        DrawNode(model, model.nodes[child], buffers, program, transform);
+    }
+}
+
 static int run(GLFWwindow *window)
 {
     int version = gladLoadGL(glfwGetProcAddress);
@@ -144,7 +179,7 @@ static int run(GLFWwindow *window)
     ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers);
 
     //! Create shader program
-    const ShaderProgram shaderProgram(
+    const ShaderProgram program(
         Shader(RESOURCE_PATH "shaders/default.vert", GL_VERTEX_SHADER),
         Shader(RESOURCE_PATH "shaders/default.frag", GL_FRAGMENT_SHADER));
 
@@ -176,10 +211,7 @@ static int run(GLFWwindow *window)
         stbi_image_free(data);
     }
 
-    auto trans = glm::mat4(1.0f);
-    trans = glm::scale(trans, glm::vec3(0.1, 0.1, 0.1));
-    shaderProgram.Use();
-    shaderProgram.SetMat4("transform", trans);
+    auto transform = glm::mat4(0.2f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -188,29 +220,27 @@ static int run(GLFWwindow *window)
         glClearColor(0.7f, 0.9f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        trans = glm::rotate(trans, glm::radians(1.0f), glm::vec3(0.0, 0.0, 1.0));
-
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        shaderProgram.Use();
-        shaderProgram.SetMat4("transform", trans);
+        transform = glm::rotate(transform, glm::radians(1.0f), glm::vec3(0.0, 0.0, 1.0));
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
-        for (const auto &mesh : model.meshes)
-        {
-            for (const auto &primitive : mesh.primitives)
-            {
-                if (primitive.indices < 0)
-                    continue;
 
-                const auto &indexAccessor = model.accessors[primitive.indices];
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[indexAccessor.bufferView]);
-                glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count),
-                               indexAccessor.componentType,
-                               reinterpret_cast<const void *>(indexAccessor.byteOffset));
+        program.Use();
+        for (const auto &scene : model.scenes)
+        {
+            for (const int &child : scene.nodes)
+            {
+                DrawNode(model, model.nodes[child], buffers, program, transform);
             }
         }
+        
+
+        // for (const auto &mesh : model.meshes)
+        // {
+        //     DrawMesh(model, mesh, buffers, program);
+        // }
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);

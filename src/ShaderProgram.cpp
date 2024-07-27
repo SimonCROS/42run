@@ -31,6 +31,9 @@ ShaderProgram::ShaderProgram(const Shader &vertexShader, const Shader &fragmentS
     attributes["POSITION"] = glGetAttribLocation(id, "in_position");
     attributes["NORMAL"] = glGetAttribLocation(id, "in_position2");
     attributes["TEXCOORD_0"] = glGetAttribLocation(id, "in_texcoord");
+    std::cout << attributes["POSITION"] << std::endl;
+    std::cout << attributes["NORMAL"] << std::endl;
+    std::cout << attributes["TEXCOORD_0"] << std::endl;
 }
 
 ShaderProgram::~ShaderProgram()
