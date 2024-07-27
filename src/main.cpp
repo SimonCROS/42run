@@ -119,7 +119,7 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
     }
 }
 
-static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::map<int, GLuint> buffers, const ShaderProgram &program, glm::mat4 transform)
+static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::map<int, GLuint> buffers, const ShaderProgram &program, glm::dmat4 transform)
 {
     if (node.matrix.size() == 16)
     {
@@ -129,17 +129,17 @@ static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const s
     {
         if (node.translation.size() == 3)
         {
-            transform = glm::translate(transform, glm::vec3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]));
+            transform = glm::translate(transform, glm::make_vec3(node.translation.data()));
         }
 
         if (node.rotation.size() == 4)
         {
-            transform *= glm::mat4_cast(glm::quat((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]));
+            transform *= glm::mat4_cast(glm::make_quat(node.rotation.data()));
         }
 
         if (node.scale.size() == 3)
         {
-            transform = glm::translate(transform, glm::vec3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]));
+            transform = glm::scale(transform, glm::make_vec3(node.scale.data()));
         }
     }
 
@@ -211,18 +211,22 @@ static int run(GLFWwindow *window)
         stbi_image_free(data);
     }
 
-    auto transform = glm::mat4(0.2f);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    auto transform = glm::identity<glm::dmat4>();
+    transform = glm::scale(transform, glm::dvec3(.3, .3, .3));
 
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
 
         glClearColor(0.7f, 0.9f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        transform = glm::rotate(transform, glm::radians(1.0), glm::dvec3(0.0, 1.0, 0.0));
 
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        transform = glm::rotate(transform, glm::radians(1.0f), glm::vec3(0.0, 0.0, 1.0));
-
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
@@ -235,7 +239,6 @@ static int run(GLFWwindow *window)
                 DrawNode(model, model.nodes[child], buffers, program, transform);
             }
         }
-        
 
         // for (const auto &mesh : model.meshes)
         // {
