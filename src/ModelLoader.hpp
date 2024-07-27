@@ -10,8 +10,8 @@
 
 namespace ModelLoader
 {
-    bool loadAscii(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers);
-    bool loadBinary(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers);
+    bool loadAscii(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers, std::map<int, GLuint> &textures);
+    bool loadBinary(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers, std::map<int, GLuint> &textures);
 
     std::ostream& operator<<(std::ostream& os, const tinygltf::Model& model);
 };

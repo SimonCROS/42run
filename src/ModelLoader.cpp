@@ -156,7 +156,7 @@ namespace ModelLoader
     //     gGLProgramState.uniforms["isCurvesLoc"] = isCurvesLoc;
     // };
 
-    static bool load(const char *filename, tinygltf::Model *outputModel, GLuint *vao, std::map<int, GLuint> &buffers,
+    static bool load(const char *filename, tinygltf::Model *outputModel, GLuint *vao, std::map<int, GLuint> &buffers, std::map<int, GLuint> &textures,
                      bool binary)
     {
         tinygltf::TinyGLTF loader;
@@ -223,6 +223,10 @@ namespace ModelLoader
                         }
                     }
 
+                    if (primitive.material > -1)
+                    {
+                    }
+
                     {
                         const auto &accessor = model.accessors[primitive.indices];
                         if (buffers.count(accessor.bufferView) == 0)
@@ -253,14 +257,14 @@ namespace ModelLoader
         return res;
     }
 
-    bool loadBinary(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers)
+    bool loadBinary(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers, std::map<int, GLuint> &textures)
     {
-        return load(filename, model, vao, buffers, true);
+        return load(filename, model, vao, buffers, textures, true);
     }
 
-    bool loadAscii(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers)
+    bool loadAscii(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers, std::map<int, GLuint> &textures)
     {
-        return load(filename, model, vao, buffers, false);
+        return load(filename, model, vao, buffers, textures, false);
     }
 
     std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model)

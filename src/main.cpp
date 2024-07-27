@@ -176,7 +176,8 @@ static int run(GLFWwindow *window)
     tinygltf::Model model;
     GLuint vao;
     std::map<int, GLuint> buffers;
-    ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers);
+    std::map<int, GLuint> textures;
+    ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures);
 
     //! Create shader program
     const ShaderProgram program(
