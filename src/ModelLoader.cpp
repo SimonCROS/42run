@@ -70,36 +70,6 @@ namespace ModelLoader
 
                             buffers[accessor.bufferView] = glBuffer;
                         }
-
-                        int byteStride = accessor.ByteStride(bufferView);
-                        glBindBuffer(GL_ARRAY_BUFFER, buffers[accessor.bufferView]);
-
-                        const int size = tinygltf::GetNumComponentsInType(accessor.type);
-                        if (size < 0 || size > 4)
-                        {
-                            std::cerr << "WARN: matrices are not supported as per vertex attribute";
-                            continue;
-                        }
-
-                        int vaa = -1;
-                        if (attributeName == "POSITION")
-                            vaa = 0;
-                        else if (attributeName == "NORMAL")
-                            vaa = 1;
-                        else if (attributeName == "TEXCOORD_0")
-                            vaa = 2;
-
-                        if (vaa > -1)
-                        {
-                            glEnableVertexAttribArray(vaa);
-                            glVertexAttribPointer(vaa, size, accessor.componentType,
-                                                  accessor.normalized ? GL_TRUE : GL_FALSE,
-                                                  byteStride, reinterpret_cast<const void*>(accessor.byteOffset));
-                        }
-                        else
-                        {
-                            std::cerr << "WARN: unknown attribute `" << attributeName << '`' << std::endl;
-                        }
                     }
 
                     {
