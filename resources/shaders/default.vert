@@ -7,12 +7,13 @@ layout (location = 2) in vec2 in_texcoord;
 layout (location = 0) out vec3 normal;
 layout (location = 1) out vec2 texcoord;
 
-// uniform mat4 view;
+uniform mat4 projection;
+uniform mat4 view;
 uniform mat4 transform;
 
 void main()
 {
-    gl_Position = transform * vec4(in_position, 1.0);
+    gl_Position = projection * view * transform * vec4(in_position, 1.0);
     normal = in_normal;
     texcoord = in_texcoord;
 }

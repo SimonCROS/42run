@@ -215,17 +215,18 @@ static int run(GLFWwindow *window)
     glDepthFunc(GL_LESS);
 
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    auto transform = glm::identity<glm::dmat4>();
-    transform = glm::scale(transform, glm::dvec3(.3, .3, .3));
+    glm::dmat4 transform = glm::identity<glm::dmat4>();
+    transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 cameraPos = glm::vec3(0.0f, 3.0f, 5.2f);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 1.0f, 0.0f);   
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -234,13 +235,12 @@ static int run(GLFWwindow *window)
         glClearColor(0.7f, 0.9f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        transform = glm::rotate(transform, glm::radians(1.0), glm::dvec3(0.0, 1.0, 0.0));
-
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
 
         program.Use();
-        // program.SetMat4("view", view);
+        program.SetMat4("projection", proj);
+        program.SetMat4("view", view);
         for (const auto &scene : model.scenes)
         {
             for (const int &child : scene.nodes)
