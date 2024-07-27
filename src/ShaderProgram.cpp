@@ -9,7 +9,8 @@
 #include "logger.hpp"
 #include "ShaderProgram.hpp"
 
-ShaderProgram::ShaderProgram(const Shader &vertexShader, const Shader &fragmentShader) : id(0) // id 0 is ignored with glDeleteProgram
+ShaderProgram::ShaderProgram(const Shader& vertexShader, const Shader& fragmentShader) : id(0)
+// id 0 is ignored with glDeleteProgram
 {
     if (vertexShader.id == 0 || fragmentShader.id == 0)
     {
@@ -72,7 +73,17 @@ void ShaderProgram::SetFloat(const std::string_view& name, const float value) co
     glUniform1f(glGetUniformLocation(id, name.data()), value);
 }
 
-void ShaderProgram::SetMat4(const std::string_view& name, const glm::mat4 &value) const
+void ShaderProgram::SetVec3(const std::string_view& name, const glm::vec3& value) const
+{
+    glUniform3f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z);
+}
+
+void ShaderProgram::SetVec4(const std::string_view& name, const glm::vec4& value) const
+{
+    glUniform4f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z, value.w);
+}
+
+void ShaderProgram::SetMat4(const std::string_view& name, const glm::mat4& value) const
 {
     glUniformMatrix4fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, glm::value_ptr(value));
 }

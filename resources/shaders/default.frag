@@ -5,8 +5,9 @@ layout (location = 1) in vec2 texcoord;
 
 layout (location = 0) out vec4 fragColor;
 
-uniform sampler2D Texture;
+//uniform sampler2D texture;
+uniform vec4 texColor;
 
 void main() {
-    fragColor = texture(Texture, texcoord);
+    fragColor = texColor;//texture(texture, texcoord);
 }

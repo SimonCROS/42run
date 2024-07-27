@@ -18,33 +18,33 @@
 
 const GLuint WIDTH = 800, HEIGHT = 600;
 
-static void CheckErrors(std::string desc)
+static void CheckErrors(const std::string_view& desc)
 {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR)
     {
-        fprintf(stderr, "OpenGL error in \"%s\": %d (%d)\n", desc.c_str(), e, e);
+        std::cerr << "OpenGL error in \"" << desc << "\": " << e << std::endl;
         exit(20);
     }
 }
 
-static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-static void error_callback(int error, const char *description)
+static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error: %s\n", description);
 }
 
-constexpr static void *BufferOffset(const long offset)
+static inline void* BufferOffset(const size_t offset)
 {
-    return reinterpret_cast<void *>(offset);
+    return reinterpret_cast<void*>(offset);
 }
 
-static GLuint GetDrawMode(int tinygltfMode)
+static int GetDrawMode(int tinygltfMode)
 {
     if (tinygltfMode == TINYGLTF_MODE_TRIANGLES)
         return GL_TRIANGLES;
@@ -62,18 +62,19 @@ static GLuint GetDrawMode(int tinygltfMode)
         return -1;
 }
 
-static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::map<int, GLuint> buffers, const ShaderProgram &program)
+static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const std::map<int, GLuint>& buffers,
+                     const std::map<int, GLuint>& textures, const ShaderProgram& program)
 {
-    for (const auto &primitive : mesh.primitives)
+    for (const auto& primitive : mesh.primitives)
     {
         if (primitive.indices < 0)
             continue;
 
-        for (const auto &[attribute, accessorId] : primitive.attributes)
+        for (const auto& [attribute, accessorId] : primitive.attributes)
         {
             assert(accessorId >= 0);
 
-            const tinygltf::Accessor &accessor = model.accessors[accessorId];
+            const tinygltf::Accessor& accessor = model.accessors[accessorId];
 
             glBindBuffer(GL_ARRAY_BUFFER, buffers.at(accessor.bufferView));
             CheckErrors("bind buffer");
@@ -96,7 +97,19 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
             }
         }
 
-        const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
+        if (primitive.material >= 0)
+        {
+            const auto& material = model.materials[primitive.material];
+            int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
+            if (textureId >= 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + material.pbrMetallicRoughness.baseColorTexture.texCoord);
+                glBindTexture(GL_TEXTURE_2D, textures.at(textureId));
+            }
+            program.SetVec4("texColor", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
+        }
+
+        const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers.at(indexAccessor.bufferView));
         CheckErrors("bind buffer");
@@ -104,11 +117,11 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
         int mode = GetDrawMode(primitive.mode);
         assert(mode != -1);
 
-        glDrawElements(mode, indexAccessor.count, indexAccessor.componentType,
+        glDrawElements(mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
                        BufferOffset(indexAccessor.byteOffset));
         CheckErrors("draw elements");
 
-        for (const auto &[attribute, accessorId] : primitive.attributes)
+        for (const auto& [attribute, accessorId] : primitive.attributes)
         {
             int attributeLocation = program.GetAttributeLocation(attribute);
             if (attributeLocation != -1)
@@ -119,7 +132,8 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
     }
 }
 
-static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::map<int, GLuint> buffers, const ShaderProgram &program, glm::dmat4 transform)
+static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const std::map<int, GLuint>& buffers,
+                     const std::map<int, GLuint>& textures, const ShaderProgram& program, glm::dmat4 transform)
 {
     if (node.matrix.size() == 16)
     {
@@ -146,32 +160,18 @@ static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const s
     if (node.mesh >= 0 && node.mesh < model.meshes.size())
     {
         program.SetMat4("transform", transform);
-        DrawMesh(model, model.meshes[node.mesh], buffers, program);
+        DrawMesh(model, model.meshes[node.mesh], buffers, textures, program);
     }
-    for (const int &child : node.children)
+    for (const int& child : node.children)
     {
-        DrawNode(model, model.nodes[child], buffers, program, transform);
+        DrawNode(model, model.nodes[child], buffers, textures, program, transform);
     }
 }
 
-static int run(GLFWwindow *window)
+static int run(GLFWwindow* window)
 {
     int version = gladLoadGL(glfwGetProcAddress);
     std::cout << "OpenGL " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
-
-    float vertices[] = {
-        // positions      // colors         // texture coords
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
-    };
-
-    unsigned int indices[] = {
-        // note that we start from 0!
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
 
     tinygltf::Model model;
     GLuint vao;
@@ -184,34 +184,6 @@ static int run(GLFWwindow *window)
         Shader(RESOURCE_PATH "shaders/default.vert", GL_VERTEX_SHADER),
         Shader(RESOURCE_PATH "shaders/default.frag", GL_FRAGMENT_SHADER));
 
-    //! Create texture
-    unsigned int texture;
-    {
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        int width, height, nrChannels;
-        stbi_uc *data = stbi_load(RESOURCE_PATH "textures/uvs.png", &width, &height, &nrChannels, 0);
-
-        if (data == nullptr)
-        {
-            std::cerr << "ERROR::TEXTURE::LOADING_FAILED\n"
-                      << stbi_failure_reason() << std::endl;
-            stbi_image_free(data);
-            return 1;
-        }
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(data);
-    }
-
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
@@ -223,11 +195,11 @@ static int run(GLFWwindow *window)
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    glm::dmat4 transform = glm::identity<glm::dmat4>();
-    transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
+    auto transform = glm::identity<glm::dmat4>();
+    //transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 2.8f, 5.2f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.8f, 0.0f);   
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.8f, 0.0f);
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
@@ -237,35 +209,30 @@ static int run(GLFWwindow *window)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
 
         program.Use();
         program.SetMat4("projection", proj);
         program.SetMat4("view", view);
-        for (const auto &scene : model.scenes)
+        for (const auto& scene : model.scenes)
         {
-            for (const int &child : scene.nodes)
+            for (const int& child : scene.nodes)
             {
-                DrawNode(model, model.nodes[child], buffers, program, transform);
+                DrawNode(model, model.nodes[child], buffers, textures, program, transform);
             }
         }
 
-        // for (const auto &mesh : model.meshes)
-        // {
-        //     DrawMesh(model, mesh, buffers, program);
-        // }
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         transform = glm::rotate(transform, glm::radians(0.1), glm::dvec3(0.0, 1.0, 0.0));
     }
 
-    for(auto& [id, texture] : textures)
+    for (auto& [id, texture] : textures)
     {
         glDeleteTextures(1, &texture);
     }
-    for(auto& [id, buffer] : buffers)
+    for (auto& [id, buffer] : buffers)
     {
         glDeleteBuffers(1, &buffer);
     }
@@ -274,7 +241,7 @@ static int run(GLFWwindow *window)
     return 0;
 }
 
-int main(void)
+int main()
 {
     glfwInit();
 
@@ -283,7 +250,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     glfwSetErrorCallback(error_callback);
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "42run", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "42run", nullptr, nullptr);
     if (window == nullptr)
     {
         return 1;
