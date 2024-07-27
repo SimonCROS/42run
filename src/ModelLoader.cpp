@@ -45,6 +45,8 @@ namespace ModelLoader
             {
                 for (const auto& primitive : mesh.primitives)
                 {
+                    if (primitive.indices < 0) continue;
+
                     for (const auto& [attributeName, accessorId] : primitive.attributes)
                     {
                         const auto& accessor = model.accessors[accessorId];
@@ -100,7 +102,6 @@ namespace ModelLoader
                         }
                     }
 
-                    if (primitive.indices > 0)
                     {
                         const auto& accessor = model.accessors[primitive.indices];
                         if (buffers.count(accessor.bufferView) == 0)

@@ -1,15 +1,17 @@
 #version 410
 
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec2 aTexCoord;
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec3 in_normal;
+layout (location = 2) in vec2 in_texcoord;
 
-layout (location = 0) out vec2 TexCoord;
+layout (location = 0) out vec3 normal;
+layout (location = 1) out vec2 texcoord;
 
 uniform mat4 transform;
 
 void main()
 {
-    gl_Position = transform * vec4(aPos, 1.0);
-    TexCoord = aTexCoord;
+    gl_Position = transform * vec4(in_position, 1.0);
+    normal = in_normal;
+    texcoord = in_texcoord;
 }

@@ -60,5 +60,8 @@
         "codecvt": "cpp",
         "iomanip": "cpp",
         "ratio": "cpp"
+    },
+    "cmake.debugConfig": {
+        "cwd": "${workspaceFolder}"
     }
 }

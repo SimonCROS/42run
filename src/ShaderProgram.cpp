@@ -20,12 +20,16 @@ ShaderProgram::ShaderProgram(const Shader &vertexShader, const Shader &fragmentS
     glAttachShader(id, vertexShader.id);
     glAttachShader(id, fragmentShader.id);
 
-    if (!link_program(id))
+    if (!LinkProgram(id))
     {
         id = 0;
         glDeleteProgram(id);
         return;
     }
+
+    attributes["POSITION"] = glGetAttribLocation(id, "in_position");
+    attributes["NORMAL"] = glGetAttribLocation(id, "in_normal");
+    attributes["TEXCOORD_0"] = glGetAttribLocation(id, "in_texcoord");
 }
 
 ShaderProgram::~ShaderProgram()
@@ -33,36 +37,43 @@ ShaderProgram::~ShaderProgram()
     glDeleteProgram(id);
 }
 
-void ShaderProgram::use() const
+void ShaderProgram::Use() const
 {
     glUseProgram(id);
 }
 
-void ShaderProgram::set_bool(const std::string &name, const bool value) const { set_bool(name.c_str(), value); }
-void ShaderProgram::set_bool(const char *name, const bool value) const
+bool ShaderProgram::HasAttribute(const std::string_view& attribute) const
 {
-    glUniform1i(glGetUniformLocation(id, name), (int)value);
+    return attributes.find(attribute) != attributes.cend();
 }
 
-void ShaderProgram::set_int(const std::string &name, const int value) const { set_int(name.c_str(), value); }
-void ShaderProgram::set_int(const char *name, const int value) const
+GLint ShaderProgram::GetAttributeLocation(const std::string_view& attribute) const
 {
-    glUniform1i(glGetUniformLocation(id, name), value);
+    auto it = attributes.find(attribute);
+    return (it != attributes.cend()) ? it->second : -1;
 }
 
-void ShaderProgram::set_float(const std::string &name, const float value) const { set_float(name.c_str(), value); }
-void ShaderProgram::set_float(const char *name, const float value) const
+void ShaderProgram::SetBool(const std::string_view& name, const bool value) const
 {
-    glUniform1f(glGetUniformLocation(id, name), value);
+    glUniform1i(glGetUniformLocation(id, name.data()), (int)value);
 }
 
-void ShaderProgram::set_mat4(const std::string &name, const glm::mat4 &value) const { set_mat4(name.c_str(), value); }
-void ShaderProgram::set_mat4(const char *name, const glm::mat4 &value) const
+void ShaderProgram::SetInt(const std::string_view& name, const int value) const
 {
-    glUniformMatrix4fv(glGetUniformLocation(id, name), 1, GL_FALSE, glm::value_ptr(value));
+    glUniform1i(glGetUniformLocation(id, name.data()), value);
 }
 
-bool ShaderProgram::link_program(const GLuint id)
+void ShaderProgram::SetFloat(const std::string_view& name, const float value) const
+{
+    glUniform1f(glGetUniformLocation(id, name.data()), value);
+}
+
+void ShaderProgram::SetMat4(const std::string_view& name, const glm::mat4 &value) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, glm::value_ptr(value));
+}
+
+bool ShaderProgram::LinkProgram(const GLuint id)
 {
     int success;
     char infoLog[1024];

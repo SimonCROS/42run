@@ -2,6 +2,7 @@
 #define SHADER_PROGRAM_H
 
 #include <string>
+#include <map>
 
 #include <glm/mat4x4.hpp>
 
@@ -17,19 +18,20 @@ public:
     ShaderProgram(const ShaderProgram &) = delete;
     ~ShaderProgram();
 
-    void use() const;
+    void Use() const;
 
-    void set_bool(const char *name, const bool value) const;
-    void set_bool(const std::string &name, const bool value) const;
-    void set_int(const char *name, const int value) const;
-    void set_int(const std::string &name, const int value) const;
-    void set_float(const char *name, const float value) const;
-    void set_float(const std::string &name, const float value) const;
-    void set_mat4(const char *name, const glm::mat4 &value) const;
-    void set_mat4(const std::string &name, const glm::mat4 &value) const;
+    bool HasAttribute(const std::string_view& attribute) const;
+    GLint GetAttributeLocation(const std::string_view& attribute) const;
+
+    void SetBool(const std::string_view& name, const bool value) const;
+    void SetInt(const std::string_view& name, const int value) const;
+    void SetFloat(const std::string_view& name, const float value) const;
+    void SetMat4(const std::string_view& name, const glm::mat4 &value) const;
 
 private:
-    static bool link_program(const GLuint id);
+    std::map<std::string, GLint, std::less<>> attributes; // transparent std::less allow comparing key with std::string_view
+
+    static bool LinkProgram(const GLuint id);
 };
 
 #endif

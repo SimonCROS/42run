@@ -28,34 +28,114 @@ static void CheckErrors(std::string desc)
     }
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-static void error_callback(int error, const char* description)
+static void error_callback(int error, const char *description)
 {
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static int run(GLFWwindow* window)
+constexpr static void *BufferOffset(const long offset)
+{
+    return reinterpret_cast<void *>(offset);
+}
+
+static GLuint GetDrawMode(int tinygltfMode)
+{
+    if (tinygltfMode == TINYGLTF_MODE_TRIANGLES)
+        return GL_TRIANGLES;
+    else if (tinygltfMode == TINYGLTF_MODE_TRIANGLE_STRIP)
+        return GL_TRIANGLE_STRIP;
+    else if (tinygltfMode == TINYGLTF_MODE_TRIANGLE_FAN)
+        return GL_TRIANGLE_FAN;
+    else if (tinygltfMode == TINYGLTF_MODE_POINTS)
+        return GL_POINTS;
+    else if (tinygltfMode == TINYGLTF_MODE_LINE)
+        return GL_LINES;
+    else if (tinygltfMode == TINYGLTF_MODE_LINE_LOOP)
+        return GL_LINE_LOOP;
+    else
+        return -1;
+}
+
+static void DrawMesh(tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::map<int, GLuint> buffers, const ShaderProgram &program)
+{
+    for (const auto &primitive : mesh.primitives)
+    {
+        if (primitive.indices < 0)
+            continue;
+
+        for (const auto &[attribute, accessorId] : primitive.attributes)
+        {
+            assert(accessorId >= 0);
+
+            const tinygltf::Accessor &accessor = model.accessors[accessorId];
+
+            glBindBuffer(GL_ARRAY_BUFFER, buffers.at(accessor.bufferView));
+            CheckErrors("bind buffer");
+
+            int size = tinygltf::GetNumComponentsInType(accessor.type);
+            assert(size != -1);
+
+            int attributeLocation = program.GetAttributeLocation(attribute);
+            if (attributeLocation != -1)
+            {
+                int byteStride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
+                assert(byteStride != -1);
+
+                glVertexAttribPointer(attributeLocation, size, accessor.componentType, accessor.normalized,
+                                      byteStride, BufferOffset(accessor.byteOffset));
+                CheckErrors("vertex attrib pointer");
+
+                glEnableVertexAttribArray(attributeLocation);
+                CheckErrors("enable vertex attrib array");
+            }
+        }
+
+        const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers.at(indexAccessor.bufferView));
+        CheckErrors("bind buffer");
+
+        int mode = GetDrawMode(primitive.mode);
+        assert(mode != -1);
+
+        glDrawElements(mode, indexAccessor.count, indexAccessor.componentType,
+                       BufferOffset(indexAccessor.byteOffset));
+        CheckErrors("draw elements");
+
+        for (const auto &[attribute, accessorId] : primitive.attributes)
+        {
+            int attributeLocation = program.GetAttributeLocation(attribute);
+            if (attributeLocation != -1)
+            {
+                glDisableVertexAttribArray(attributeLocation);
+            }
+        }
+    }
+}
+
+static int run(GLFWwindow *window)
 {
     int version = gladLoadGL(glfwGetProcAddress);
     std::cout << "OpenGL " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
 
     float vertices[] = {
         // positions      // colors         // texture coords
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
+        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
     };
 
     unsigned int indices[] = {
         // note that we start from 0!
         0, 1, 3, // first triangle
-        1, 2, 3 // second triangle
+        1, 2, 3  // second triangle
     };
 
     tinygltf::Model model;
@@ -80,12 +160,12 @@ static int run(GLFWwindow* window)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         int width, height, nrChannels;
-        stbi_uc* data = stbi_load(RESOURCE_PATH "textures/uvs.png", &width, &height, &nrChannels, 0);
+        stbi_uc *data = stbi_load(RESOURCE_PATH "textures/uvs.png", &width, &height, &nrChannels, 0);
 
         if (data == nullptr)
         {
             std::cerr << "ERROR::TEXTURE::LOADING_FAILED\n"
-                << stbi_failure_reason() << std::endl;
+                      << stbi_failure_reason() << std::endl;
             stbi_image_free(data);
             return 1;
         }
@@ -98,8 +178,8 @@ static int run(GLFWwindow* window)
 
     auto trans = glm::mat4(1.0f);
     trans = glm::scale(trans, glm::vec3(0.1, 0.1, 0.1));
-    shaderProgram.use();
-    shaderProgram.set_mat4("transform", trans);
+    shaderProgram.Use();
+    shaderProgram.SetMat4("transform", trans);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -111,29 +191,24 @@ static int run(GLFWwindow* window)
         trans = glm::rotate(trans, glm::radians(1.0f), glm::vec3(0.0, 0.0, 1.0));
 
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        shaderProgram.use();
-        shaderProgram.set_mat4("transform", trans);
+        shaderProgram.Use();
+        shaderProgram.SetMat4("transform", trans);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
-        for (const auto& mesh : model.meshes)
+        for (const auto &mesh : model.meshes)
         {
-            for (const auto& primitive : mesh.primitives)
+            for (const auto &primitive : mesh.primitives)
             {
-                bool indexed = primitive.indices > 0;
-                if (indexed)
-                {
-                    const auto& indexAccessor = model.accessors[primitive.indices];
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[indexAccessor.bufferView]);
-                    glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count),
-                                   indexAccessor.componentType,
-                                   reinterpret_cast<const void*>(indexAccessor.byteOffset));
-                }
-                else
-                {
-                    // TODO
-                }
+                if (primitive.indices < 0)
+                    continue;
+
+                const auto &indexAccessor = model.accessors[primitive.indices];
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[indexAccessor.bufferView]);
+                glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count),
+                               indexAccessor.componentType,
+                               reinterpret_cast<const void *>(indexAccessor.byteOffset));
             }
         }
         glBindVertexArray(0);
@@ -141,8 +216,7 @@ static int run(GLFWwindow* window)
         glfwSwapBuffers(window);
     }
 
-    return
-        0;
+    return 0;
 }
 
 int main(void)
@@ -154,7 +228,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     glfwSetErrorCallback(error_callback);
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "42run", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "42run", NULL, NULL);
     if (window == nullptr)
     {
         return 1;
