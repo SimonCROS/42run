@@ -22,13 +22,14 @@ ShaderProgram::ShaderProgram(const Shader &vertexShader, const Shader &fragmentS
 
     if (!LinkProgram(id))
     {
-        id = 0;
         glDeleteProgram(id);
+        id = 0;
         return;
     }
 
+    Use();
     attributes["POSITION"] = glGetAttribLocation(id, "in_position");
-    attributes["NORMAL"] = glGetAttribLocation(id, "in_normal");
+    attributes["NORMAL"] = glGetAttribLocation(id, "in_position2");
     attributes["TEXCOORD_0"] = glGetAttribLocation(id, "in_texcoord");
 }
 

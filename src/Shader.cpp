@@ -22,8 +22,8 @@ Shader::Shader(const char *path, const GLenum type) : id(0) // id 0 is ignored w
 
     if (!compile_shader(id))
     {
-        id = 0;
         glDeleteShader(id);
+        id = 0;
         return;
     }
 }
