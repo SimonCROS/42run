@@ -260,6 +260,16 @@ static int run(GLFWwindow *window)
         transform = glm::rotate(transform, glm::radians(0.1), glm::dvec3(0.0, 1.0, 0.0));
     }
 
+    for(auto& [id, texture] : textures)
+    {
+        glDeleteTextures(1, &texture);
+    }
+    for(auto& [id, buffer] : buffers)
+    {
+        glDeleteBuffers(1, &buffer);
+    }
+    glDeleteVertexArrays(1, &vao);
+
     return 0;
 }
 
