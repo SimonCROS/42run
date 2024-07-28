@@ -117,11 +117,13 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
             if (textureId >= 0 && textures.count(textureId) != 0)
             {
                 glActiveTexture(GL_TEXTURE0 + material.pbrMetallicRoughness.baseColorTexture.texCoord);
+                program.SetInt("texture0", material.pbrMetallicRoughness.baseColorTexture.texCoord);
                 glBindTexture(GL_TEXTURE_2D, textures.at(textureId));
             }
             else
             {
                 glActiveTexture(GL_TEXTURE0);
+                program.SetInt("texture0", 0);
                 glBindTexture(GL_TEXTURE_2D, whiteTexture);
             }
             program.SetVec4("texColor", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
@@ -197,8 +199,8 @@ static int run(GLFWwindow* window)
     std::map<int, GLuint> textures;
     //if (!ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures))
     //if (!ModelLoader::loadBinary(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb", &model, &vao, buffers, textures))
-    //if (!ModelLoader::loadAscii(RESOURCE_PATH "buster_drone/scene.gltf", &model, &vao, buffers, textures))
-    if (!ModelLoader::loadBinary(RESOURCE_PATH "girl_speedsculpt.glb", &model, &vao, buffers, textures))
+    if (!ModelLoader::loadAscii(RESOURCE_PATH "buster_drone/scene.gltf", &model, &vao, buffers, textures))
+    //if (!ModelLoader::loadBinary(RESOURCE_PATH "girl_speedsculpt.glb", &model, &vao, buffers, textures))
     {
         return 1;
     }
@@ -222,7 +224,7 @@ static int run(GLFWwindow* window)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     auto transform = glm::identity<glm::dmat4>();
-    transform = glm::scale(transform, glm::dvec3(2.4));
+    //transform = glm::scale(transform, glm::dvec3(2.4));
     //transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 1.8f, 5.2f);
