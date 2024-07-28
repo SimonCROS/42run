@@ -17,6 +17,7 @@
 #include "stb_image.h"
 
 const GLuint WIDTH = 800, HEIGHT = 600;
+GLuint whiteTexture = 0;
 
 static void CheckErrors(const std::string_view& desc)
 {
@@ -26,6 +27,18 @@ static void CheckErrors(const std::string_view& desc)
         std::cerr << "OpenGL error in \"" << desc << "\": " << e << std::endl;
         exit(20);
     }
+}
+
+static GLuint CreateWhiteTexture()
+{
+    int data[4] = {~0, ~0, ~0, ~0};
+    GLuint whiteTextureId;
+    glGenTextures(1, &whiteTextureId);
+    glBindTexture(GL_TEXTURE_2D, whiteTextureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    return whiteTextureId;
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -101,10 +114,15 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
         {
             const auto& material = model.materials[primitive.material];
             int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
-            if (textureId >= 0)
+            if (textureId >= 0 && textures.count(textureId) != 0)
             {
                 glActiveTexture(GL_TEXTURE0 + material.pbrMetallicRoughness.baseColorTexture.texCoord);
                 glBindTexture(GL_TEXTURE_2D, textures.at(textureId));
+            }
+            else
+            {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, whiteTexture);
             }
             program.SetVec4("texColor", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
         }
@@ -177,12 +195,14 @@ static int run(GLFWwindow* window)
     GLuint vao;
     std::map<int, GLuint> buffers;
     std::map<int, GLuint> textures;
-    ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures);
+    ModelLoader::loadBinary(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb", &model, &vao, buffers, textures);
 
     //! Create shader program
     const ShaderProgram program(
         Shader(RESOURCE_PATH "shaders/default.vert", GL_VERTEX_SHADER),
         Shader(RESOURCE_PATH "shaders/default.frag", GL_FRAGMENT_SHADER));
+
+    whiteTexture = CreateWhiteTexture();
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -196,6 +216,7 @@ static int run(GLFWwindow* window)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     auto transform = glm::identity<glm::dmat4>();
+    transform = glm::scale(transform, glm::dvec3(8.4));
     //transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 2.8f, 5.2f);
@@ -212,14 +233,13 @@ static int run(GLFWwindow* window)
         glBindVertexArray(vao);
 
         program.Use();
+        program.SetVec3("camera", cameraPos);
         program.SetMat4("projection", proj);
         program.SetMat4("view", view);
-        for (const auto& scene : model.scenes)
+        const auto& scene = model.scenes[model.defaultScene];
+        for (const int& node : scene.nodes)
         {
-            for (const int& child : scene.nodes)
-            {
-                DrawNode(model, model.nodes[child], buffers, textures, program, transform);
-            }
+            DrawNode(model, model.nodes[node], buffers, textures, program, transform);
         }
 
         glBindVertexArray(0);
@@ -228,6 +248,7 @@ static int run(GLFWwindow* window)
         transform = glm::rotate(transform, glm::radians(0.1), glm::dvec3(0.0, 1.0, 0.0));
     }
 
+    glDeleteTextures(1, &whiteTexture);
     for (auto& [id, texture] : textures)
     {
         glDeleteTextures(1, &texture);

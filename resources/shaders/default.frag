@@ -5,9 +5,14 @@ layout (location = 1) in vec2 texcoord;
 
 layout (location = 0) out vec4 fragColor;
 
-//uniform sampler2D texture;
+uniform sampler2D texture0;
+uniform vec3 camera;
 uniform vec4 texColor;
 
 void main() {
-    fragColor = texColor;//texture(texture, texcoord);
+    float specular = dot(normalize(normal), normalize(camera)) * 0.4;
+    float ambient = 0.4;
+
+    vec4 flatColor = texColor * texture(texture0, texcoord);
+    fragColor = flatColor * ambient + specular;
 }

@@ -106,7 +106,28 @@ namespace ModelLoader
                                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                                 }
 
-                                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width, image.height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.image.data());
+                                GLenum format = GL_RGBA;
+                                if (image.component == 1)
+                                {
+                                    format = GL_RED;
+                                }
+                                else if (image.component == 2)
+                                {
+                                    format = GL_RG;
+                                }
+                                else if (image.component == 3)
+                                {
+                                    format = GL_RGB;
+                                }
+
+                                GLenum type = GL_UNSIGNED_BYTE;
+                                if (image.bits == 16)
+                                {
+                                    type = GL_UNSIGNED_SHORT;
+                                }
+
+                                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format,
+                                             type, image.image.data());
                                 glGenerateMipmap(GL_TEXTURE_2D);
                                 textures[textureId] = glTexture;
                             }
@@ -116,7 +137,7 @@ namespace ModelLoader
                             }
                             else
                             {
-                                std::cout << "TODO Empty is possible (texture: " << texture.name << ")" << std::endl;
+                                // TODO
                             }
                         }
                     }

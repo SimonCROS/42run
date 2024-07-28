@@ -14,6 +14,6 @@ uniform mat4 transform;
 void main()
 {
     gl_Position = projection * view * transform * vec4(in_position, 1.0);
-    normal = in_normal;
+    normal = mat3(transform) * in_normal;
     texcoord = in_texcoord;
 }
