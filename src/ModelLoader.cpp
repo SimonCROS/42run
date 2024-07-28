@@ -82,7 +82,7 @@ namespace ModelLoader
                     {
                         const auto& material = model.materials[primitive.material];
                         int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
-                        if (textureId >= 0)
+                        if (textureId >= 0 && textures.count(textureId) == 0)
                         {
                             const auto& texture = model.textures[textureId];
 
@@ -90,7 +90,7 @@ namespace ModelLoader
 
                             const auto& image = model.images[texture.source];
 
-                            if (!image.image.empty() && !image.as_is)
+                            if (!image.image.empty())
                             {
                                 GLuint glTexture;
                                 glGenTextures(1, &glTexture);
@@ -135,10 +135,6 @@ namespace ModelLoader
                                 glGenerateMipmap(GL_TEXTURE_2D);
 
                                 textures[textureId] = glTexture;
-                            }
-                            else if (image.as_is)
-                            {
-                                std::cout << "TODO Image as_is possible (texture: " << texture.name << ")" << std::endl;
                             }
                             else if (!image.uri.empty())
                             {
