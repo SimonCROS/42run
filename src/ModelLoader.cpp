@@ -2,7 +2,11 @@
 
 #include "ModelLoader.hpp"
 
+#include "stb_image.h"
 #include "glad/gl.h"
+
+#define RESOURCE_PATH "./resources/"
+#define TEXTURE_PATH (RESOURCE_PATH "textures/")
 
 namespace ModelLoader
 {
@@ -86,7 +90,7 @@ namespace ModelLoader
 
                             const auto& image = model.images[texture.source];
 
-                            if (!image.image.empty() && image.as_is)
+                            if (!image.image.empty() && !image.as_is)
                             {
                                 GLuint glTexture;
                                 glGenTextures(1, &glTexture);
@@ -129,15 +133,40 @@ namespace ModelLoader
                                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format,
                                              type, image.image.data());
                                 glGenerateMipmap(GL_TEXTURE_2D);
+
                                 textures[textureId] = glTexture;
                             }
                             else if (image.as_is)
                             {
                                 std::cout << "TODO Image as_is possible (texture: " << texture.name << ")" << std::endl;
                             }
-                            else
+                            else if (!image.uri.empty())
                             {
-                                // TODO
+                                GLuint glTexture;
+                                glGenTextures(1, &glTexture);
+                                glBindTexture(GL_TEXTURE_2D, glTexture);
+
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+                                int width, height, nrChannels;
+                                stbi_uc *data = stbi_load((TEXTURE_PATH + image.uri).c_str(), &width, &height, &nrChannels, 0);
+
+                                if (data != nullptr)
+                                {
+                                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+                                    glGenerateMipmap(GL_TEXTURE_2D);
+                                }
+                                else
+                                {
+                                    std::cerr << "ERROR::TEXTURE::LOADING_FAILED\n"
+                                              << stbi_failure_reason() << std::endl;
+                                }
+
+                                stbi_image_free(data);
+                                textures[textureId] = glTexture;
                             }
                         }
                     }
