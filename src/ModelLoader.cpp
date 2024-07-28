@@ -129,6 +129,10 @@ namespace ModelLoader
                                 {
                                     type = GL_UNSIGNED_SHORT;
                                 }
+                                else if (image.bits == 32)
+                                {
+                                    type = GL_UNSIGNED_INT;
+                                }
 
                                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format,
                                              type, image.image.data());
@@ -149,10 +153,23 @@ namespace ModelLoader
 
                                 int width, height, nrChannels;
                                 stbi_uc *data = stbi_load((TEXTURE_PATH + image.uri).c_str(), &width, &height, &nrChannels, 0);
-
                                 if (data != nullptr)
                                 {
-                                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+                                    GLenum format = GL_RGBA;
+                                    if (image.component == 1)
+                                    {
+                                        format = GL_RED;
+                                    }
+                                    else if (image.component == 2)
+                                    {
+                                        format = GL_RG;
+                                    }
+                                    else if (image.component == 3)
+                                    {
+                                        format = GL_RGB;
+                                    }
+
+                                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
                                     glGenerateMipmap(GL_TEXTURE_2D);
                                 }
                                 else

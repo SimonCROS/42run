@@ -195,9 +195,13 @@ static int run(GLFWwindow* window)
     GLuint vao;
     std::map<int, GLuint> buffers;
     std::map<int, GLuint> textures;
-    //ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures);
-    //ModelLoader::loadBinary(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb", &model, &vao, buffers, textures);
-    ModelLoader::loadAscii(RESOURCE_PATH "buster_drone/scene.gltf", &model, &vao, buffers, textures);
+    //if (!ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures))
+    //if (!ModelLoader::loadBinary(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb", &model, &vao, buffers, textures))
+    //if (!ModelLoader::loadAscii(RESOURCE_PATH "buster_drone/scene.gltf", &model, &vao, buffers, textures))
+    if (!ModelLoader::loadBinary(RESOURCE_PATH "girl_speedsculpt.glb", &model, &vao, buffers, textures))
+    {
+        return 1;
+    }
 
     //! Create shader program
     const ShaderProgram program(
@@ -218,7 +222,7 @@ static int run(GLFWwindow* window)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     auto transform = glm::identity<glm::dmat4>();
-    //transform = glm::scale(transform, glm::dvec3(8.4));
+    transform = glm::scale(transform, glm::dvec3(2.4));
     //transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 1.8f, 5.2f);
