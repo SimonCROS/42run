@@ -24,36 +24,43 @@ static inline bool EndsWith(const std::string_view &fullString, const std::strin
 
 void ModelLoader::LoadAsync()
 {
-    std::cout << "Make thread" << std::endl;
-    std::thread thread_object(&ModelLoader::LoadThread, this);
+    loading_thread = std::thread(&ModelLoader::LoadThread, this);
 }
 
 bool ModelLoader::IsCompleted()
 {
-    std::lock_guard<std::mutex> g(loadingMutex);
+    std::lock_guard g(loadingMutex);
 
     return completed;
 }
 
 bool ModelLoader::IsError()
 {
-    std::lock_guard<std::mutex> g(loadingMutex);
+    std::lock_guard g(loadingMutex);
 
     return error;
 }
 
-bool ModelLoader::IsBinaryFile()
+bool ModelLoader::IsBinaryFile() const
 {
     return EndsWith(_filename, ".glb");
 }
 
 void ModelLoader::LoadThread()
 {
-    bool res = LoadWorker();
+    const bool res = LoadWorker();
+
+    if (!res)
+    {
+        loadingMutex.lock();
+        completed = true;
+        error = true;
+        loadingMutex.unlock();
+        return;
+    }
 
     loadingMutex.lock();
     completed = true;
-    error = !res;
     loadingMutex.unlock();
 }
 
@@ -66,11 +73,11 @@ bool ModelLoader::LoadWorker()
 
     if (IsBinaryFile())
     {
-        res = loader.LoadBinaryFromFile(&model, &err, &warn, _filename.c_str());
+        res = loader.LoadBinaryFromFile(&model, &err, &warn, _filename);
     }
     else
     {
-        res = loader.LoadASCIIFromFile(&model, &err, &warn, _filename.c_str());
+        res = loader.LoadASCIIFromFile(&model, &err, &warn, _filename);
     }
 
     if (!warn.empty())
@@ -90,11 +97,15 @@ bool ModelLoader::LoadWorker()
     }
 
     std::cout << "Loaded glTF: " << _filename << std::endl;
+    return res;
+}
 
+void ModelLoader::Prepare()
+{
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    for (auto &mesh : model.meshes)
+    for (const auto &mesh : model.meshes)
     {
         for (const auto &primitive : mesh.primitives)
         {
@@ -258,8 +269,6 @@ bool ModelLoader::LoadWorker()
     }
 
     glBindVertexArray(0);
-
-    return res;
 }
 
 std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model)

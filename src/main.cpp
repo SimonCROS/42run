@@ -193,11 +193,11 @@ static int run(GLFWwindow* window)
     int version = gladLoadGL(glfwGetProcAddress);
     std::cout << "OpenGL " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
 
-    ModelLoader loader(RESOURCE_PATH "sea_house.glb");
+    // ModelLoader loader(RESOURCE_PATH "sea_house.glb");
     // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
     // ModelLoader loader(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb");
     // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
-    // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
+    ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
     // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
@@ -226,8 +226,10 @@ static int run(GLFWwindow* window)
     //transform = glm::scale(transform, glm::dvec3(2.4));
     //transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 180, 250);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 50, 0.0f);
+    bool prepared = false; // tmp
+
+    glm::vec3 cameraPos = glm::vec3(0.0f, 1, 4);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 0, 0.0f);
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
 
@@ -252,6 +254,11 @@ static int run(GLFWwindow* window)
         {
             glfwSetWindowShouldClose(window, GL_TRUE);
             continue;
+        }
+        if (!prepared)
+        {
+            loader.Prepare();
+            prepared = true;
         }
 
         glBindVertexArray(loader.vao);
@@ -289,6 +296,8 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     glfwSetErrorCallback(error_callback);
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "42run", nullptr, nullptr);

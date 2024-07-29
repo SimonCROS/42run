@@ -9,34 +9,34 @@
 #include "glad/gl.h"
 
 #include <iostream>
-#include <optional>
-#include <mutex>
 #include <thread>
 
 class ModelLoader
 {
 public:
-    GLuint vao; // TODO Make a class to hold data when loaded
+    GLuint vao = 0; // TODO Make a class to hold data when loaded
     tinygltf::Model model; // TODO Make a class to hold data when loaded
     std::map<int, GLuint> buffers; // TODO Make a class to hold data when loaded
     std::map<int, GLuint> textures; // TODO Make a class to hold data when loaded
 
     ModelLoader() = delete;
     ModelLoader(const ModelLoader&) = delete;
-    ModelLoader(const std::string_view& filename);
+    explicit ModelLoader(const std::string_view& filename);
 
     void LoadAsync();
+    void Prepare();
 
     bool IsCompleted();
     bool IsError();
-    bool IsBinaryFile();
+    bool IsBinaryFile() const;
 
 private:
     const std::string _filename;
 
-    bool error;
-    bool completed;
+    bool error = false;
+    bool completed = false;
     std::mutex loadingMutex;
+    std::thread loading_thread;
 
     bool LoadWorker();
     void LoadThread();
