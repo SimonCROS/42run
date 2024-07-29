@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "ModelLoader.hpp"
 
 #include "stb_image.h"
@@ -8,22 +6,56 @@
 #define RESOURCE_PATH "./resources/"
 #define TEXTURE_PATH (RESOURCE_PATH "textures/")
 
-void ModelLoader::load(const char *filename, tinygltf::Model *outputModel, GLuint *vao, std::map<int, GLuint> &buffers,
-                    std::map<int, GLuint> &textures, bool binary)
+ModelLoader::ModelLoader(const std::string_view &filename) : _filename(filename)
+{
+}
+
+static inline bool EndsWith(const std::string_view &fullString, const std::string_view &ending)
+{
+    if (fullString.length() >= ending.length())
+    {
+        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void ModelLoader::LoadAsync()
+{
+    bool binary = EndsWith(_filename, ".glb");
+    std::thread thread_object(&ModelLoader::LoadThread, this, vao, buffers, textures, binary);
+}
+
+bool ModelLoader::IsCompleted()
+{
+    std::lock_guard<std::mutex> g(loadingMutex);
+
+    return completed;
+}
+
+bool ModelLoader::IsError()
+{
+    std::lock_guard<std::mutex> g(loadingMutex);
+
+    return error;
+}
+
+bool ModelLoader::LoadWorker(bool binary)
 {
     tinygltf::TinyGLTF loader;
-    tinygltf::Model model;
     std::string err;
     std::string warn;
     bool res;
 
     if (binary)
     {
-        res = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
+        res = loader.LoadBinaryFromFile(&model, &err, &warn, _filename.c_str());
     }
     else
     {
-        res = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
+        res = loader.LoadASCIIFromFile(&model, &err, &warn, _filename.c_str());
     }
 
     if (!warn.empty())
@@ -36,83 +68,132 @@ void ModelLoader::load(const char *filename, tinygltf::Model *outputModel, GLuin
         std::cout << "ERR: " << err << std::endl;
     }
 
-    if (res)
+    if (!res)
     {
-        std::cout << "Loaded glTF: " << filename << std::endl;
+        std::cout << "Failed to load glTF: " << _filename << std::endl;
+        return res;
+    }
 
-        glGenVertexArrays(1, vao);
-        glBindVertexArray(*vao);
+    std::cout << "Loaded glTF: " << _filename << std::endl;
 
-        for (auto &mesh : model.meshes)
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    for (auto &mesh : model.meshes)
+    {
+        for (const auto &primitive : mesh.primitives)
         {
-            for (const auto &primitive : mesh.primitives)
+            if (primitive.indices < 0)
+                continue;
+
+            for (const auto &[attributeName, accessorId] : primitive.attributes)
             {
-                if (primitive.indices < 0)
-                    continue;
+                const auto &accessor = model.accessors[accessorId];
+                const auto &bufferView = model.bufferViews[accessor.bufferView];
 
-                for (const auto &[attributeName, accessorId] : primitive.attributes)
+                if (bufferView.target == 0)
                 {
-                    const auto &accessor = model.accessors[accessorId];
-                    const auto &bufferView = model.bufferViews[accessor.bufferView];
-
-                    if (bufferView.target == 0)
-                    {
-                        std::cout << "WARN: bufferView.target is zero" << std::endl;
-                        continue; // Unsupported bufferView.
-                    }
-
-                    if (buffers.count(accessor.bufferView) == 0)
-                    {
-                        const auto &buffer = model.buffers[bufferView.buffer];
-                        GLuint glBuffer = 0;
-
-                        glGenBuffers(1, &glBuffer);
-                        glBindBuffer(bufferView.target, glBuffer);
-                        glBufferData(bufferView.target, static_cast<GLsizeiptr>(bufferView.byteLength),
-                                        &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
-
-                        buffers[accessor.bufferView] = glBuffer;
-                    }
+                    std::cout << "WARN: bufferView.target is zero" << std::endl;
+                    continue; // Unsupported bufferView.
                 }
 
-                if (primitive.material >= 0)
+                if (buffers.count(accessor.bufferView) == 0)
                 {
-                    const auto &material = model.materials[primitive.material];
-                    int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
-                    if (textureId >= 0 && textures.count(textureId) == 0)
+                    const auto &buffer = model.buffers[bufferView.buffer];
+                    GLuint glBuffer = 0;
+
+                    glGenBuffers(1, &glBuffer);
+                    glBindBuffer(bufferView.target, glBuffer);
+                    glBufferData(bufferView.target, static_cast<GLsizeiptr>(bufferView.byteLength),
+                                 &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+
+                    buffers[accessor.bufferView] = glBuffer;
+                }
+            }
+
+            if (primitive.material >= 0)
+            {
+                const auto &material = model.materials[primitive.material];
+                int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
+                if (textureId >= 0 && textures.count(textureId) == 0)
+                {
+                    const auto &texture = model.textures[textureId];
+
+                    assert(texture.source >= 0);
+
+                    const auto &image = model.images[texture.source];
+
+                    if (!image.image.empty())
                     {
-                        const auto &texture = model.textures[textureId];
+                        GLuint glTexture;
+                        glGenTextures(1, &glTexture);
+                        glBindTexture(GL_TEXTURE_2D, glTexture);
 
-                        assert(texture.source >= 0);
-
-                        const auto &image = model.images[texture.source];
-
-                        if (!image.image.empty())
+                        if (texture.sampler >= 0)
                         {
-                            GLuint glTexture;
-                            glGenTextures(1, &glTexture);
-                            glBindTexture(GL_TEXTURE_2D, glTexture);
-
-                            if (texture.sampler >= 0)
+                            const auto &sampler = model.samplers[texture.sampler];
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sampler.wrapS);
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, sampler.wrapT);
+                            if (sampler.minFilter > -1)
                             {
-                                const auto &sampler = model.samplers[texture.sampler];
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sampler.wrapS);
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, sampler.wrapT);
-                                if (sampler.minFilter > -1)
-                                {
-                                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampler.minFilter);
-                                }
-                                if (sampler.magFilter > -1)
-                                {
-                                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampler.magFilter);
-                                }
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampler.minFilter);
                             }
-                            else
+                            if (sampler.magFilter > -1)
                             {
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampler.magFilter);
                             }
+                        }
+                        else
+                        {
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                        }
 
+                        GLenum format = GL_RGBA;
+                        if (image.component == 1)
+                        {
+                            format = GL_RED;
+                        }
+                        else if (image.component == 2)
+                        {
+                            format = GL_RG;
+                        }
+                        else if (image.component == 3)
+                        {
+                            format = GL_RGB;
+                        }
+
+                        GLenum type = GL_UNSIGNED_BYTE;
+                        if (image.bits == 16)
+                        {
+                            type = GL_UNSIGNED_SHORT;
+                        }
+                        else if (image.bits == 32)
+                        {
+                            type = GL_UNSIGNED_INT;
+                        }
+
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format,
+                                     type, image.image.data());
+                        glGenerateMipmap(GL_TEXTURE_2D);
+
+                        textures[textureId] = glTexture;
+                    }
+                    else if (!image.uri.empty())
+                    {
+                        GLuint glTexture;
+                        glGenTextures(1, &glTexture);
+                        glBindTexture(GL_TEXTURE_2D, glTexture);
+
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+                        int width, height, nrChannels;
+                        stbi_uc *data = stbi_load((TEXTURE_PATH + image.uri).c_str(), &width, &height, &nrChannels, 0);
+                        if (data != nullptr)
+                        {
                             GLenum format = GL_RGBA;
                             if (image.component == 1)
                             {
@@ -127,124 +208,53 @@ void ModelLoader::load(const char *filename, tinygltf::Model *outputModel, GLuin
                                 format = GL_RGB;
                             }
 
-                            GLenum type = GL_UNSIGNED_BYTE;
-                            if (image.bits == 16)
-                            {
-                                type = GL_UNSIGNED_SHORT;
-                            }
-                            else if (image.bits == 32)
-                            {
-                                type = GL_UNSIGNED_INT;
-                            }
-
-                            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format,
-                                            type, image.image.data());
+                            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
                             glGenerateMipmap(GL_TEXTURE_2D);
-
-                            textures[textureId] = glTexture;
                         }
-                        else if (!image.uri.empty())
+                        else
                         {
-                            GLuint glTexture;
-                            glGenTextures(1, &glTexture);
-                            glBindTexture(GL_TEXTURE_2D, glTexture);
-
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-                            int width, height, nrChannels;
-                            stbi_uc *data = stbi_load((TEXTURE_PATH + image.uri).c_str(), &width, &height, &nrChannels, 0);
-                            if (data != nullptr)
-                            {
-                                GLenum format = GL_RGBA;
-                                if (image.component == 1)
-                                {
-                                    format = GL_RED;
-                                }
-                                else if (image.component == 2)
-                                {
-                                    format = GL_RG;
-                                }
-                                else if (image.component == 3)
-                                {
-                                    format = GL_RGB;
-                                }
-
-                                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-                                glGenerateMipmap(GL_TEXTURE_2D);
-                            }
-                            else
-                            {
-                                std::cerr << "ERROR::TEXTURE::LOADING_FAILED\n"
-                                            << stbi_failure_reason() << std::endl;
-                            }
-
-                            stbi_image_free(data);
-                            textures[textureId] = glTexture;
+                            std::cerr << "ERROR::TEXTURE::LOADING_FAILED\n"
+                                      << stbi_failure_reason() << std::endl;
                         }
-                    }
-                }
 
-                {
-                    const auto &accessor = model.accessors[primitive.indices];
-                    if (buffers.count(accessor.bufferView) == 0)
-                    {
-                        const auto &bufferView = model.bufferViews[accessor.bufferView];
-                        const auto &buffer = model.buffers[bufferView.buffer];
-                        GLuint glBuffer = 0;
-
-                        glGenBuffers(1, &glBuffer);
-                        glBindBuffer(bufferView.target, glBuffer);
-                        glBufferData(bufferView.target, static_cast<GLsizeiptr>(bufferView.byteLength),
-                                        &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
-
-                        buffers[accessor.bufferView] = glBuffer;
+                        stbi_image_free(data);
+                        textures[textureId] = glTexture;
                     }
                 }
             }
-        }
 
-        *outputModel = model;
-        glBindVertexArray(0);
+            {
+                const auto &accessor = model.accessors[primitive.indices];
+                if (buffers.count(accessor.bufferView) == 0)
+                {
+                    const auto &bufferView = model.bufferViews[accessor.bufferView];
+                    const auto &buffer = model.buffers[bufferView.buffer];
+                    GLuint glBuffer = 0;
+
+                    glGenBuffers(1, &glBuffer);
+                    glBindBuffer(bufferView.target, glBuffer);
+                    glBufferData(bufferView.target, static_cast<GLsizeiptr>(bufferView.byteLength),
+                                 &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+
+                    buffers[accessor.bufferView] = glBuffer;
+                }
+            }
+        }
     }
-    else
-    {
-        std::cout << "Failed to load glTF: " << filename << std::endl;
-    }
+
+    glBindVertexArray(0);
 
     return res;
 }
 
-void ModelLoader::loadAsync(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers,
-                std::map<int, GLuint> &textures, bool &loaded, bool &success, bool binary)
+void ModelLoader::LoadThread(bool binary)
 {
-    loaded = false;
-    success = load(filename, model, vao, buffers, textures, binary);
-    loaded = true;
+    bool res = LoadWorker(binary);
 
-    // Define a lambda expression
-    auto f = [](params)
-    {
-        Statements;
-    };
-    
-    // Pass f and its parameters to thread
-    // object constructor as
-    std::thread thread_object(f, params);
-}
-
-void ModelLoader::loadBinary(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers,
-                std::map<int, GLuint> &textures, bool &loaded, bool &success)
-{
-    loadAsync(filename, model, vao, buffers, textures, loaded, success, true);
-}
-
-void ModelLoader::loadAscii(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers,
-                std::map<int, GLuint> &textures, bool &loaded, bool &success)
-{
-    loadAsync(filename, model, vao, buffers, textures, loaded, success, false);
+    loadingMutex.lock();
+    completed = true;
+    error = !res;
+    loadingMutex.unlock();
 }
 
 std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model)
@@ -259,7 +269,7 @@ std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model)
             const auto &indexAccessor = model.accessors[primitive.indices];
 
             os << "indexaccessor: count " << indexAccessor.count << ", type "
-                << indexAccessor.componentType << '\n';
+               << indexAccessor.componentType << '\n';
 
             const auto &mat = model.materials[primitive.material];
             for (auto &mats : mat.values)

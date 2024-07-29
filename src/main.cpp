@@ -193,21 +193,14 @@ static int run(GLFWwindow* window)
     int version = gladLoadGL(glfwGetProcAddress);
     std::cout << "OpenGL " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
 
-    tinygltf::Model model;
-    GLuint vao;
-    std::map<int, GLuint> buffers;
-    std::map<int, GLuint> textures;
-    // if (!ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures))
-    if (!ModelLoader::loadBinary(RESOURCE_PATH "sea_house.glb", &model, &vao, buffers, textures))
-    //if (!ModelLoader::loadBinary(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb", &model, &vao, buffers, textures))
-    // if (!ModelLoader::loadAscii(RESOURCE_PATH "Cube/Cube.gltf", &model, &vao, buffers, textures))
-    // if (!ModelLoader::loadAscii(RESOURCE_PATH "buster_drone/scene.gltf", &model, &vao, buffers, textures))
-    // if (!ModelLoader::loadBinary(RESOURCE_PATH "buster_drone.glb", &model, &vao, buffers, textures))
-    // if (!ModelLoader::loadBinary(RESOURCE_PATH "free_porsche_911_carrera_4s.glb", &model, &vao, buffers, textures))
-    //if (!ModelLoader::loadBinary(RESOURCE_PATH "girl_speedsculpt.glb", &model, &vao, buffers, textures))
-    {
-        return 1;
-    }
+    ModelLoader loader(RESOURCE_PATH "sea_house.glb");
+    // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
+    // ModelLoader loader(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb");
+    // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
+    // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
+    // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
+    // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
+    // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
 
     //! Create shader program
     const ShaderProgram program(
@@ -242,16 +235,29 @@ static int run(GLFWwindow* window)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glBindVertexArray(vao);
+        if (!loader.IsCompleted())
+        {
+            glfwSwapBuffers(window);
+            continue;
+        }
 
         program.Use();
         program.SetVec3("camera", cameraPos);
         program.SetMat4("projection", proj);
         program.SetMat4("view", view);
-        const auto& scene = model.scenes[model.defaultScene];
+
+        if (loader.IsError())
+        {
+            glfwSetWindowShouldClose(window, GL_TRUE);
+            continue;
+        }
+
+        glBindVertexArray(loader.vao);
+
+        const auto& scene = loader.model.scenes[loader.model.defaultScene];
         for (const int& node : scene.nodes)
         {
-            DrawNode(model, model.nodes[node], buffers, textures, program, transform);
+            DrawNode(loader.model, loader.model.nodes[node], loader.buffers, loader.textures, program, transform);
         }
 
         glBindVertexArray(0);
@@ -261,15 +267,15 @@ static int run(GLFWwindow* window)
     }
 
     glDeleteTextures(1, &whiteTexture);
-    for (auto& [id, texture] : textures)
+    for (auto& [id, texture] : loader.textures)
     {
         glDeleteTextures(1, &texture);
     }
-    for (auto& [id, buffer] : buffers)
+    for (auto& [id, buffer] : loader.buffers)
     {
         glDeleteBuffers(1, &buffer);
     }
-    glDeleteVertexArrays(1, &vao);
+    glDeleteVertexArrays(1, &loader.vao);
 
     return 0;
 }
