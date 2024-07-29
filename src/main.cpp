@@ -199,7 +199,9 @@ static int run(GLFWwindow* window)
     std::map<int, GLuint> textures;
     //if (!ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures))
     //if (!ModelLoader::loadBinary(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb", &model, &vao, buffers, textures))
+    // if (!ModelLoader::loadAscii(RESOURCE_PATH "Cube/Cube.gltf", &model, &vao, buffers, textures))
     if (!ModelLoader::loadAscii(RESOURCE_PATH "buster_drone/scene.gltf", &model, &vao, buffers, textures))
+    // if (!ModelLoader::loadBinary(RESOURCE_PATH "buster_drone.glb", &model, &vao, buffers, textures))
     //if (!ModelLoader::loadBinary(RESOURCE_PATH "girl_speedsculpt.glb", &model, &vao, buffers, textures))
     {
         return 1;
@@ -253,7 +255,7 @@ static int run(GLFWwindow* window)
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
-        transform = glm::rotate(transform, glm::radians(0.1), glm::dvec3(0.0, 1.0, 0.0));
+        transform = glm::rotate(transform, glm::radians(0.2), glm::dvec3(0.0, 1.0, 0.0));
     }
 
     glDeleteTextures(1, &whiteTexture);
@@ -289,7 +291,7 @@ int main()
 
     glfwSetKeyCallback(window, key_callback);
 
-    stbi_set_flip_vertically_on_load(true);
+    // stbi_set_flip_vertically_on_load(true);
 
     int ret = run(window);
 

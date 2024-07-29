@@ -10,8 +10,8 @@
 
 namespace ModelLoader
 {
-    static bool load(const char* filename, tinygltf::Model* outputModel, GLuint* vao, std::map<int, GLuint>& buffers,
-                     std::map<int, GLuint>& textures,
+    static bool load(const char *filename, tinygltf::Model *outputModel, GLuint *vao, std::map<int, GLuint> &buffers,
+                     std::map<int, GLuint> &textures,
                      bool binary)
     {
         tinygltf::TinyGLTF loader;
@@ -46,17 +46,17 @@ namespace ModelLoader
             glGenVertexArrays(1, vao);
             glBindVertexArray(*vao);
 
-            for (auto& mesh : model.meshes)
+            for (auto &mesh : model.meshes)
             {
-                for (const auto& primitive : mesh.primitives)
+                for (const auto &primitive : mesh.primitives)
                 {
                     if (primitive.indices < 0)
                         continue;
 
-                    for (const auto& [attributeName, accessorId] : primitive.attributes)
+                    for (const auto &[attributeName, accessorId] : primitive.attributes)
                     {
-                        const auto& accessor = model.accessors[accessorId];
-                        const auto& bufferView = model.bufferViews[accessor.bufferView];
+                        const auto &accessor = model.accessors[accessorId];
+                        const auto &bufferView = model.bufferViews[accessor.bufferView];
 
                         if (bufferView.target == 0)
                         {
@@ -66,7 +66,7 @@ namespace ModelLoader
 
                         if (buffers.count(accessor.bufferView) == 0)
                         {
-                            const auto& buffer = model.buffers[bufferView.buffer];
+                            const auto &buffer = model.buffers[bufferView.buffer];
                             GLuint glBuffer = 0;
 
                             glGenBuffers(1, &glBuffer);
@@ -80,15 +80,15 @@ namespace ModelLoader
 
                     if (primitive.material >= 0)
                     {
-                        const auto& material = model.materials[primitive.material];
+                        const auto &material = model.materials[primitive.material];
                         int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
                         if (textureId >= 0 && textures.count(textureId) == 0)
                         {
-                            const auto& texture = model.textures[textureId];
+                            const auto &texture = model.textures[textureId];
 
                             assert(texture.source >= 0);
 
-                            const auto& image = model.images[texture.source];
+                            const auto &image = model.images[texture.source];
 
                             if (!image.image.empty())
                             {
@@ -98,11 +98,17 @@ namespace ModelLoader
 
                                 if (texture.sampler >= 0)
                                 {
-                                    const auto& sampler = model.samplers[texture.sampler];
+                                    const auto &sampler = model.samplers[texture.sampler];
                                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sampler.wrapS);
                                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, sampler.wrapT);
-                                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampler.minFilter);
-                                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampler.magFilter);
+                                    if (sampler.minFilter > -1)
+                                    {
+                                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampler.minFilter);
+                                    }
+                                    if (sampler.magFilter > -1)
+                                    {
+                                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampler.magFilter);
+                                    }
                                 }
                                 else
                                 {
@@ -185,11 +191,11 @@ namespace ModelLoader
                     }
 
                     {
-                        const auto& accessor = model.accessors[primitive.indices];
+                        const auto &accessor = model.accessors[primitive.indices];
                         if (buffers.count(accessor.bufferView) == 0)
                         {
-                            const auto& bufferView = model.bufferViews[accessor.bufferView];
-                            const auto& buffer = model.buffers[bufferView.buffer];
+                            const auto &bufferView = model.bufferViews[accessor.bufferView];
+                            const auto &buffer = model.buffers[bufferView.buffer];
                             GLuint glBuffer = 0;
 
                             glGenBuffers(1, &glBuffer);
@@ -214,39 +220,39 @@ namespace ModelLoader
         return res;
     }
 
-    bool loadBinary(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers,
-                    std::map<int, GLuint>& textures)
+    bool loadBinary(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers,
+                    std::map<int, GLuint> &textures)
     {
         return load(filename, model, vao, buffers, textures, true);
     }
 
-    bool loadAscii(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers,
-                   std::map<int, GLuint>& textures)
+    bool loadAscii(const char *filename, tinygltf::Model *model, GLuint *vao, std::map<int, GLuint> &buffers,
+                   std::map<int, GLuint> &textures)
     {
         return load(filename, model, vao, buffers, textures, false);
     }
 
-    std::ostream& operator<<(std::ostream& os, const tinygltf::Model& model)
+    std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model)
     {
         os << "buffers : " << model.buffers.size() << '\n';
         os << "bufferviews : " << model.bufferViews.size() << '\n';
-        for (auto& mesh : model.meshes)
+        for (auto &mesh : model.meshes)
         {
             os << "mesh : " << mesh.name << '\n';
-            for (auto& primitive : mesh.primitives)
+            for (auto &primitive : mesh.primitives)
             {
-                const auto& indexAccessor = model.accessors[primitive.indices];
+                const auto &indexAccessor = model.accessors[primitive.indices];
 
                 os << "indexaccessor: count " << indexAccessor.count << ", type "
-                    << indexAccessor.componentType << '\n';
+                   << indexAccessor.componentType << '\n';
 
-                const auto& mat = model.materials[primitive.material];
-                for (auto& mats : mat.values)
+                const auto &mat = model.materials[primitive.material];
+                for (auto &mats : mat.values)
                 {
                     os << "mat : " << mats.first.c_str() << '\n';
                 }
 
-                for (auto& image : model.images)
+                for (auto &image : model.images)
                 {
                     os << "image name : " << image.uri << '\n';
                     os << "  size : " << image.image.size() << '\n';
@@ -256,7 +262,7 @@ namespace ModelLoader
                 os << "indices : " << primitive.indices << '\n';
                 os << "mode : " << "(" << primitive.mode << ")" << '\n';
 
-                for (auto& attrib : primitive.attributes)
+                for (auto &attrib : primitive.attributes)
                 {
                     os << "attribute : " << attrib.first.c_str() << '\n';
                 }
