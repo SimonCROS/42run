@@ -24,8 +24,8 @@ static inline bool EndsWith(const std::string_view &fullString, const std::strin
 
 void ModelLoader::LoadAsync()
 {
-    bool binary = EndsWith(_filename, ".glb");
-    std::thread thread_object(&ModelLoader::LoadThread, this, vao, buffers, textures, binary);
+    std::cout << "Make thread" << std::endl;
+    std::thread thread_object(&ModelLoader::LoadThread, this);
 }
 
 bool ModelLoader::IsCompleted()
@@ -42,14 +42,29 @@ bool ModelLoader::IsError()
     return error;
 }
 
-bool ModelLoader::LoadWorker(bool binary)
+bool ModelLoader::IsBinaryFile()
+{
+    return EndsWith(_filename, ".glb");
+}
+
+void ModelLoader::LoadThread()
+{
+    bool res = LoadWorker();
+
+    loadingMutex.lock();
+    completed = true;
+    error = !res;
+    loadingMutex.unlock();
+}
+
+bool ModelLoader::LoadWorker()
 {
     tinygltf::TinyGLTF loader;
     std::string err;
     std::string warn;
     bool res;
 
-    if (binary)
+    if (IsBinaryFile())
     {
         res = loader.LoadBinaryFromFile(&model, &err, &warn, _filename.c_str());
     }
@@ -245,16 +260,6 @@ bool ModelLoader::LoadWorker(bool binary)
     glBindVertexArray(0);
 
     return res;
-}
-
-void ModelLoader::LoadThread(bool binary)
-{
-    bool res = LoadWorker(binary);
-
-    loadingMutex.lock();
-    completed = true;
-    error = !res;
-    loadingMutex.unlock();
 }
 
 std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model)

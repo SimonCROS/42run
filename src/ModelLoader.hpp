@@ -29,6 +29,7 @@ public:
 
     bool IsCompleted();
     bool IsError();
+    bool IsBinaryFile();
 
 private:
     const std::string _filename;
@@ -37,8 +38,8 @@ private:
     bool completed;
     std::mutex loadingMutex;
 
-    bool LoadWorker(bool binary);
-    void LoadThread(bool binary);
+    bool LoadWorker();
+    void LoadThread();
 };
 
 std::ostream& operator<<(std::ostream& os, const tinygltf::Model& model);
