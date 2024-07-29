@@ -202,6 +202,8 @@ static int run(GLFWwindow* window)
     // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
 
+    loader.LoadAsync();
+
     //! Create shader program
     const ShaderProgram program(
         Shader(RESOURCE_PATH "shaders/default.vert", GL_VERTEX_SHADER),
