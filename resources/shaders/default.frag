@@ -14,5 +14,5 @@ void main() {
     float ambient = 0.4;
 
     vec4 flatColor = texColor * texture(texture0, texcoord);
-    fragColor = flatColor * ambient + specular;
+    fragColor = flatColor;// * ambient + specular;
 }

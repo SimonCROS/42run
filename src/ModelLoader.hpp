@@ -8,12 +8,23 @@
 
 #include "glad/gl.h"
 
-namespace ModelLoader
-{
-    bool loadAscii(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers, std::map<int, GLuint> &textures);
-    bool loadBinary(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers, std::map<int, GLuint> &textures);
+#include <optional>
 
-    std::ostream& operator<<(std::ostream& os, const tinygltf::Model& model);
+class ModelLoader
+{
+public:
+    bool completed;
+    bool error;
+    std::optional<tinygltf::Model> model;
+
+    void loadAscii(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers, std::map<int, GLuint> &textures);
+    void loadBinary(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers, std::map<int, GLuint> &textures);
+
+private:
+    void load(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers, std::map<int, GLuint> &textures);
+    void loadAsync(const char* filename, tinygltf::Model* model, GLuint* vao, std::map<int, GLuint>& buffers, std::map<int, GLuint> &textures);
 };
+
+std::ostream& operator<<(std::ostream& os, const tinygltf::Model& model);
 
 #endif

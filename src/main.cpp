@@ -197,11 +197,13 @@ static int run(GLFWwindow* window)
     GLuint vao;
     std::map<int, GLuint> buffers;
     std::map<int, GLuint> textures;
-    //if (!ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures))
+    // if (!ModelLoader::loadBinary(RESOURCE_PATH "magic_laboratory.glb", &model, &vao, buffers, textures))
+    if (!ModelLoader::loadBinary(RESOURCE_PATH "sea_house.glb", &model, &vao, buffers, textures))
     //if (!ModelLoader::loadBinary(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb", &model, &vao, buffers, textures))
     // if (!ModelLoader::loadAscii(RESOURCE_PATH "Cube/Cube.gltf", &model, &vao, buffers, textures))
-    if (!ModelLoader::loadAscii(RESOURCE_PATH "buster_drone/scene.gltf", &model, &vao, buffers, textures))
+    // if (!ModelLoader::loadAscii(RESOURCE_PATH "buster_drone/scene.gltf", &model, &vao, buffers, textures))
     // if (!ModelLoader::loadBinary(RESOURCE_PATH "buster_drone.glb", &model, &vao, buffers, textures))
+    // if (!ModelLoader::loadBinary(RESOURCE_PATH "free_porsche_911_carrera_4s.glb", &model, &vao, buffers, textures))
     //if (!ModelLoader::loadBinary(RESOURCE_PATH "girl_speedsculpt.glb", &model, &vao, buffers, textures))
     {
         return 1;
@@ -229,10 +231,10 @@ static int run(GLFWwindow* window)
     //transform = glm::scale(transform, glm::dvec3(2.4));
     //transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 1.8f, 5.2f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0, 0.0f);
+    glm::vec3 cameraPos = glm::vec3(0.0f, 180, 250);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 50, 0.0f);
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
 
     while (!glfwWindowShouldClose(window))
     {
