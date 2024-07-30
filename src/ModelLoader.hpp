@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include <thread>
+#include <mutex>
+#include <atomic>
 
 class ModelLoader
 {
@@ -33,10 +35,9 @@ public:
 private:
     const std::string _filename;
 
-    bool error = false;
-    bool completed = false;
-    std::mutex loadingMutex;
-    std::thread loading_thread;
+    std::atomic<bool> error = false;
+    std::atomic<bool> completed = false;
+    std::thread loadingThread;
 
     bool LoadWorker();
     void LoadThread();

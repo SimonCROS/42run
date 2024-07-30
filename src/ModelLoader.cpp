@@ -24,20 +24,16 @@ static inline bool EndsWith(const std::string_view &fullString, const std::strin
 
 void ModelLoader::LoadAsync()
 {
-    loading_thread = std::thread(&ModelLoader::LoadThread, this);
+    loadingThread = std::thread(&ModelLoader::LoadThread, this);
 }
 
 bool ModelLoader::IsCompleted()
 {
-    std::lock_guard g(loadingMutex);
-
     return completed;
 }
 
 bool ModelLoader::IsError()
 {
-    std::lock_guard g(loadingMutex);
-
     return error;
 }
 
@@ -52,16 +48,12 @@ void ModelLoader::LoadThread()
 
     if (!res)
     {
-        loadingMutex.lock();
         completed = true;
         error = true;
-        loadingMutex.unlock();
         return;
     }
 
-    loadingMutex.lock();
     completed = true;
-    loadingMutex.unlock();
 }
 
 bool ModelLoader::LoadWorker()
@@ -102,6 +94,8 @@ bool ModelLoader::LoadWorker()
 
 void ModelLoader::Prepare()
 {
+    loadingThread.join();
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
