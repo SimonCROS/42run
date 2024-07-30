@@ -92,6 +92,108 @@ bool ModelLoader::LoadWorker()
     return res;
 }
 
+static GLuint LoadTexture(const tinygltf::Model &model, const tinygltf::Texture &texture)
+{
+    assert(texture.source >= 0);
+
+    GLuint glTexture = 0;
+    const auto &image = model.images[texture.source];
+
+    if (!image.image.empty())
+    {
+        glGenTextures(1, &glTexture);
+        glBindTexture(GL_TEXTURE_2D, glTexture);
+
+        if (texture.sampler >= 0)
+        {
+            const auto &sampler = model.samplers[texture.sampler];
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sampler.wrapS);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, sampler.wrapT);
+            if (sampler.minFilter > -1)
+            {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampler.minFilter);
+            }
+            if (sampler.magFilter > -1)
+            {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampler.magFilter);
+            }
+        }
+        else
+        {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        }
+
+        GLenum format = GL_RGBA;
+        if (image.component == 1)
+        {
+            format = GL_RED;
+        }
+        else if (image.component == 2)
+        {
+            format = GL_RG;
+        }
+        else if (image.component == 3)
+        {
+            format = GL_RGB;
+        }
+
+        GLenum type = GL_UNSIGNED_BYTE;
+        if (image.bits == 16)
+        {
+            type = GL_UNSIGNED_SHORT;
+        }
+        else if (image.bits == 32)
+        {
+            type = GL_UNSIGNED_INT;
+        }
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format,
+                     type, image.image.data());
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else if (!image.uri.empty())
+    {
+        glGenTextures(1, &glTexture);
+        glBindTexture(GL_TEXTURE_2D, glTexture);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        int width, height, nrChannels;
+        stbi_uc *data = stbi_load((TEXTURE_PATH + image.uri).c_str(), &width, &height, &nrChannels, 0);
+        if (data != nullptr)
+        {
+            GLenum format = GL_RGBA;
+            if (image.component == 1)
+            {
+                format = GL_RED;
+            }
+            else if (image.component == 2)
+            {
+                format = GL_RG;
+            }
+            else if (image.component == 3)
+            {
+                format = GL_RGB;
+            }
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else
+        {
+            std::cerr << "ERROR::TEXTURE::LOADING_FAILED\n"
+                      << stbi_failure_reason() << std::endl;
+        }
+
+        stbi_image_free(data);
+    }
+    return glTexture;
+}
+
 void ModelLoader::Prepare()
 {
     loadingThread.join();
@@ -134,111 +236,20 @@ void ModelLoader::Prepare()
             if (primitive.material >= 0)
             {
                 const auto &material = model.materials[primitive.material];
-                int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
-                if (textureId >= 0 && textures.count(textureId) == 0)
                 {
-                    const auto &texture = model.textures[textureId];
-
-                    assert(texture.source >= 0);
-
-                    const auto &image = model.images[texture.source];
-
-                    if (!image.image.empty())
+                    int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
+                    if (textureId >= 0 && textures.count(textureId) == 0)
                     {
-                        GLuint glTexture;
-                        glGenTextures(1, &glTexture);
-                        glBindTexture(GL_TEXTURE_2D, glTexture);
-
-                        if (texture.sampler >= 0)
-                        {
-                            const auto &sampler = model.samplers[texture.sampler];
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sampler.wrapS);
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, sampler.wrapT);
-                            if (sampler.minFilter > -1)
-                            {
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampler.minFilter);
-                            }
-                            if (sampler.magFilter > -1)
-                            {
-                                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampler.magFilter);
-                            }
-                        }
-                        else
-                        {
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                        }
-
-                        GLenum format = GL_RGBA;
-                        if (image.component == 1)
-                        {
-                            format = GL_RED;
-                        }
-                        else if (image.component == 2)
-                        {
-                            format = GL_RG;
-                        }
-                        else if (image.component == 3)
-                        {
-                            format = GL_RGB;
-                        }
-
-                        GLenum type = GL_UNSIGNED_BYTE;
-                        if (image.bits == 16)
-                        {
-                            type = GL_UNSIGNED_SHORT;
-                        }
-                        else if (image.bits == 32)
-                        {
-                            type = GL_UNSIGNED_INT;
-                        }
-
-                        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format,
-                                     type, image.image.data());
-                        glGenerateMipmap(GL_TEXTURE_2D);
-
-                        textures[textureId] = glTexture;
+                        const auto &texture = model.textures[textureId];
+                        textures[textureId] = LoadTexture(model, texture);
                     }
-                    else if (!image.uri.empty())
+                }
+                {
+                    int textureId = material.pbrMetallicRoughness.metallicRoughnessTexture.index;
+                    if (textureId >= 0 && textures.count(textureId) == 0)
                     {
-                        GLuint glTexture;
-                        glGenTextures(1, &glTexture);
-                        glBindTexture(GL_TEXTURE_2D, glTexture);
-
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-                        int width, height, nrChannels;
-                        stbi_uc *data = stbi_load((TEXTURE_PATH + image.uri).c_str(), &width, &height, &nrChannels, 0);
-                        if (data != nullptr)
-                        {
-                            GLenum format = GL_RGBA;
-                            if (image.component == 1)
-                            {
-                                format = GL_RED;
-                            }
-                            else if (image.component == 2)
-                            {
-                                format = GL_RG;
-                            }
-                            else if (image.component == 3)
-                            {
-                                format = GL_RGB;
-                            }
-
-                            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-                            glGenerateMipmap(GL_TEXTURE_2D);
-                        }
-                        else
-                        {
-                            std::cerr << "ERROR::TEXTURE::LOADING_FAILED\n"
-                                      << stbi_failure_reason() << std::endl;
-                        }
-
-                        stbi_image_free(data);
-                        textures[textureId] = glTexture;
+                        const auto &texture = model.textures[textureId];
+                        textures[textureId] = LoadTexture(model, texture);
                     }
                 }
             }

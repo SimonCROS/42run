@@ -75,6 +75,28 @@ static int GetDrawMode(int tinygltfMode)
         return -1;
 }
 
+static void BindTexture(const std::map<int, GLuint>& textures, const int textureIndex, const ShaderProgram& program, const std::string_view& bindingKey, const int bindingValue)
+{
+    if (textureIndex >= 0 && textures.count(textureIndex) != 0)
+    {
+        GLuint glTexture = textures.at(textureIndex);
+
+        if (glTexture > 0)
+        {
+            glActiveTexture(GL_TEXTURE0 + bindingValue);
+            program.SetInt(bindingKey.data(), bindingValue);
+            glBindTexture(GL_TEXTURE_2D, glTexture);
+            return;
+        }
+        else
+        {
+            glActiveTexture(GL_TEXTURE0 + bindingValue);
+            program.SetInt(bindingKey.data(), 0);
+            glBindTexture(GL_TEXTURE_2D, whiteTexture);
+        }
+    }
+}
+
 static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const std::map<int, GLuint>& buffers,
                      const std::map<int, GLuint>& textures, const ShaderProgram& program)
 {
@@ -113,20 +135,11 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
         if (primitive.material >= 0)
         {
             const auto& material = model.materials[primitive.material];
-            int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
-            if (textureId >= 0 && textures.count(textureId) != 0)
-            {
-                glActiveTexture(GL_TEXTURE0 + material.pbrMetallicRoughness.baseColorTexture.texCoord);
-                program.SetInt("texture0", material.pbrMetallicRoughness.baseColorTexture.texCoord);
-                glBindTexture(GL_TEXTURE_2D, textures.at(textureId));
-            }
-            else
-            {
-                glActiveTexture(GL_TEXTURE0);
-                program.SetInt("texture0", 0);
-                glBindTexture(GL_TEXTURE_2D, whiteTexture);
-            }
-            program.SetVec4("texColor", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
+            BindTexture(textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
+            BindTexture(textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program, "metallicRoughnessMap", 1);
+            program.SetFloat("metallicFactor", material.pbrMetallicRoughness.metallicFactor);
+            program.SetFloat("roughnessFactor", material.pbrMetallicRoughness.roughnessFactor);
+            program.SetVec4("color", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
         }
 
         const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
@@ -193,11 +206,10 @@ static int run(GLFWwindow* window)
     int version = gladLoadGL(glfwGetProcAddress);
     std::cout << "OpenGL " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
 
-    // ModelLoader loader(RESOURCE_PATH "sea_house.glb");
+    ModelLoader loader(RESOURCE_PATH "sea_house.glb");
     // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
-    // ModelLoader loader(RESOURCE_PATH "PeterHeadSimpleHairMesh.glb");
     // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
-    ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
+    // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
     // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
@@ -223,15 +235,16 @@ static int run(GLFWwindow* window)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     auto transform = glm::identity<glm::dmat4>();
-    //transform = glm::scale(transform, glm::dvec3(2.4));
+    transform = glm::scale(transform, glm::dvec3(0.01));
     //transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
 
     bool prepared = false; // tmp
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 1, 4);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0, 0.0f);
+    glm::vec3 cameraPos = glm::vec3(0.0f, 3, 5);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 1, 0.0f);
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
+    glm::vec3 lightPos = glm::vec3(0, 2, 25);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -246,9 +259,10 @@ static int run(GLFWwindow* window)
         }
 
         program.Use();
-        program.SetVec3("camera", cameraPos);
+        program.SetVec3("viewPos", cameraPos);
         program.SetMat4("projection", proj);
         program.SetMat4("view", view);
+        program.SetVec3("lightPos", lightPos);
 
         if (loader.IsError())
         {
@@ -272,7 +286,7 @@ static int run(GLFWwindow* window)
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
-        transform = glm::rotate(transform, glm::radians(0.2), glm::dvec3(0.0, 1.0, 0.0));
+        transform = glm::rotate(transform, glm::radians(0.8), glm::dvec3(0.0, 1.0, 0.0));
     }
 
     glDeleteTextures(1, &whiteTexture);
