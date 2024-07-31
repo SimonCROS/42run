@@ -14,7 +14,7 @@ layout (location = 0) out vec3 v_FragPos;
 #ifdef HAS_TANGENTS
 layout (location = 1) out mat3 v_TBN;
 #else
-layout (location = 1) out mat3 v_Normal;
+layout (location = 1) out vec3 v_Normal;
 #endif
 #endif
 layout (location = 4) out vec2 v_TexCoord;
@@ -29,15 +29,17 @@ void main()
     v_FragPos = vec3(position);
     gl_Position = position;
 
-#if HAS_NORMALS
+#ifdef HAS_NORMALS
     mat3 normalMatrix = mat3(transpose(inverse(transform))); // TODO pass normal matrix as argument
-    vec3 normalW = normalize(normalMatrix * a_Normal);
-#if HAS_TANGENTS
-    vec3 tangentW = normalize(normalMatrix * a_Tangent);
-    vec3 bitangentW = cross(normalW, tangentW);
-    v_TBN = mat3(tangentW, bitangentW, normalW);
+    vec3 N = normalize(normalMatrix * a_Normal);
+#ifdef HAS_TANGENTS
+    vec3 T = normalize(normalMatrix * a_Tangent);
+    // re-orthogonalize T with respect to N (Gram-Schmidt process)
+    T = normalize(T - dot(T, N) * N);
+    vec3 U = cross(N, T);
+    v_TBN = mat3(T, U, N);
 #else
-    v_Normal = normalW;
+    v_Normal = N;
 #endif
 #endif
 

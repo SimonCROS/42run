@@ -5,7 +5,7 @@ layout (location = 0) in vec3 v_FragPos;
 #ifdef HAS_TANGENTS
 layout (location = 1) in mat3 v_TBN;
 #else
-layout (location = 1) in mat3 v_Normal;
+layout (location = 1) in vec3 v_Normal;
 #endif
 #endif
 layout (location = 4) in vec2 v_TexCoord;
@@ -18,7 +18,7 @@ uniform sampler2D baseColorMap;
 #ifdef HAS_METALROUGHNESSMAP
 uniform sampler2D metallicRoughnessMap;
 #endif
-#if HAS_NORMALMAP
+#ifdef HAS_NORMALMAP
 uniform sampler2D normalMap;
 #endif
 uniform float metallicFactor;
