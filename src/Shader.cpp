@@ -42,7 +42,7 @@ bool Shader::try_create_shader(const GLenum type, const char *code, GLuint *id)
         return false;
     }
 
-    glShaderSource(shaderId, 1, &code, NULL);
+    glShaderSource(shaderId, 1, &code, nullptr);
     *id = shaderId;
     return true;
 }

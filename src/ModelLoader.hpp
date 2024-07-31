@@ -26,6 +26,7 @@ public:
     explicit ModelLoader(const std::string_view& filename);
 
     void LoadAsync();
+    void Wait();
     void Prepare();
 
     bool IsCompleted();

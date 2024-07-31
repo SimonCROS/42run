@@ -202,9 +202,17 @@ static void LoadTexture(const tinygltf::Model &model, const int &textureId, std:
     textures[textureId] = glTexture;
 }
 
+void ModelLoader::Wait()
+{
+    if (loadingThread.joinable())
+    {
+        loadingThread.join();
+    }
+}
+
 void ModelLoader::Prepare()
 {
-    loadingThread.join();
+    Wait();
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);

@@ -294,6 +294,7 @@ static int run(GLFWwindow* window)
         transform = glm::rotate(transform, glm::radians(0.1), glm::dvec3(0.0, 1.0, 0.0));
     }
 
+    loader.Wait();
     glDeleteTextures(1, &whiteTexture);
     for (auto& [id, texture] : loader.textures)
     {
