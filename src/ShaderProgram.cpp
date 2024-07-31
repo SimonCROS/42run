@@ -30,7 +30,8 @@ ShaderProgram::ShaderProgram(const Shader& vertexShader, const Shader& fragmentS
 
     attributes["POSITION"] = 0;
     attributes["NORMAL"] = 1;
-    attributes["TEXCOORD_0"] = 2;
+    attributes["TANGENT"] = 2;
+    attributes["TEXCOORD_0"] = 3;
 }
 
 ShaderProgram::~ShaderProgram()

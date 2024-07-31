@@ -92,8 +92,15 @@ bool ModelLoader::LoadWorker()
     return res;
 }
 
-static GLuint LoadTexture(const tinygltf::Model &model, const tinygltf::Texture &texture)
+static void LoadTexture(const tinygltf::Model &model, const int &textureId, std::map<int, GLuint>& textures)
 {
+    if (textureId < 0 || textures.count(textureId) != 0)
+    {
+        return;
+    }
+
+    const auto &texture = model.textures[textureId];
+
     assert(texture.source >= 0);
 
     GLuint glTexture = 0;
@@ -191,7 +198,8 @@ static GLuint LoadTexture(const tinygltf::Model &model, const tinygltf::Texture 
 
         stbi_image_free(data);
     }
-    return glTexture;
+
+    textures[textureId] = glTexture;
 }
 
 void ModelLoader::Prepare()
@@ -236,22 +244,9 @@ void ModelLoader::Prepare()
             if (primitive.material >= 0)
             {
                 const auto &material = model.materials[primitive.material];
-                {
-                    int textureId = material.pbrMetallicRoughness.baseColorTexture.index;
-                    if (textureId >= 0 && textures.count(textureId) == 0)
-                    {
-                        const auto &texture = model.textures[textureId];
-                        textures[textureId] = LoadTexture(model, texture);
-                    }
-                }
-                {
-                    int textureId = material.pbrMetallicRoughness.metallicRoughnessTexture.index;
-                    if (textureId >= 0 && textures.count(textureId) == 0)
-                    {
-                        const auto &texture = model.textures[textureId];
-                        textures[textureId] = LoadTexture(model, texture);
-                    }
-                }
+                LoadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures);
+                LoadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures);
+                LoadTexture(model, material.normalTexture.index, textures);
             }
 
             {
