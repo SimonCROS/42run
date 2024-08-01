@@ -120,6 +120,12 @@ void main() {
     vec3 diffuseColor = baseColor.xyz * (ambient + diffuse);
     vec3 specColor = baseColor.xyz * specular;
 
+    float dist = length(lightPos - v_FragPos);
+    float attenuation = 1.0 / (1.0 + (0.1 * dist) + (0.01 * dist * dist));
+
+    diffuseColor *= attenuation;
+    specColor *= attenuation;
+
     vec3 result = diffuseColor + specColor;
     result = pow(result, vec3(c_GammaInverse));
     FragColor = vec4(result, 1.0);
