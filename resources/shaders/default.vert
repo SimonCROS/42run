@@ -16,10 +16,7 @@ layout (location = 3) in vec2 a_TexCoord;
 layout (location = 0) out vec3 v_FragPos;
 #ifdef HAS_NORMALS
 #ifdef HAS_TANGENTS
-// layout (location = 1) out mat3 v_TBN;
-layout (location = 1) out vec3 v_TangentLightPos;
-layout (location = 2) out vec3 v_TangentViewPos;
-layout (location = 3) out vec3 v_TangentFragPos;
+layout (location = 1) out mat3 v_TBN;
 #else
 layout (location = 1) out vec3 v_Normal;
 #endif
@@ -46,11 +43,11 @@ void main()
     // re-orthogonalize T with respect to N (Gram-Schmidt process)
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
-    mat3 TBN = transpose(mat3(T, B, N));    
-
-    v_TangentLightPos = TBN * lightPos;
-    v_TangentViewPos  = TBN * viewPos;
-    v_TangentFragPos  = TBN * v_FragPos;
+    mat3 TBN = transpose(mat3(T, B, N));
+    v_TBN = TBN;
+//    v_TangentLightPos = TBN * lightPos;
+//    v_TangentViewPos  = TBN * viewPos;
+//    v_TangentFragPos  = TBN * v_FragPos;
 #else
     v_Normal = N;
 #endif

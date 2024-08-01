@@ -7,10 +7,7 @@
 layout (location = 0) in vec3 v_FragPos;
 #ifdef HAS_NORMALS
 #ifdef HAS_TANGENTS
-// layout (location = 1) in mat3 v_TBN;
-layout (location = 1) in vec3 v_TangentLightPos;
-layout (location = 2) in vec3 v_TangentViewPos;
-layout (location = 3) in vec3 v_TangentFragPos;
+layout (location = 1) in mat3 v_TBN;
 #else
 layout (location = 1) in vec3 v_Normal;
 #endif
@@ -64,12 +61,13 @@ vec3 getNormal()
 
     mat3 tbn = mat3(T, U, N);
 #else // HAS_TANGENTS
-    // mat3 tbn = v_TBN;
+    mat3 tbn = v_TBN;
 #endif
 
 #ifdef HAS_NORMALMAP
     vec3 n = texture(normalMap, v_TexCoord).rgb;
     n = normalize(n * 2.0 - 1.0); // make it [-1, 1]
+    n = n * tbn;
 #else
     // The tbn matrix is linearly interpolated, so we need to re-normalize
     vec3 n = normalize(tbn[2].xyz);
@@ -111,12 +109,12 @@ void main() {
 
     // diffuse
     vec3 norm = getNormal();
-    vec3 lightDir = normalize(v_TangentLightPos - v_TangentFragPos);
+    vec3 lightDir = normalize(lightPos - v_FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = lightColor * (diff * perceptualRoughness);
 
     // specular
-    vec3 viewDir = normalize(v_TangentViewPos - v_TangentFragPos);
+    vec3 viewDir = normalize(viewPos - v_FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 5);
     vec3 specular = lightColor * (spec * metallic);
@@ -125,6 +123,5 @@ void main() {
     vec3 specColor = baseColor.xyz * specular;
 
     vec3 result = diffuseColor + specColor;
-
     FragColor = vec4(result, 1.0);
 }
