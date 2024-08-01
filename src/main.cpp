@@ -17,7 +17,7 @@
 
 #include "stb_image.h"
 
-const GLuint WIDTH = 800, HEIGHT = 600;
+const GLuint WIDTH = 1440 / 2, HEIGHT = 846 - 80;
 GLuint whiteTexture = 0;
 
 struct RendererState
@@ -446,6 +446,10 @@ static int run(GLFWwindow *window)
 int main()
 {
     glfwInit();
+
+    // GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    // const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    // std::cout << mode->width << " " << mode->height << std::endl;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
