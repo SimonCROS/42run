@@ -202,11 +202,7 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
             continue;
 
         ShaderProgram &program = programVariants.GetProgram(GetPrimitiveShaderFlags(model, primitive));
-        if (state.currentShaderProgram != program.id)
-        {
-            program.Use();
-            state.currentShaderProgram = program.id;
-        }
+        program.Use();
 
         for (const auto &[attribute, accessorId] : primitive.attributes)
         {

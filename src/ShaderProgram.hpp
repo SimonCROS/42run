@@ -12,6 +12,7 @@
 class ShaderProgram
 {
 public:
+    static GLuint currentShaderProgramId;
     GLuint id;
 
     ShaderProgram(const std::string_view& vertexCode, const std::string_view& fragmentCode);

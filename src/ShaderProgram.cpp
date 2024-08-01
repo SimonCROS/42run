@@ -9,6 +9,8 @@
 #include "logger.hpp"
 #include "ShaderProgram.hpp"
 
+GLuint ShaderProgram::currentShaderProgramId = 0;
+
 ShaderProgram::ShaderProgram(const std::string_view& vertexCode, const std::string_view& fragmentCode) : id(0), _vertId(0), _fragId(0)
 // id 0 is ignored with glDeleteProgram
 {
@@ -53,7 +55,11 @@ void ShaderProgram::Destroy()
 
 void ShaderProgram::Use() const
 {
-    glUseProgram(id);
+    if (currentShaderProgramId != id)
+    {
+        glUseProgram(id);
+        currentShaderProgramId = id;
+    }
 }
 
 bool ShaderProgram::HasAttribute(const std::string& attribute) const
