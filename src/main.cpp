@@ -324,7 +324,8 @@ static int run(GLFWwindow *window)
 
     // ModelLoader loader(RESOURCE_PATH "sea_house.glb");
     // ModelLoader loader(RESOURCE_PATH "brick_wall_test/scene.gltf");
-    ModelLoader loader(RESOURCE_PATH "goshingyu/scene.gltf");
+    // ModelLoader loader(RESOURCE_PATH "goshingyu/scene.gltf");
+    ModelLoader loader(RESOURCE_PATH "metal_dragon.glb");
     // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
     // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
@@ -360,7 +361,7 @@ static int run(GLFWwindow *window)
     glm::vec3 cameraTarget = glm::vec3(0.0f, 1, 0.0f);
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
-    glm::vec3 lightPos = glm::vec3(0, 6, 25);
+    glm::vec3 lightPos = glm::vec3(15, 30, 100);
 
     while (!glfwWindowShouldClose(window) && !loader.IsCompleted())
     {
@@ -422,7 +423,7 @@ static int run(GLFWwindow *window)
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
-        transform = glm::rotate(transform, glm::radians(0.1), glm::dvec3(0.0, 1.0, 0.0));
+        transform = glm::rotate(transform, glm::radians(0.3), glm::dvec3(0.0, 1.0, 0.0));
     }
 
     loader.Wait();
