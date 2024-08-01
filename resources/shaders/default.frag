@@ -34,6 +34,8 @@ uniform vec3 lightPos;
 
 const float c_MinRoughness = 0.04;
 const float c_MinMetallic = 0.04;
+const float c_Gamma = 2.2;
+const float c_GammaInverse = 1 / c_Gamma;
 
 // Find the normal for this fragment, pulling either from a predefined normal map
 // or from the interpolated mesh normal and tangent attributes.
@@ -123,5 +125,6 @@ void main() {
     vec3 specColor = baseColor.xyz * specular;
 
     vec3 result = diffuseColor + specColor;
+    result = pow(result, vec3(c_GammaInverse));
     FragColor = vec4(result, 1.0);
 }

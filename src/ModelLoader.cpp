@@ -92,7 +92,7 @@ bool ModelLoader::LoadWorker()
     return res;
 }
 
-static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std::map<int, GLuint>& textures)
+static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std::map<int, GLuint>& textures, GLint internalformat)
 {
     if (textureId < 0)
     {
@@ -160,7 +160,7 @@ static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std:
             type = GL_UNSIGNED_INT;
         }
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, format,
+        glTexImage2D(GL_TEXTURE_2D, 0, internalformat, image.width, image.height, 0, format,
                      type, image.image.data());
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -192,7 +192,7 @@ static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std:
                 format = GL_RGB;
             }
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
         }
         else
@@ -258,9 +258,9 @@ void ModelLoader::Prepare()
             if (primitive.material >= 0)
             {
                 const auto &material = model.materials[primitive.material];
-                LoadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures);
-                LoadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures);
-                LoadTexture(model, material.normalTexture.index, textures);
+                LoadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures, GL_SRGB_ALPHA);
+                LoadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures, GL_RGBA);
+                LoadTexture(model, material.normalTexture.index, textures, GL_RGBA);
             }
 
             {
