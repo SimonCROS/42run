@@ -71,7 +71,7 @@ std::string ShaderProgramVariants::GetCodeWithFlags(const std::string &code, con
     if (flags & SHADER_HAS_NORMALS)
         defines += "#define HAS_NORMALS\n";
     if (flags & SHADER_HAS_TANGENTS)
-        defines += "#define HASSHADER_HAS_TANGENTS\n";
+        defines += "#define HAS_TANGENTS\n";
     if (flags & SHADER_HAS_BASECOLORMAP)
         defines += "#define HAS_BASECOLORMAP\n";
     if (flags & SHADER_HAS_METALROUGHNESSMAP)
