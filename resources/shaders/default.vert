@@ -1,9 +1,5 @@
 #version 410
 
-#define HAS_NORMALS
-#define HAS_TANGENTS
-#define HAS_NORMALMAP
-
 layout (location = 0) in vec3 a_Position;
 #ifdef HAS_NORMALS
 layout (location = 1) in vec3 a_Normal;

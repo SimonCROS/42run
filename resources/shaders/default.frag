@@ -1,9 +1,5 @@
 #version 410
 
-#define HAS_NORMALS
-#define HAS_TANGENTS
-#define HAS_NORMALMAP
-
 layout (location = 0) in vec3 v_FragPos;
 #ifdef HAS_NORMALS
 #ifdef HAS_TANGENTS
