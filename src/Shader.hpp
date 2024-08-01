@@ -5,19 +5,11 @@
 
 #include "glad/gl.h"
 
-class Shader
+namespace Shader
 {
-public:
-    GLuint id;
-
-    Shader(const char *path, const GLenum type);
-    Shader(const Shader&) = delete;
-    ~Shader();
-
-private:
-    static bool try_create_shader(const GLenum type, const char *code, GLuint *id);
-    static bool try_get_shader_code(const char *path, std::string *code);
-    static bool compile_shader(const GLuint id);
+    GLuint CreateShader(const std::string_view& code, const GLenum type);
+    void DestroyShader(GLuint shader);
+    bool TryGetShaderCode(const std::string_view& path, std::string *code);
 };
 
 #endif

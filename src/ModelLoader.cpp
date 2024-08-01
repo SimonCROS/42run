@@ -92,11 +92,16 @@ bool ModelLoader::LoadWorker()
     return res;
 }
 
-static void LoadTexture(const tinygltf::Model &model, const int &textureId, std::map<int, GLuint>& textures)
+static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std::map<int, GLuint>& textures)
 {
-    if (textureId < 0 || textures.count(textureId) != 0)
+    if (textureId < 0)
     {
-        return;
+        return false;
+    }
+
+    if (textures.count(textureId) != 0)
+    {
+        return true;
     }
 
     const auto &texture = model.textures[textureId];
@@ -200,6 +205,7 @@ static void LoadTexture(const tinygltf::Model &model, const int &textureId, std:
     }
 
     textures[textureId] = glTexture;
+    return true;
 }
 
 void ModelLoader::Wait()
@@ -273,6 +279,8 @@ void ModelLoader::Prepare()
                     buffers[accessor.bufferView] = glBuffer;
                 }
             }
+
+            usedShaderFlagCombinations.insert(GetPrimitiveShaderFlags(model, primitive));
         }
     }
 

@@ -2,7 +2,7 @@
 #define SHADER_PROGRAM_H
 
 #include <string>
-#include <map>
+#include <unordered_map>
 
 #include <glm/mat4x4.hpp>
 
@@ -14,14 +14,14 @@ class ShaderProgram
 public:
     GLuint id;
 
-    ShaderProgram(const Shader& vertexShader, const Shader& fragmentShader);
-    ShaderProgram(const ShaderProgram&) = delete;
-    ~ShaderProgram();
+    ShaderProgram(const std::string_view& vertexCode, const std::string_view& fragmentCode);
+
+    void Destroy();
 
     void Use() const;
 
-    bool HasAttribute(const std::string_view& attribute) const;
-    GLint GetAttributeLocation(const std::string_view& attribute) const;
+    bool HasAttribute(const std::string& attribute) const;
+    GLint GetAttributeLocation(const std::string& attribute) const;
 
     void SetBool(const std::string_view& name, const bool value) const;
     void SetInt(const std::string_view& name, const int value) const;
@@ -30,8 +30,8 @@ public:
     void SetVec4(const std::string_view& name, const glm::vec4& value) const;
     void SetMat4(const std::string_view& name, const glm::mat4& value) const;
 private:
-    std::map<std::string, GLint, std::less<>> attributes;
-    // transparent std::less allow comparing key with std::string_view
+    GLuint _vertId, _fragId;
+    std::unordered_map<std::string, GLint> attributes;
 
     static bool LinkProgram(const GLuint id);
 };

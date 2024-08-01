@@ -9,6 +9,7 @@
 
 #include "Shader.hpp"
 #include "ShaderProgram.hpp"
+#include "ShaderProgramVariants.hpp"
 #include "Model.hpp"
 #include "ModelLoader.hpp"
 
@@ -19,7 +20,105 @@
 const GLuint WIDTH = 800, HEIGHT = 600;
 GLuint whiteTexture = 0;
 
-static void CheckErrors(const std::string_view& desc)
+struct RendererState
+{
+    GLuint currentShaderProgram;
+    glm::mat4 projection;
+    glm::mat4 view;
+    glm::vec3 viewPos;
+    glm::vec3 lightPos;
+};
+
+void APIENTRY glDebugOutput(GLenum source,
+                            GLenum type,
+                            unsigned int id,
+                            GLenum severity,
+                            GLsizei length,
+                            const char *message,
+                            const void *userParam)
+{
+    // ignore non-significant error/warning codes
+    if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
+        return;
+
+    std::cout << "---------------" << std::endl;
+    std::cout << "Debug message (" << id << "): " << message << std::endl;
+
+    switch (source)
+    {
+    case GL_DEBUG_SOURCE_API:
+        std::cout << "Source: API";
+        break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        std::cout << "Source: Window System";
+        break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        std::cout << "Source: Shader Compiler";
+        break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:
+        std::cout << "Source: Third Party";
+        break;
+    case GL_DEBUG_SOURCE_APPLICATION:
+        std::cout << "Source: Application";
+        break;
+    case GL_DEBUG_SOURCE_OTHER:
+        std::cout << "Source: Other";
+        break;
+    }
+    std::cout << std::endl;
+
+    switch (type)
+    {
+    case GL_DEBUG_TYPE_ERROR:
+        std::cout << "Type: Error";
+        break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+        std::cout << "Type: Deprecated Behaviour";
+        break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+        std::cout << "Type: Undefined Behaviour";
+        break;
+    case GL_DEBUG_TYPE_PORTABILITY:
+        std::cout << "Type: Portability";
+        break;
+    case GL_DEBUG_TYPE_PERFORMANCE:
+        std::cout << "Type: Performance";
+        break;
+    case GL_DEBUG_TYPE_MARKER:
+        std::cout << "Type: Marker";
+        break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:
+        std::cout << "Type: Push Group";
+        break;
+    case GL_DEBUG_TYPE_POP_GROUP:
+        std::cout << "Type: Pop Group";
+        break;
+    case GL_DEBUG_TYPE_OTHER:
+        std::cout << "Type: Other";
+        break;
+    }
+    std::cout << std::endl;
+
+    switch (severity)
+    {
+    case GL_DEBUG_SEVERITY_HIGH:
+        std::cout << "Severity: high";
+        break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+        std::cout << "Severity: medium";
+        break;
+    case GL_DEBUG_SEVERITY_LOW:
+        std::cout << "Severity: low";
+        break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+        std::cout << "Severity: notification";
+        break;
+    }
+    std::cout << std::endl;
+    std::cout << std::endl;
+}
+
+static void CheckErrors(const std::string_view &desc)
 {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR)
@@ -41,20 +140,20 @@ static GLuint CreateWhiteTexture()
     return whiteTextureId;
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-static void error_callback(int error, const char* description)
+static void error_callback(int error, const char *description)
 {
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static inline void* BufferOffset(const size_t offset)
+static inline void *BufferOffset(const size_t offset)
 {
-    return reinterpret_cast<void*>(offset);
+    return reinterpret_cast<void *>(offset);
 }
 
 static int GetDrawMode(int tinygltfMode)
@@ -75,41 +174,45 @@ static int GetDrawMode(int tinygltfMode)
         return -1;
 }
 
-static void BindTexture(const std::map<int, GLuint>& textures, const int textureIndex, const ShaderProgram& program, const std::string_view& bindingKey, const int bindingValue)
+static bool BindTexture(const std::map<int, GLuint> &textures, const int textureIndex, const ShaderProgram &program, const std::string_view &bindingKey, const int bindingValue)
 {
-    if (textureIndex >= 0 && textures.count(textureIndex) != 0)
+    if (textureIndex < 0)
+    {
+        return false;
+    }
+
+    if (textures.count(textureIndex) != 0)
     {
         GLuint glTexture = textures.at(textureIndex);
 
-        if (glTexture > 0)
-        {
-            glActiveTexture(GL_TEXTURE0 + bindingValue);
-            program.SetInt(bindingKey.data(), bindingValue);
-            glBindTexture(GL_TEXTURE_2D, glTexture);
-            return;
-        }
-        else
-        {
-            glActiveTexture(GL_TEXTURE0 + bindingValue);
-            program.SetInt(bindingKey.data(), 0);
-            glBindTexture(GL_TEXTURE_2D, whiteTexture);
-        }
-    }
+        glActiveTexture(GL_TEXTURE0 + bindingValue);
+        program.SetInt(bindingKey.data(), bindingValue);
+        glBindTexture(GL_TEXTURE_2D, glTexture > 0 ? glTexture : whiteTexture);
+    } // TODO Else throw ?
+
+    return true;
 }
 
-static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const std::map<int, GLuint>& buffers,
-                     const std::map<int, GLuint>& textures, const ShaderProgram& program)
+static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::map<int, GLuint> &buffers,
+                     const std::map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state)
 {
-    for (const auto& primitive : mesh.primitives)
+    for (const auto &primitive : mesh.primitives)
     {
         if (primitive.indices < 0)
             continue;
 
-        for (const auto& [attribute, accessorId] : primitive.attributes)
+        ShaderProgram &program = programVariants.GetProgram(GetPrimitiveShaderFlags(model, primitive));
+        if (state.currentShaderProgram != program.id)
+        {
+            program.Use();
+            state.currentShaderProgram = program.id;
+        }
+
+        for (const auto &[attribute, accessorId] : primitive.attributes)
         {
             assert(accessorId >= 0);
 
-            const tinygltf::Accessor& accessor = model.accessors[accessorId];
+            const tinygltf::Accessor &accessor = model.accessors[accessorId];
 
             glBindBuffer(GL_ARRAY_BUFFER, buffers.at(accessor.bufferView));
             CheckErrors("bind buffer");
@@ -134,7 +237,7 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
 
         if (primitive.material >= 0)
         {
-            const auto& material = model.materials[primitive.material];
+            const auto &material = model.materials[primitive.material];
             BindTexture(textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
             BindTexture(textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program, "metallicRoughnessMap", 1);
             BindTexture(textures, material.normalTexture.index, program, "normalMap", 2);
@@ -143,7 +246,7 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
             program.SetVec4("color", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
         }
 
-        const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
+        const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers.at(indexAccessor.bufferView));
         CheckErrors("bind buffer");
@@ -155,7 +258,7 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
                        BufferOffset(indexAccessor.byteOffset));
         CheckErrors("draw elements");
 
-        for (const auto& [attribute, accessorId] : primitive.attributes)
+        for (const auto &[attribute, accessorId] : primitive.attributes)
         {
             int attributeLocation = program.GetAttributeLocation(attribute);
             if (attributeLocation != -1)
@@ -166,8 +269,8 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
     }
 }
 
-static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const std::map<int, GLuint>& buffers,
-                     const std::map<int, GLuint>& textures, const ShaderProgram& program, glm::dmat4 transform)
+static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::map<int, GLuint> &buffers,
+                     const std::map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
 {
     if (node.matrix.size() == 16)
     {
@@ -193,19 +296,35 @@ static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const s
 
     if (node.mesh >= 0 && node.mesh < model.meshes.size())
     {
-        program.SetMat4("transform", transform);
-        DrawMesh(model, model.meshes[node.mesh], buffers, textures, program);
+        for (auto &[flags, program] : programVariants.programs)
+        {
+            program.Use();
+            program.SetMat4("transform", transform);
+            state.currentShaderProgram = program.id;
+        }
+        
+        DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state);
     }
-    for (const int& child : node.children)
+    for (const int &child : node.children)
     {
-        DrawNode(model, model.nodes[child], buffers, textures, program, transform);
+        DrawNode(model, model.nodes[child], buffers, textures, programVariants, state, transform);
     }
 }
 
-static int run(GLFWwindow* window)
+static int run(GLFWwindow *window)
 {
     int version = gladLoadGL(glfwGetProcAddress);
     std::cout << "OpenGL " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
+
+    int flags;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(glDebugOutput, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    }
 
     // ModelLoader loader(RESOURCE_PATH "sea_house.glb");
     // ModelLoader loader(RESOURCE_PATH "brick_wall_test/scene.gltf");
@@ -221,9 +340,7 @@ static int run(GLFWwindow* window)
     loader.LoadAsync();
 
     //! Create shader program
-    const ShaderProgram program(
-        Shader(RESOURCE_PATH "shaders/default.vert", GL_VERTEX_SHADER),
-        Shader(RESOURCE_PATH "shaders/default.frag", GL_FRAGMENT_SHADER));
+    ShaderProgramVariants programVariants(RESOURCE_PATH "shaders/default.vert", RESOURCE_PATH "shaders/default.frag");
 
     whiteTexture = CreateWhiteTexture();
 
@@ -243,19 +360,42 @@ static int run(GLFWwindow* window)
     transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
     transform = glm::translate(transform, glm::dvec3(0.0, -6, 2));
 
-    bool prepared = false; // tmp
-
     glm::vec3 cameraPos = glm::vec3(0.0f, 3, 5);
     glm::vec3 cameraTarget = glm::vec3(0.0f, 1, 0.0f);
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
     glm::vec3 lightPos = glm::vec3(0, 6, 25);
 
+    while (!glfwWindowShouldClose(window) && !loader.IsCompleted())
+    {
+        glfwPollEvents();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glfwSwapBuffers(window);
+    }
+
+    if (loader.IsError())
+    {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+
+    loader.Prepare();
+
+    if (!programVariants.EnableVariants(loader.usedShaderFlagCombinations))
+    {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+
+    RendererState state{
+        .currentShaderProgram = 0,
+        .projection = proj,
+        .view = view,
+        .viewPos = cameraPos,
+        .lightPos = lightPos,
+    };
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (!loader.IsCompleted())
         {
@@ -263,29 +403,24 @@ static int run(GLFWwindow* window)
             continue;
         }
 
-        program.Use();
-        program.SetVec3("viewPos", cameraPos);
-        program.SetMat4("projection", proj);
-        program.SetMat4("view", view);
-        program.SetVec3("lightPos", lightPos);
-
-        if (loader.IsError())
-        {
-            glfwSetWindowShouldClose(window, GL_TRUE);
-            continue;
-        }
-        if (!prepared)
-        {
-            loader.Prepare();
-            prepared = true;
-        }
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindVertexArray(loader.vao);
 
-        const auto& scene = loader.model.scenes[loader.model.defaultScene];
-        for (const int& node : scene.nodes)
+        for (auto &[flags, program] : programVariants.programs)
         {
-            DrawNode(loader.model, loader.model.nodes[node], loader.buffers, loader.textures, program, transform);
+            program.Use();
+            program.SetVec3("viewPos", cameraPos);
+            program.SetMat4("projection", proj);
+            program.SetMat4("view", view);
+            program.SetVec3("lightPos", lightPos);
+            state.currentShaderProgram = program.id;
+        }
+
+        const auto &scene = loader.model.scenes[loader.model.defaultScene];
+        for (const int &node : scene.nodes)
+        {
+            DrawNode(loader.model, loader.model.nodes[node], loader.buffers, loader.textures, programVariants, state, transform);
         }
 
         glBindVertexArray(0);
@@ -295,12 +430,14 @@ static int run(GLFWwindow* window)
     }
 
     loader.Wait();
+
+    programVariants.Destroy();
     glDeleteTextures(1, &whiteTexture);
-    for (auto& [id, texture] : loader.textures)
+    for (auto &[id, texture] : loader.textures)
     {
         glDeleteTextures(1, &texture);
     }
-    for (auto& [id, buffer] : loader.buffers)
+    for (auto &[id, buffer] : loader.buffers)
     {
         glDeleteBuffers(1, &buffer);
     }
@@ -318,9 +455,10 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
     glfwSetErrorCallback(error_callback);
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "42run", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "42run", nullptr, nullptr);
     if (window == nullptr)
     {
         return 1;

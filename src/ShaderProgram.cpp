@@ -9,22 +9,29 @@
 #include "logger.hpp"
 #include "ShaderProgram.hpp"
 
-ShaderProgram::ShaderProgram(const Shader& vertexShader, const Shader& fragmentShader) : id(0)
+ShaderProgram::ShaderProgram(const std::string_view& vertexCode, const std::string_view& fragmentCode) : id(0), _vertId(0), _fragId(0)
 // id 0 is ignored with glDeleteProgram
 {
-    if (vertexShader.id == 0 || fragmentShader.id == 0)
+    _vertId = Shader::CreateShader(vertexCode, GL_VERTEX_SHADER);
+    _fragId = Shader::CreateShader(fragmentCode, GL_FRAGMENT_SHADER);
+
+    if (_vertId == 0 || _fragId == 0)
     {
+        // If one is not 0, delete it
+        Shader::DestroyShader(_fragId);
+        Shader::DestroyShader(_vertId);
+        _fragId = 0;
+        _vertId = 0;
         return;
     }
 
     id = glCreateProgram();
-    glAttachShader(id, vertexShader.id);
-    glAttachShader(id, fragmentShader.id);
+    glAttachShader(id, _vertId);
+    glAttachShader(id, _fragId);
 
     if (!LinkProgram(id))
     {
-        glDeleteProgram(id);
-        id = 0;
+        Destroy();
         return;
     }
 
@@ -34,9 +41,14 @@ ShaderProgram::ShaderProgram(const Shader& vertexShader, const Shader& fragmentS
     attributes["TEXCOORD_0"] = 3;
 }
 
-ShaderProgram::~ShaderProgram()
+void ShaderProgram::Destroy()
 {
     glDeleteProgram(id);
+    Shader::DestroyShader(_fragId);
+    Shader::DestroyShader(_vertId);
+    id = 0;
+    _fragId = 0;
+    _vertId = 0;
 }
 
 void ShaderProgram::Use() const
@@ -44,12 +56,12 @@ void ShaderProgram::Use() const
     glUseProgram(id);
 }
 
-bool ShaderProgram::HasAttribute(const std::string_view& attribute) const
+bool ShaderProgram::HasAttribute(const std::string& attribute) const
 {
     return attributes.find(attribute) != attributes.cend();
 }
 
-GLint ShaderProgram::GetAttributeLocation(const std::string_view& attribute) const
+GLint ShaderProgram::GetAttributeLocation(const std::string& attribute) const
 {
     auto it = attributes.find(attribute);
     return (it != attributes.cend()) ? it->second : -1;

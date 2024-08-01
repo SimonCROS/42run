@@ -7,8 +7,10 @@
 #include "Model.hpp"
 
 #include "glad/gl.h"
+#include "ShaderProgramVariants.hpp"
 
 #include <iostream>
+#include <unordered_set>
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -20,6 +22,7 @@ public:
     tinygltf::Model model; // TODO Make a class to hold data when loaded
     std::map<int, GLuint> buffers; // TODO Make a class to hold data when loaded
     std::map<int, GLuint> textures; // TODO Make a class to hold data when loaded
+    std::unordered_set<ShaderFlags> usedShaderFlagCombinations; // TODO Make a class to hold data when loaded
 
     ModelLoader() = delete;
     ModelLoader(const ModelLoader&) = delete;
