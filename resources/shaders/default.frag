@@ -20,6 +20,7 @@ uniform sampler2D metallicRoughnessMap;
 #endif
 #ifdef HAS_NORMALMAP
 uniform sampler2D normalMap;
+uniform float normalScale;
 #endif
 #ifdef HAS_EMISSIVEMAP
 uniform sampler2D emissiveMap;
@@ -78,7 +79,8 @@ vec3 getNormal()
 #ifdef HAS_NORMALMAP
     vec3 n = texture(normalMap, v_TexCoord).rgb;
     n = normalize(n * 2.0 - 1.0); // make it [-1, 1]
-    n = n * tbn;
+    n *= vec3(normalScale, normalScale, 1.0);
+    n *= tbn;
 #else
     // The tbn matrix is linearly interpolated, so we need to re-normalize
     vec3 n = normalize(tbn[2].xyz);
@@ -115,6 +117,15 @@ vec3 CalcPointLight(PointLight light, float perceptualRoughness, float metallic,
 }
 
 void main() {
+    // The albedo may be defined from a base texture or a flat color
+#ifdef HAS_BASECOLORMAP
+    vec4 baseColor = texture(baseColorMap, v_TexCoord) * color;
+#else
+    vec4 baseColor = color;
+#endif
+    if(baseColor.a < 0.1)
+        discard;
+
     // Metallic and Roughness material properties are packed together
     // In glTF, these factors can be specified by fixed scalar values
     // or from a metallic-roughness map
@@ -129,13 +140,6 @@ void main() {
 #endif
     perceptualRoughness = clamp(perceptualRoughness, c_MinRoughness, 1.0);
     metallic = clamp(metallic, c_MinMetallic, 1.0);
-
-    // The albedo may be defined from a base texture or a flat color
-#ifdef HAS_BASECOLORMAP
-    vec4 baseColor = texture(baseColorMap, v_TexCoord) * color;
-#else
-    vec4 baseColor = color;
-#endif
 
     vec3 ambient = vec3(0.1);
     vec3 normal = getNormal();
@@ -163,5 +167,5 @@ void main() {
     result += emissive;
 
     result = pow(result, vec3(c_GammaInverse));
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, baseColor.a);
 }
