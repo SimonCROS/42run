@@ -149,12 +149,12 @@ void main() {
     // --- IN LOOP
     vec3 light = CalcPointLight(PointLight(lightPos, vec3(1), 1, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
     result += light * baseColor.rgb;
-    // light = CalcPointLight(PointLight(-lightPos, vec3(1,0,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-    // result += light * baseColor.rgb;
-    // light = CalcPointLight(PointLight(vec3(10, 12, -5), vec3(0,1,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-    // result += light * baseColor.rgb;
-    // light = CalcPointLight(PointLight(vec3(-10, 12, -5), vec3(0,0,1), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-    // result += light * baseColor.rgb;
+     light = CalcPointLight(PointLight(-lightPos, vec3(1,0,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+     result += light * baseColor.rgb;
+     light = CalcPointLight(PointLight(vec3(10, 12, -5), vec3(0,1,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+     result += light * baseColor.rgb;
+     light = CalcPointLight(PointLight(vec3(-10, 12, -5), vec3(0,0,1), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+     result += light * baseColor.rgb;
     // --- NOT IN LOOP
 
     // Emissive

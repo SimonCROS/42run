@@ -23,9 +23,15 @@ GLuint whiteTexture = 0;
 struct RendererState
 {
     GLuint currentShaderProgram;
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
+    float pitch = 0.0f;
+    float yaw = 0.0f;
+    glm::vec3 cameraPos;
+    glm::vec3 cameraFront;
+    glm::vec3 cameraUp;
     glm::mat4 projection;
     glm::mat4 view;
-    glm::vec3 viewPos;
     glm::vec3 lightPos;
 };
 
@@ -313,6 +319,62 @@ static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const s
     }
 }
 
+float wrapAngle(float angle) {
+    angle = fmod(angle + 180.0f, 360.0f);
+    if (angle < 0) {
+        angle += 360.0f;
+    }
+    return angle - 180.0f;
+}
+
+glm::vec3 getHorizontalDirection(const glm::vec3& v) {
+    glm::vec3 horizontalDir(v.x, 0.0f, v.z);
+    return glm::normalize(horizontalDir);
+}
+
+void processInput(GLFWwindow *window, RendererState& state)
+{
+    const float cameraSpeed = 2.4f * state.deltaTime;
+    const float cameraRotationSpeed = 42.0f * state.deltaTime;
+    const glm::vec3 horizontalDirection = getHorizontalDirection(state.cameraFront);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        state.cameraPos += cameraSpeed * horizontalDirection;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        state.cameraPos -= cameraSpeed * horizontalDirection;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        state.cameraPos -= glm::normalize(glm::cross(horizontalDirection, state.cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        state.cameraPos += glm::normalize(glm::cross(horizontalDirection, state.cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        state.cameraPos -= glm::vec3(0, cameraSpeed, 0);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        state.cameraPos += glm::vec3(0, cameraSpeed, 0);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        state.pitch += cameraRotationSpeed;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        state.pitch -= cameraRotationSpeed;
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        state.yaw += cameraRotationSpeed;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        state.yaw -= cameraRotationSpeed;
+    state.pitch = std::clamp(state.pitch, -89.0f, 89.0f);
+    state.yaw = wrapAngle(state.yaw);
+
+    const float radPitch = glm::radians(state.pitch);
+    const float radYaw = glm::radians(state.yaw);
+    const float cPitch = cos(radPitch);
+    const float sPitch = sin(radPitch);
+    const float cYaw = -cos(radYaw);
+    const float sYaw = -sin(radYaw);
+
+    glm::vec3 direction;
+    direction.x = sYaw * cPitch;
+    direction.y = sPitch;
+    direction.z = cYaw * cPitch;
+    state.cameraFront = glm::normalize(direction);
+}
+
 static int run(GLFWwindow *window)
 {
     int version = gladLoadGL(glfwGetProcAddress);
@@ -331,12 +393,12 @@ static int run(GLFWwindow *window)
     // ModelLoader loader(RESOURCE_PATH "sea_house.glb");
     // ModelLoader loader(RESOURCE_PATH "brick_wall_test/scene.gltf");
     // ModelLoader loader(RESOURCE_PATH "goshingyu/scene.gltf");
-    ModelLoader loader(RESOURCE_PATH "metal_dragon.glb");
+    // ModelLoader loader(RESOURCE_PATH "metal_dragon.glb");
     // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
     // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
-    // ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
+    ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
     // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
 
@@ -387,22 +449,26 @@ static int run(GLFWwindow *window)
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 3, 5);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 1, 0.0f);
     glm::vec3 lightPos = glm::vec3(5, 50, 40);
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 1000.0f);
+
+    RendererState state {
+        .currentShaderProgram = 0,
+        .cameraPos = glm::vec3(0.0f, 3, 5),
+        .cameraFront = glm::vec3(0.0f, 0.0f, -1.0f),
+        .cameraUp = glm::vec3(0.0f, 1.0f,  0.0f),
+        .projection = proj,
+        .lightPos = lightPos,
+    };
 
     while (!glfwWindowShouldClose(window))
     {
-        // TODO Move
-        glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
-        RendererState state{
-            .currentShaderProgram = 0,
-            .projection = proj,
-            .view = view,
-            .viewPos = cameraPos,
-            .lightPos = lightPos,
-        };
+        auto currentFrame = static_cast<float>(glfwGetTime());
+        state.deltaTime = currentFrame - state.lastFrame;
+        state.lastFrame = currentFrame;
+
+        processInput(window, state);
+        state.view = glm::lookAt(state.cameraPos, state.cameraPos + state.cameraFront, state.cameraUp);
 
         glfwPollEvents();
 
@@ -419,9 +485,9 @@ static int run(GLFWwindow *window)
         for (auto &[flags, program] : programVariants.programs)
         {
             program.Use();
-            program.SetVec3("viewPos", cameraPos);
+            program.SetVec3("viewPos", state.cameraPos);
             program.SetMat4("projection", proj);
-            program.SetMat4("view", view);
+            program.SetMat4("view", state.view);
             program.SetVec3("lightPos", lightPos);
             state.currentShaderProgram = program.id;
         }
@@ -435,7 +501,7 @@ static int run(GLFWwindow *window)
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
-        transform = glm::rotate(transform, glm::radians(0.3), glm::dvec3(0.0, 1.0, 0.0));
+        // transform = glm::rotate(transform, glm::radians(0.3), glm::dvec3(0.0, 1.0, 0.0));
     }
 
     loader.Wait();
