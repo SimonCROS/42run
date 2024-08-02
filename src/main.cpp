@@ -335,7 +335,7 @@ glm::vec3 getHorizontalDirection(const glm::vec3& v) {
 void processInput(GLFWwindow *window, RendererState& state)
 {
     const float cameraSpeed = 2.4f * state.deltaTime;
-    const float cameraRotationSpeed = 42.0f * state.deltaTime;
+    const float cameraRotationSpeed = 60.0f * state.deltaTime;
     const glm::vec3 horizontalDirection = getHorizontalDirection(state.cameraFront);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
