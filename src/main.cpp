@@ -325,12 +325,12 @@ static int run(GLFWwindow *window)
     // ModelLoader loader(RESOURCE_PATH "sea_house.glb");
     // ModelLoader loader(RESOURCE_PATH "brick_wall_test/scene.gltf");
     // ModelLoader loader(RESOURCE_PATH "goshingyu/scene.gltf");
-    ModelLoader loader(RESOURCE_PATH "metal_dragon.glb");
+    // ModelLoader loader(RESOURCE_PATH "metal_dragon.glb");
     // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
     // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
-    // ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
+    ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
     // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
 
@@ -344,6 +344,8 @@ static int run(GLFWwindow *window)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    glEnable(GL_MULTISAMPLE);
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
@@ -353,9 +355,9 @@ static int run(GLFWwindow *window)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     auto transform = glm::identity<glm::dmat4>();
-    transform = glm::scale(transform, glm::dvec3(0.2));
+    transform = glm::scale(transform, glm::dvec3(0.1));
     transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
-    transform = glm::translate(transform, glm::dvec3(0.0, -6, 2));
+    // transform = glm::translate(transform, glm::dvec3(0.0, -6, 2));
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 3, 5);
     glm::vec3 cameraTarget = glm::vec3(0.0f, 1, 0.0f);
@@ -457,6 +459,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     glfwSetErrorCallback(error_callback);
     GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "42run", nullptr, nullptr);
