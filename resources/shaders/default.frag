@@ -28,10 +28,19 @@ uniform vec4 color;
 uniform vec3 viewPos;
 uniform vec3 lightPos;
 
+struct PointLight {
+    vec3 position;
+    vec3 color;
+    float constant;
+    float linear;
+    float quadratic;
+};
+
 const float c_MinRoughness = 0.04;
 const float c_MinMetallic = 0.04;
 const float c_Gamma = 2.2;
 const float c_GammaInverse = 1 / c_Gamma;
+const uint c_Shininess = 5;
 
 // Find the normal for this fragment, pulling either from a predefined normal map
 // or from the interpolated mesh normal and tangent attributes.
@@ -77,6 +86,30 @@ vec3 getNormal()
     return n;
 }
 
+vec3 CalcPointLight(PointLight light, float perceptualRoughness, float metallic, vec3 normal, vec3 fragPos, vec3 viewDir)
+{
+    // diffuse
+    vec3 lightDir = normalize(light.position - fragPos);
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    // specular
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), c_Shininess);
+
+    // Apply colors and effects
+    vec3 diffuse = light.color * (diff * perceptualRoughness);
+    vec3 specular = light.color * (spec * metallic);
+
+    // Light attenuation
+    float dist = length(lightPos - v_FragPos);
+    float attenuation = light.constant / (1.0 + (light.linear * dist) + (light.quadratic * dist * dist));
+
+    diffuse *= attenuation;
+    specular *= attenuation;
+
+    return diffuse + specular;
+}
+
 void main() {
     // Metallic and Roughness material properties are packed together
     // In glTF, these factors can be specified by fixed scalar values
@@ -100,33 +133,22 @@ void main() {
     vec4 baseColor = color;
 #endif
 
-    vec3 lightColor = vec3(1);
-
-    // ambient
-    vec3 ambient = lightColor * 0.1;
-
-    // diffuse
-    vec3 norm = getNormal();
-    vec3 lightDir = normalize(lightPos - v_FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = lightColor * (diff * perceptualRoughness);
-
-    // specular
+    vec3 ambient = vec3(0.1);
+    vec3 normal = getNormal();
     vec3 viewDir = normalize(viewPos - v_FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 5);
-    vec3 specular = lightColor * (spec * metallic);
 
-    vec3 diffuseColor = baseColor.xyz * (ambient + diffuse);
-    vec3 specColor = baseColor.xyz * specular;
+    vec3 result = ambient * baseColor.rgb;
+    // --- IN LOOP
+    vec3 light = CalcPointLight(PointLight(lightPos, vec3(1), 1, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+    result += light * baseColor.rgb;
+    light = CalcPointLight(PointLight(-lightPos, vec3(1,0,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+    result += light * baseColor.rgb;
+    light = CalcPointLight(PointLight(vec3(10, 12, -5), vec3(0,1,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+    result += light * baseColor.rgb;
+    light = CalcPointLight(PointLight(vec3(-10, 12, -5), vec3(0,0,1), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+    result += light * baseColor.rgb;
+    // --- NOT IN LOOP
 
-    float dist = length(lightPos - v_FragPos);
-    float attenuation = 1.0 / (1.0 + (0.1 * dist) + (0.01 * dist * dist));
-
-    diffuseColor *= attenuation;
-    specColor *= attenuation;
-
-    vec3 result = diffuseColor + specColor;
     result = pow(result, vec3(c_GammaInverse));
     FragColor = vec4(result, 1.0);
 }

@@ -361,7 +361,7 @@ static int run(GLFWwindow *window)
     glm::vec3 cameraTarget = glm::vec3(0.0f, 1, 0.0f);
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
-    glm::vec3 lightPos = glm::vec3(5, 6, 4);
+    glm::vec3 lightPos = glm::vec3(5, 50, 40);
 
     while (!glfwWindowShouldClose(window) && !loader.IsCompleted())
     {
