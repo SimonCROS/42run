@@ -237,8 +237,10 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
             BindTexture(textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
             BindTexture(textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program, "metallicRoughnessMap", 1);
             BindTexture(textures, material.normalTexture.index, program, "normalMap", 2);
+            BindTexture(textures, material.emissiveTexture.index, program, "emissiveMap", 3);
             program.SetFloat("metallicFactor", material.pbrMetallicRoughness.metallicFactor);
             program.SetFloat("roughnessFactor", material.pbrMetallicRoughness.roughnessFactor);
+            program.SetVec3("emissiveFactor", glm::make_vec3(material.emissiveFactor.data()));
             program.SetVec4("color", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
         }
 
@@ -328,9 +330,9 @@ static int run(GLFWwindow *window)
     // ModelLoader loader(RESOURCE_PATH "metal_dragon.glb");
     // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
     // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
-    // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
+    ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
-    ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
+    // ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
     // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
 
@@ -355,15 +357,9 @@ static int run(GLFWwindow *window)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     auto transform = glm::identity<glm::dmat4>();
-    transform = glm::scale(transform, glm::dvec3(0.1));
+    // transform = glm::scale(transform, glm::dvec3(0.2));
     transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
     // transform = glm::translate(transform, glm::dvec3(0.0, -6, 2));
-
-    glm::vec3 cameraPos = glm::vec3(0.0f, 3, 5);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 1, 0.0f);
-    glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
-    glm::vec3 lightPos = glm::vec3(5, 50, 40);
 
     while (!glfwWindowShouldClose(window) && !loader.IsCompleted())
     {
@@ -384,16 +380,23 @@ static int run(GLFWwindow *window)
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 
-    RendererState state{
-        .currentShaderProgram = 0,
-        .projection = proj,
-        .view = view,
-        .viewPos = cameraPos,
-        .lightPos = lightPos,
-    };
+    glm::vec3 cameraPos = glm::vec3(0.0f, 3, 5);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 1, 0.0f);
+    glm::vec3 lightPos = glm::vec3(5, 50, 40);
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
 
     while (!glfwWindowShouldClose(window))
     {
+        // TODO Move
+        glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+        RendererState state{
+            .currentShaderProgram = 0,
+            .projection = proj,
+            .view = view,
+            .viewPos = cameraPos,
+            .lightPos = lightPos,
+        };
+
         glfwPollEvents();
 
         if (!loader.IsCompleted())

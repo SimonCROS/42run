@@ -78,6 +78,8 @@ std::string ShaderProgramVariants::GetCodeWithFlags(const std::string &code, con
         defines += "#define HAS_METALROUGHNESSMAP\n";
     if (flags & SHADER_HAS_NORMALMAP)
         defines += "#define HAS_NORMALMAP\n";
+    if (flags & SHADER_HAS_EMISSIVEMAP)
+        defines += "#define HAS_EMISSIVEMAP\n";
 
     if (defines.empty())
     {
@@ -113,6 +115,8 @@ ShaderFlags GetPrimitiveShaderFlags(const tinygltf::Model &model, const tinygltf
             primitiveShaderFlags |= SHADER_HAS_METALROUGHNESSMAP;
         if (material.normalTexture.index >= 0)
             primitiveShaderFlags |= SHADER_HAS_NORMALMAP;
+        if (material.emissiveTexture.index >= 0)
+            primitiveShaderFlags |= SHADER_HAS_EMISSIVEMAP;
     }
 
     return primitiveShaderFlags;

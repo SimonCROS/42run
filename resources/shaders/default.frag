@@ -21,8 +21,12 @@ uniform sampler2D metallicRoughnessMap;
 #ifdef HAS_NORMALMAP
 uniform sampler2D normalMap;
 #endif
+#ifdef HAS_EMISSIVEMAP
+uniform sampler2D emissiveMap;
+#endif
 uniform float metallicFactor;
 uniform float roughnessFactor;
+uniform vec3 emissiveFactor;
 uniform vec4 color;
 
 uniform vec3 viewPos;
@@ -141,13 +145,22 @@ void main() {
     // --- IN LOOP
     vec3 light = CalcPointLight(PointLight(lightPos, vec3(1), 1, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
     result += light * baseColor.rgb;
-    light = CalcPointLight(PointLight(-lightPos, vec3(1,0,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-    result += light * baseColor.rgb;
-    light = CalcPointLight(PointLight(vec3(10, 12, -5), vec3(0,1,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-    result += light * baseColor.rgb;
-    light = CalcPointLight(PointLight(vec3(-10, 12, -5), vec3(0,0,1), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-    result += light * baseColor.rgb;
+    // light = CalcPointLight(PointLight(-lightPos, vec3(1,0,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+    // result += light * baseColor.rgb;
+    // light = CalcPointLight(PointLight(vec3(10, 12, -5), vec3(0,1,0), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+    // result += light * baseColor.rgb;
+    // light = CalcPointLight(PointLight(vec3(-10, 12, -5), vec3(0,0,1), 4, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
+    // result += light * baseColor.rgb;
     // --- NOT IN LOOP
+
+    // Emissive
+#ifdef HAS_EMISSIVEMAP
+    vec3 emissive = texture(emissiveMap, v_TexCoord).rgb;
+#else
+    vec3 emissive = baseColor.rgb;
+#endif
+    emissive *= emissiveFactor;
+    result += emissive;
 
     result = pow(result, vec3(c_GammaInverse));
     FragColor = vec4(result, 1.0);

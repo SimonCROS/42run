@@ -19,6 +19,7 @@ enum ShaderFlags : unsigned char
     SHADER_HAS_BASECOLORMAP = 1 << 2,
     SHADER_HAS_METALROUGHNESSMAP = 1 << 3,
     SHADER_HAS_NORMALMAP = 1 << 4,
+    SHADER_HAS_EMISSIVEMAP = 1 << 5,
 };
 
 inline ShaderFlags operator~(ShaderFlags a) { return (ShaderFlags) ~(int)a; }

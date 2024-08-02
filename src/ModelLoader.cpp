@@ -259,8 +259,9 @@ void ModelLoader::Prepare()
             {
                 const auto &material = model.materials[primitive.material];
                 LoadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures, GL_SRGB_ALPHA);
-                LoadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures, GL_RGBA);
-                LoadTexture(model, material.normalTexture.index, textures, GL_RGBA);
+                LoadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures, GL_RGB);
+                LoadTexture(model, material.normalTexture.index, textures, GL_RGB);
+                LoadTexture(model, material.emissiveTexture.index, textures, GL_SRGB);
             }
 
             {
