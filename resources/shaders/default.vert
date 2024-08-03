@@ -27,9 +27,8 @@ uniform vec3 lightPos;
 
 void main()
 {
-    vec4 position = projection * view * transform * vec4(a_Position, 1.0);
-    v_FragPos = vec3(position);
-    gl_Position = position;
+    gl_Position = projection * view * transform * vec4(a_Position, 1.0);
+    v_FragPos = vec3(transform * vec4(a_Position, 1.0));
 
 #ifdef HAS_NORMALS
     mat3 normalMatrix = transpose(inverse(mat3(transform))); // TODO pass normal matrix as argument
