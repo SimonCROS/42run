@@ -373,6 +373,9 @@ void processInput(GLFWwindow *window, RendererState& state)
     direction.y = sPitch;
     direction.z = cYaw * cPitch;
     state.cameraFront = glm::normalize(direction);
+
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+        std::cout << state.cameraPos.x << ", " << state.cameraPos.y << ", " << state.cameraPos.z << std::endl;
 }
 
 static int run(GLFWwindow *window)
@@ -398,9 +401,10 @@ static int run(GLFWwindow *window)
     // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
     // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
-    ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
+    // ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
     // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
+    ModelLoader loader(RESOURCE_PATH "low_poly_chinese_city.glb");
 
     loader.LoadAsync();
 
@@ -426,9 +430,9 @@ static int run(GLFWwindow *window)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     auto transform = glm::identity<glm::dmat4>();
-    transform = glm::scale(transform, glm::dvec3(0.2));
-    transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
-    transform = glm::translate(transform, glm::dvec3(0.0, -6, 2));
+    // transform = glm::scale(transform, glm::dvec3(0.2));
+    // transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
+    // transform = glm::translate(transform, glm::dvec3(0.0, -6, 2));
 
     while (!glfwWindowShouldClose(window) && !loader.IsCompleted())
     {
@@ -468,6 +472,7 @@ static int run(GLFWwindow *window)
         state.lastFrame = currentFrame;
 
         processInput(window, state);
+        // state.view = glm::lookAt(state.cameraPos, glm::vec3(0,0,0), state.cameraUp);
         state.view = glm::lookAt(state.cameraPos, state.cameraPos + state.cameraFront, state.cameraUp);
 
         glfwPollEvents();
