@@ -31,8 +31,19 @@ source_group("source" FILES ${PROJECT_SOURCES})
 # Executable and target include/link libraries
 # ---------------------------------------------------------------------------------
 add_executable(${TARGET_NAME}
-        ${PROJECT_INCLUDES}
-        ${PROJECT_SOURCES}
+        tiny_gltf_impl.cpp
+        main.cpp
+        logger.hpp
+        Camera.cpp
+        Camera.hpp
+        ModelLoader.cpp
+        ModelLoader.hpp
+        Shader.cpp
+        Shader.hpp
+        ShaderProgram.cpp
+        ShaderProgram.hpp
+        ShaderProgramVariants.cpp
+        ShaderProgramVariants.hpp
 )
 
 target_link_libraries(${TARGET_NAME} PRIVATE glm::glm)
