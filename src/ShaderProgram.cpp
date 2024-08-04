@@ -90,12 +90,14 @@ void ShaderProgram::ApplyAttributeChanges() {
             if (!_enabledAttributes[i]) // Attribute not already enabled
             {
                 glEnableVertexAttribArray(i);
+                _enabledAttributes[i] = true;
             }
             _currentEnabledAttributes[i] = false; // Reset for next call
         }
         else if (_enabledAttributes[i]) // Attribute was enabled
         {
             glDisableVertexAttribArray(i);
+            _enabledAttributes[i] = false;
         }
     }
 }
