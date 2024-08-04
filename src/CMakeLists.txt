@@ -33,6 +33,7 @@ source_group("source" FILES ${PROJECT_SOURCES})
 add_executable(${TARGET_NAME}
         ${PROJECT_INCLUDES}
         ${PROJECT_SOURCES}
+        utils/string_unordered_map.hpp
 )
 
 target_link_libraries(${TARGET_NAME} PRIVATE glm::glm)

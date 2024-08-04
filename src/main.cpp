@@ -204,7 +204,7 @@ static void BindElementBuffer(RendererState &state, GLuint buffer)
     }
 }
 
-static bool BindTexture(RendererState &state, const std::map<int, GLuint> &textures, const int textureIndex, const ShaderProgram &program, const std::string_view &bindingKey, const GLuint bindingValue)
+static bool BindTexture(RendererState &state, const std::map<int, GLuint> &textures, const int textureIndex, ShaderProgram &program, const std::string_view &bindingKey, const GLuint bindingValue)
 {
     assert(bindingValue < CUSTOM_MAX_BINDED_TEXTURES);
 
@@ -217,13 +217,15 @@ static bool BindTexture(RendererState &state, const std::map<int, GLuint> &textu
     {
         GLuint glTexture = textures.at(textureIndex);
 
+        // SetInt on program before, if the shader has changed
+        program.SetInt(bindingKey.data(), bindingValue);
+
         if (state.bindedTextures[bindingValue] == glTexture)
         {
             return true;
         }
 
         glActiveTexture(GL_TEXTURE0 + bindingValue);
-        program.SetInt(bindingKey.data(), bindingValue);
         glBindTexture(GL_TEXTURE_2D, glTexture > 0 ? glTexture : whiteTexture);
         state.bindedTextures[bindingValue] = glTexture;
     } // TODO Else throw ?

@@ -104,34 +104,52 @@ void ShaderProgram::ApplyAttributeChanges() {
     }
 }
 
-void ShaderProgram::SetBool(const std::string_view& name, const bool value) const
+void ShaderProgram::SetBool(const std::string_view& name, const bool value)
 {
-    glUniform1i(glGetUniformLocation(id, name.data()), (int)value);
+    if (StoreUniformValue(name, value, _bools))
+    {
+        glUniform1i(glGetUniformLocation(id, name.data()), (int)value);
+    }
 }
 
-void ShaderProgram::SetInt(const std::string_view& name, const int value) const
+void ShaderProgram::SetInt(const std::string_view& name, const int value)
 {
-    glUniform1i(glGetUniformLocation(id, name.data()), value);
+    if (StoreUniformValue(name, value, _ints))
+    {
+        glUniform1i(glGetUniformLocation(id, name.data()), value);
+    }
 }
 
-void ShaderProgram::SetFloat(const std::string_view& name, const float value) const
+void ShaderProgram::SetFloat(const std::string_view& name, const float value)
 {
-    glUniform1f(glGetUniformLocation(id, name.data()), value);
+    if (StoreUniformValue(name, value, _floats))
+    {
+        glUniform1f(glGetUniformLocation(id, name.data()), value);
+    }
 }
 
-void ShaderProgram::SetVec3(const std::string_view& name, const glm::vec3& value) const
+void ShaderProgram::SetVec3(const std::string_view& name, const glm::vec3& value)
 {
-    glUniform3f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z);
+    if (StoreUniformValue(name, value, _vec3s))
+    {
+        glUniform3f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z);
+    }
 }
 
-void ShaderProgram::SetVec4(const std::string_view& name, const glm::vec4& value) const
+void ShaderProgram::SetVec4(const std::string_view& name, const glm::vec4& value)
 {
-    glUniform4f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z, value.w);
+    if (StoreUniformValue(name, value, _vec4s))
+    {
+        glUniform4f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z, value.w);
+    }
 }
 
-void ShaderProgram::SetMat4(const std::string_view& name, const glm::mat4& value) const
+void ShaderProgram::SetMat4(const std::string_view& name, const glm::mat4& value)
 {
-    glUniformMatrix4fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, glm::value_ptr(value));
+    if (StoreUniformValue(name, value, _mat4s))
+    {
+        glUniformMatrix4fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, glm::value_ptr(value));
+    }
 }
 
 bool ShaderProgram::LinkProgram(const GLuint id)
