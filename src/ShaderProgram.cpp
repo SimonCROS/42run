@@ -37,10 +37,10 @@ ShaderProgram::ShaderProgram(const std::string_view& vertexCode, const std::stri
         return;
     }
 
-    attributes["POSITION"] = 0;
-    attributes["NORMAL"] = 1;
-    attributes["TANGENT"] = 2;
-    attributes["TEXCOORD_0"] = 3;
+    attributeLocations["POSITION"] = 0;
+    attributeLocations["NORMAL"] = 1;
+    attributeLocations["TANGENT"] = 2;
+    attributeLocations["TEXCOORD_0"] = 3;
 }
 
 void ShaderProgram::Destroy()
@@ -64,13 +64,40 @@ void ShaderProgram::Use() const
 
 bool ShaderProgram::HasAttribute(const std::string& attribute) const
 {
-    return attributes.find(attribute) != attributes.cend();
+    return attributeLocations.find(attribute) != attributeLocations.cend();
 }
 
 GLint ShaderProgram::GetAttributeLocation(const std::string& attribute) const
 {
-    auto it = attributes.find(attribute);
-    return (it != attributes.cend()) ? it->second : -1;
+    auto it = attributeLocations.find(attribute);
+    return (it != attributeLocations.cend()) ? it->second : -1;
+}
+
+void ShaderProgram::EnableAttribute(GLint attribute) {
+    _currentEnabledAttributes[attribute] = true;
+}
+
+void ShaderProgram::DisableAttribute(GLint attribute)
+{
+    _currentEnabledAttributes[attribute] = false;
+}
+
+void ShaderProgram::ApplyAttributeChanges() {
+    for (size_t i = 0; i < 16; i++)
+    {
+        if (_currentEnabledAttributes[i]) // Should enable attribute
+        {
+            if (!_enabledAttributes[i]) // Attribute not already enabled
+            {
+                glEnableVertexAttribArray(i);
+            }
+            _currentEnabledAttributes[i] = false; // Reset for next call
+        }
+        else if (_enabledAttributes[i]) // Attribute was enabled
+        {
+            glDisableVertexAttribArray(i);
+        }
+    }
 }
 
 void ShaderProgram::SetBool(const std::string_view& name, const bool value) const

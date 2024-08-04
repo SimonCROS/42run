@@ -232,10 +232,12 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
                                       byteStride, BufferOffset(accessor.byteOffset));
                 CheckErrors("vertex attrib pointer");
 
-                glEnableVertexAttribArray(attributeLocation);
+                program.EnableAttribute(attributeLocation);
                 CheckErrors("enable vertex attrib array");
             }
         }
+
+        program.ApplyAttributeChanges();
 
         if (primitive.material >= 0)
         {
@@ -265,15 +267,6 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
         glDrawElements(mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
                        BufferOffset(indexAccessor.byteOffset));
         CheckErrors("draw elements");
-
-        for (const auto &[attribute, accessorId] : primitive.attributes)
-        {
-            int attributeLocation = program.GetAttributeLocation(attribute);
-            if (attributeLocation != -1)
-            {
-                glDisableVertexAttribArray(attributeLocation);
-            }
-        }
     }
 }
 

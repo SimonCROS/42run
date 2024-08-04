@@ -23,6 +23,9 @@ public:
 
     bool HasAttribute(const std::string& attribute) const;
     GLint GetAttributeLocation(const std::string& attribute) const;
+    void EnableAttribute(GLint attribute);
+    void DisableAttribute(GLint attribute);
+    void ApplyAttributeChanges();
 
     void SetBool(const std::string_view& name, const bool value) const;
     void SetInt(const std::string_view& name, const int value) const;
@@ -32,7 +35,9 @@ public:
     void SetMat4(const std::string_view& name, const glm::mat4& value) const;
 private:
     GLuint _vertId, _fragId;
-    std::unordered_map<std::string, GLint> attributes;
+    std::unordered_map<std::string, GLint> attributeLocations;
+    bool _enabledAttributes[16] = { 0 }; // Real map of enabled attributes
+    bool _currentEnabledAttributes[16] = { 0 }; // Attributes that will be enabled for the next reset
 
     static bool LinkProgram(const GLuint id);
 };
