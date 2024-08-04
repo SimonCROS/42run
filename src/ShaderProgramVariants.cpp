@@ -1,5 +1,7 @@
 #include "ShaderProgramVariants.hpp"
 
+#include "Shader.hpp"
+
 ShaderProgramVariants::ShaderProgramVariants(const std::string_view &vertPath, const std::string_view &fragPath)
 {
     if (!Shader::TryGetShaderCode(vertPath, &_vertCode))

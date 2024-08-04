@@ -19,7 +19,7 @@ ModelLoader& ModelLoader::operator=(ModelLoader&& other)
 {
     if (this != &other)
     {
-        vao = std::move(other.vao);
+        vao = other.vao;
         buffers = std::move(other.buffers);
         textures = std::move(other.textures);
         usedShaderFlagCombinations = std::move(other.usedShaderFlagCombinations);

@@ -17,7 +17,7 @@ struct string_hash
 
 template <
     typename Value,
-    typename Allocator = std::allocator<std::pair<std::string, Value>>>
+    typename Allocator = std::allocator<std::pair<const std::string, Value>>>
 using string_unordered_map = std::unordered_map<std::string, Value, string_hash, std::equal_to<>, Allocator>;
 
 #endif

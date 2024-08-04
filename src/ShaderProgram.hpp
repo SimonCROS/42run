@@ -2,12 +2,10 @@
 #define SHADER_PROGRAM_H
 
 #include <string>
-#include <unordered_map>
 
 #include <glm/mat4x4.hpp>
 
 #include "glad/gl.h"
-#include "Shader.hpp"
 #include "utils/string_unordered_map.hpp"
 
 #define CUSTOM_MAX_VERTEX_ATTRIBUTES 16
@@ -24,15 +22,15 @@ public:
 
     void Use() const;
 
-    bool HasAttribute(const std::string& attribute) const;
-    GLint GetAttributeLocation(const std::string& attribute) const;
+    [[nodiscard]] bool HasAttribute(const std::string& attribute) const;
+    [[nodiscard]] GLint GetAttributeLocation(const std::string& attribute) const;
     void EnableAttribute(GLuint attribute);
     void DisableAttribute(GLuint attribute);
     void ApplyAttributeChanges();
 
-    void SetBool(const std::string_view& name, const bool value);
-    void SetInt(const std::string_view& name, const int value);
-    void SetFloat(const std::string_view& name, const float value);
+    void SetBool(const std::string_view& name, bool value);
+    void SetInt(const std::string_view& name, int value);
+    void SetFloat(const std::string_view& name, float value);
     void SetVec3(const std::string_view& name, const glm::vec3& value);
     void SetVec4(const std::string_view& name, const glm::vec4& value);
     void SetMat4(const std::string_view& name, const glm::mat4& value);
@@ -45,10 +43,10 @@ private:
     string_unordered_map<glm::vec3> _vec3s;
     string_unordered_map<glm::vec4> _vec4s;
     string_unordered_map<glm::mat4> _mat4s;
-    bool _enabledAttributes[CUSTOM_MAX_VERTEX_ATTRIBUTES] = { 0 }; // Real map of enabled attributes
-    bool _currentEnabledAttributes[CUSTOM_MAX_VERTEX_ATTRIBUTES] = { 0 }; // Attributes that will be enabled for the next reset
+    bool _enabledAttributes[CUSTOM_MAX_VERTEX_ATTRIBUTES] = { false }; // Real map of enabled attributes
+    bool _currentEnabledAttributes[CUSTOM_MAX_VERTEX_ATTRIBUTES] = { false }; // Attributes that will be enabled for the next reset
 
-    static bool LinkProgram(const GLuint id);
+    static bool LinkProgram(GLuint id);
 
     template<typename T>
     static bool StoreUniformValue(const std::string_view& name, T value, string_unordered_map<T>& map)

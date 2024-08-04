@@ -342,7 +342,7 @@ void processInput(GLFWwindow* window, RendererState& state)
 {
     const float cameraRotationSpeed = glm::radians(180.0f * state.deltaTime);
     Camera& camera = state.camera;
-    float speed = camera.Speed * state.deltaTime;
+    const float speed = camera.Speed * state.deltaTime;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.Position += speed * camera.Direction;
