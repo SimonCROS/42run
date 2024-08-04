@@ -32,6 +32,8 @@ struct RendererState
     glm::mat4 projection;
     glm::mat4 view;
     glm::vec3 lightPos;
+    GLuint bindedVertexBuffer;
+    GLuint bindedElementBuffer;
 };
 
 void APIENTRY glDebugOutput(GLenum source,
@@ -179,6 +181,26 @@ static int GetDrawMode(int tinygltfMode)
         return -1;
 }
 
+static void BindVertexBuffer(RendererState &state, GLuint buffer)
+{
+    if (state.bindedVertexBuffer != buffer)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        CheckErrors("bind buffer");
+        state.bindedVertexBuffer = buffer;
+    }
+}
+
+static void BindElementBuffer(RendererState &state, GLuint buffer)
+{
+    if (state.bindedElementBuffer != buffer)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
+        CheckErrors("bind buffer");
+        state.bindedElementBuffer = buffer;
+    }
+}
+
 static bool BindTexture(const std::map<int, GLuint> &textures, const int textureIndex, const ShaderProgram &program, const std::string_view &bindingKey, const int bindingValue)
 {
     if (textureIndex < 0)
@@ -215,8 +237,7 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
 
             const tinygltf::Accessor &accessor = model.accessors[accessorId];
 
-            glBindBuffer(GL_ARRAY_BUFFER, buffers.at(accessor.bufferView));
-            CheckErrors("bind buffer");
+            BindVertexBuffer(state, buffers.at(accessor.bufferView));
 
             int size = tinygltf::GetNumComponentsInType(accessor.type);
             assert(size != -1);
@@ -258,8 +279,7 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
 
         const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers.at(indexAccessor.bufferView));
-        CheckErrors("bind buffer");
+        BindVertexBuffer(state, buffers.at(indexAccessor.bufferView));
 
         int mode = GetDrawMode(primitive.mode);
         assert(mode != -1);
