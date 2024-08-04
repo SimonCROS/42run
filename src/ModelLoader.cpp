@@ -10,6 +10,27 @@ ModelLoader::ModelLoader(const std::string_view &filename) : _filename(filename)
 {
 }
 
+ModelLoader::ModelLoader(ModelLoader&& other) : _filename(other._filename)
+{
+    *this = std::move(other);
+}
+
+ModelLoader& ModelLoader::operator=(ModelLoader&& other)
+{
+    if (this != &other)
+    {
+        vao = std::move(other.vao);
+        buffers = std::move(other.buffers);
+        textures = std::move(other.textures);
+        usedShaderFlagCombinations = std::move(other.usedShaderFlagCombinations);
+        loadingThread = std::move(other.loadingThread);
+        completed = other.completed.load();
+        error = other.error.load();
+    }
+
+    return *this;
+}
+
 static inline bool EndsWith(const std::string_view &fullString, const std::string_view &ending)
 {
     if (fullString.length() >= ending.length())
@@ -92,7 +113,7 @@ bool ModelLoader::LoadWorker()
     return res;
 }
 
-static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std::map<int, GLuint>& textures, GLint internalformat)
+static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std::map<int, GLuint> &textures, GLint internalformat)
 {
     if (textureId < 0)
     {
@@ -220,6 +241,8 @@ void ModelLoader::Prepare()
 {
     Wait();
 
+    assert(!IsError());
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
@@ -286,6 +309,24 @@ void ModelLoader::Prepare()
     }
 
     glBindVertexArray(0);
+}
+
+bool ModelLoader::BuildShaders(ShaderProgramVariants &programVariants)
+{
+    return programVariants.EnableVariants(usedShaderFlagCombinations);
+}
+
+void ModelLoader::Destroy()
+{
+    for (auto &[id, texture] : textures)
+    {
+        glDeleteTextures(1, &texture);
+    }
+    for (auto &[id, buffer] : buffers)
+    {
+        glDeleteBuffers(1, &buffer);
+    }
+    glDeleteVertexArrays(1, &vao);
 }
 
 std::ostream &operator<<(std::ostream &os, const tinygltf::Model &model)

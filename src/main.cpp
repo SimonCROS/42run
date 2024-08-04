@@ -22,14 +22,18 @@
 const GLuint WIDTH = 1440 / 2, HEIGHT = 846 - 80;
 GLuint whiteTexture = 0;
 
+#define CUSTOM_MAX_BINDED_TEXTURES 16
+
 struct RendererState
 {
-    GLuint currentShaderProgram;
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
     Camera camera;
     glm::mat4 projection;
     glm::vec3 lightPos;
+    GLuint bindedVertexBuffer;
+    GLuint bindedElementBuffer;
+    GLuint bindedTextures[CUSTOM_MAX_BINDED_TEXTURES];
 };
 
 void APIENTRY glDebugOutput(GLenum source,
@@ -121,7 +125,7 @@ void APIENTRY glDebugOutput(GLenum source,
     std::cout << std::endl;
 }
 
-static void CheckErrors(const std::string_view& desc)
+static void CheckErrors(const std::string_view &desc)
 {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR)
@@ -177,46 +181,73 @@ static int GetDrawMode(int tinygltfMode)
         return -1;
 }
 
-static bool BindTexture(const std::map<int, GLuint>& textures, const int textureIndex, const ShaderProgram& program,
-                        const std::string_view& bindingKey, const int bindingValue)
+static void BindVertexBuffer(RendererState &state, GLuint buffer)
 {
+    if (state.bindedVertexBuffer != buffer)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        CheckErrors("bind buffer");
+        state.bindedVertexBuffer = buffer;
+    }
+}
+
+static void BindElementBuffer(RendererState &state, GLuint buffer)
+{
+    if (state.bindedElementBuffer != buffer)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
+        CheckErrors("bind buffer");
+        state.bindedElementBuffer = buffer;
+    }
+}
+
+static bool BindTexture(RendererState &state, const std::map<int, GLuint> &textures, const int textureIndex, ShaderProgram &program, const std::string_view &bindingKey, const GLuint bindingValue)
+{
+    assert(bindingValue < CUSTOM_MAX_BINDED_TEXTURES);
+
     if (textureIndex < 0)
     {
-        return false;
+        return false; // TODO throw ?
     }
 
     if (textures.count(textureIndex) != 0)
     {
         GLuint glTexture = textures.at(textureIndex);
 
-        glActiveTexture(GL_TEXTURE0 + bindingValue);
+        // SetInt on program before, if the shader has changed
         program.SetInt(bindingKey.data(), bindingValue);
+
+        if (state.bindedTextures[bindingValue] == glTexture)
+        {
+            return true;
+        }
+
+        glActiveTexture(GL_TEXTURE0 + bindingValue);
         glBindTexture(GL_TEXTURE_2D, glTexture > 0 ? glTexture : whiteTexture);
+        state.bindedTextures[bindingValue] = glTexture;
     } // TODO Else throw ?
 
     return true;
 }
 
-static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const std::map<int, GLuint>& buffers,
-                     const std::map<int, GLuint>& textures, ShaderProgramVariants& programVariants,
-                     RendererState& state)
+static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::map<int, GLuint> &buffers,
+                     const std::map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
 {
-    for (const auto& primitive : mesh.primitives)
+    for (const auto &primitive : mesh.primitives)
     {
         if (primitive.indices < 0)
             continue;
 
-        ShaderProgram& program = programVariants.GetProgram(GetPrimitiveShaderFlags(model, primitive));
+        ShaderProgram &program = programVariants.GetProgram(GetPrimitiveShaderFlags(model, primitive));
         program.Use();
 
-        for (const auto& [attribute, accessorId] : primitive.attributes)
+        for (const auto &[attribute, accessorId] : primitive.attributes)
         {
             assert(accessorId >= 0);
 
-            const tinygltf::Accessor& accessor = model.accessors[accessorId];
+            const tinygltf::Accessor &accessor = model.accessors[accessorId];
 
-            glBindBuffer(GL_ARRAY_BUFFER, buffers.at(accessor.bufferView));
-            CheckErrors("bind buffer");
+            BindVertexBuffer(state, buffers.at(accessor.bufferView));
 
             int size = tinygltf::GetNumComponentsInType(accessor.type);
             assert(size != -1);
@@ -231,19 +262,21 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
                                       byteStride, BufferOffset(accessor.byteOffset));
                 CheckErrors("vertex attrib pointer");
 
-                glEnableVertexAttribArray(attributeLocation);
+                program.EnableAttribute(attributeLocation);
                 CheckErrors("enable vertex attrib array");
             }
         }
 
+        program.ApplyAttributeChanges();
+        program.SetMat4("transform", transform);
+
         if (primitive.material >= 0)
         {
-            const auto& material = model.materials[primitive.material];
-            BindTexture(textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
-            BindTexture(textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program,
-                        "metallicRoughnessMap", 1);
-            BindTexture(textures, material.normalTexture.index, program, "normalMap", 2);
-            BindTexture(textures, material.emissiveTexture.index, program, "emissiveMap", 3);
+            const auto &material = model.materials[primitive.material];
+            BindTexture(state, textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
+            BindTexture(state, textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program, "metallicRoughnessMap", 1);
+            BindTexture(state, textures, material.normalTexture.index, program, "normalMap", 2);
+            BindTexture(state, textures, material.emissiveTexture.index, program, "emissiveMap", 3);
             program.SetFloat("metallicFactor", static_cast<float>(material.pbrMetallicRoughness.metallicFactor));
             program.SetFloat("roughnessFactor", static_cast<float>(material.pbrMetallicRoughness.roughnessFactor));
             program.SetVec3("emissiveFactor", glm::make_vec3(material.emissiveFactor.data()));
@@ -254,10 +287,9 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
             }
         }
 
-        const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
+        const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers.at(indexAccessor.bufferView));
-        CheckErrors("bind buffer");
+        BindVertexBuffer(state, buffers.at(indexAccessor.bufferView));
 
         int mode = GetDrawMode(primitive.mode);
         assert(mode != -1);
@@ -265,21 +297,11 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
         glDrawElements(mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
                        BufferOffset(indexAccessor.byteOffset));
         CheckErrors("draw elements");
-
-        for (const auto& [attribute, accessorId] : primitive.attributes)
-        {
-            int attributeLocation = program.GetAttributeLocation(attribute);
-            if (attributeLocation != -1)
-            {
-                glDisableVertexAttribArray(attributeLocation);
-            }
-        }
     }
 }
 
-static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const std::map<int, GLuint>& buffers,
-                     const std::map<int, GLuint>& textures, ShaderProgramVariants& programVariants,
-                     RendererState& state, glm::dmat4 transform)
+static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::map<int, GLuint> &buffers,
+                     const std::map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
 {
     if (node.matrix.size() == 16)
     {
@@ -305,16 +327,12 @@ static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const s
 
     if (node.mesh >= 0 && node.mesh < model.meshes.size())
     {
-        for (auto& [flags, program] : programVariants.programs)
-        {
-            program.Use();
-            program.SetMat4("transform", transform);
-            state.currentShaderProgram = program.id;
-        }
-
-        DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state);
+        // if (model.meshes[node.mesh].name.find("Object_27") != std::string::npos)
+        // {
+        DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state, transform);
+        // }
     }
-    for (const int& child : node.children)
+    for (const int &child : node.children)
     {
         DrawNode(model, model.nodes[child], buffers, textures, programVariants, state, transform);
     }
@@ -366,21 +384,6 @@ static int run(GLFWwindow* window)
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
 
-    // ModelLoader loader(RESOURCE_PATH "sea_house.glb");
-    // ModelLoader loader(RESOURCE_PATH "brick_wall_test/scene.gltf");
-    // ModelLoader loader(RESOURCE_PATH "goshingyu/scene.gltf");
-    // ModelLoader loader(RESOURCE_PATH "metal_dragon.glb");
-    // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
-    // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
-    // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
-    // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
-    // ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
-    // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
-    // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
-    ModelLoader loader(RESOURCE_PATH "low_poly_chinese_city.glb");
-
-    loader.LoadAsync();
-
     //! Create shader program
     ShaderProgramVariants programVariants(RESOURCE_PATH "shaders/default.vert", RESOURCE_PATH "shaders/default.frag");
 
@@ -402,44 +405,77 @@ static int run(GLFWwindow* window)
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    auto transform = glm::identity<glm::dmat4>();
-    // transform = glm::scale(transform, glm::dvec3(0.2));
-    // transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
-    // transform = glm::translate(transform, glm::dvec3(0.0, -6, 2));
-
-    while (!glfwWindowShouldClose(window) && !loader.IsCompleted())
-    {
-        glfwPollEvents();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glfwSwapBuffers(window);
-    }
-
-    if (loader.IsError())
-    {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-
-    loader.Prepare();
-
-    if (!programVariants.EnableVariants(loader.usedShaderFlagCombinations))
-    {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-
     glm::vec3 lightPos = glm::vec3(5, 50, 40);
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f,
-                                      1000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 1000.0f);
 
     RendererState state{
-        .currentShaderProgram = 0,
         .projection = proj,
         .lightPos = lightPos,
-        .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 50), glm::vec3(0, 0, -1))
-        // .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 29.5), glm::vec3(1, 0, 0))
+        .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 50), glm::vec3(0, 0, -1)),
+        // .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 29.5), glm::vec3(1, 0, 0)),
+        .bindedVertexBuffer = 0,
+        .bindedElementBuffer = 0,
+        .bindedTextures = {0},
     };
 
+    auto loaders = std::vector<ModelLoader>();
+    loaders.reserve(42);
+    auto models = std::vector<ModelLoader>(); // TODO Should not be ModelLoader
+    models.reserve(42);
+
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "sea_house.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "brick_wall_test/scene.gltf"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "goshingyu/scene.gltf"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "metal_dragon.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "magic_laboratory.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "Cube/Cube.gltf"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone/scene.gltf"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "minecraft_castle.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "girl_speedsculpt.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "low_poly_tree_scene_free.glb"));
+
+    for (auto &loader : loaders)
+    {
+        loader.LoadAsync();
+    }
+
+    glm::dmat4 transform;
     while (!glfwWindowShouldClose(window))
     {
+        // BUILD LOADERS
+        auto it = loaders.begin();
+        auto end = loaders.end();
+        while (it != end)
+        {
+            auto &loader = *it;
+            if (loader.IsCompleted())
+            {
+                loader.Wait();
+
+                if (!loader.IsError())
+                {
+                    loader.Prepare();
+                    if (!loader.BuildShaders(programVariants))
+                    {
+                        loader.Destroy();
+                    }
+                    else
+                    {
+                        models.push_back(std::move(loader));
+                    }
+                }
+
+                loaders.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        // UPDATE VALUES
         auto currentFrame = static_cast<float>(glfwGetTime());
         state.deltaTime = currentFrame - state.lastFrame;
         state.lastFrame = currentFrame;
@@ -448,52 +484,46 @@ static int run(GLFWwindow* window)
 
         glfwPollEvents();
 
-        if (!loader.IsCompleted())
-        {
-            glfwSwapBuffers(window);
-            continue;
-        }
-
+        // DRAW
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glBindVertexArray(loader.vao);
-
-        for (auto& [flags, program] : programVariants.programs)
+        for (auto &model : models)
         {
-            program.Use();
-            program.SetVec3("viewPos", state.camera.Position);
-            program.SetMat4("projection", proj);
-            program.SetMat4("view", state.camera.GetView());
-            program.SetVec3("lightPos", lightPos);
-            state.currentShaderProgram = program.id;
-        }
+            glBindVertexArray(model.vao);
 
-        const auto& scene = loader.model.scenes[loader.model.defaultScene];
-        for (const int& node : scene.nodes)
-        {
-            DrawNode(loader.model, loader.model.nodes[node], loader.buffers, loader.textures, programVariants, state,
-                     transform);
-        }
+            for (auto &[flags, program] : programVariants.programs)
+            {
+                program.Use();
+                program.SetVec3("viewPos", state.camera.Position);
+                program.SetMat4("projection", proj);
+                program.SetMat4("view", state.camera.GetView());
+                program.SetVec3("lightPos", lightPos);
+            }
 
-        glBindVertexArray(0);
+            const auto &scene = model.model.scenes[model.model.defaultScene];
+            for (const int &node : scene.nodes)
+            {
+                DrawNode(model.model, model.model.nodes[node], model.buffers, model.textures, programVariants, state, transform);
+            }
+
+            glBindVertexArray(0);
+        }
 
         glfwSwapBuffers(window);
         // transform = glm::rotate(transform, glm::radians(0.3), glm::dvec3(0.0, 1.0, 0.0));
     }
 
-    loader.Wait();
-
     programVariants.Destroy();
     glDeleteTextures(1, &whiteTexture);
-    for (auto& [id, texture] : loader.textures)
+    for (auto &loader : loaders)
     {
-        glDeleteTextures(1, &texture);
+        loader.Wait();
+        loader.Destroy();
     }
-    for (auto& [id, buffer] : loader.buffers)
+    for (auto &model : models)
     {
-        glDeleteBuffers(1, &buffer);
+        model.Destroy();
     }
-    glDeleteVertexArrays(1, &loader.vao);
 
     return 0;
 }

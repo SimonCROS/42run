@@ -33,6 +33,7 @@ source_group("source" FILES ${PROJECT_SOURCES})
 add_executable(${TARGET_NAME}
         tiny_gltf_impl.cpp
         main.cpp
+        utils/string_unordered_map.hpp
         logger.hpp
         Camera.cpp
         Camera.hpp

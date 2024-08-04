@@ -37,10 +37,10 @@ ShaderProgram::ShaderProgram(const std::string_view& vertexCode, const std::stri
         return;
     }
 
-    attributes["POSITION"] = 0;
-    attributes["NORMAL"] = 1;
-    attributes["TANGENT"] = 2;
-    attributes["TEXCOORD_0"] = 3;
+    attributeLocations["POSITION"] = 0;
+    attributeLocations["NORMAL"] = 1;
+    attributeLocations["TANGENT"] = 2;
+    attributeLocations["TEXCOORD_0"] = 3;
 }
 
 void ShaderProgram::Destroy()
@@ -64,43 +64,92 @@ void ShaderProgram::Use() const
 
 bool ShaderProgram::HasAttribute(const std::string& attribute) const
 {
-    return attributes.find(attribute) != attributes.cend();
+    return attributeLocations.find(attribute) != attributeLocations.cend();
 }
 
 GLint ShaderProgram::GetAttributeLocation(const std::string& attribute) const
 {
-    auto it = attributes.find(attribute);
-    return (it != attributes.cend()) ? it->second : -1;
+    auto it = attributeLocations.find(attribute);
+    return (it != attributeLocations.cend()) ? it->second : -1;
 }
 
-void ShaderProgram::SetBool(const std::string_view& name, const bool value) const
-{
-    glUniform1i(glGetUniformLocation(id, name.data()), (int)value);
+void ShaderProgram::EnableAttribute(GLuint attribute) {
+    assert(attribute >= 0 && attribute < CUSTOM_MAX_VERTEX_ATTRIBUTES);
+    _currentEnabledAttributes[attribute] = true;
 }
 
-void ShaderProgram::SetInt(const std::string_view& name, const int value) const
+void ShaderProgram::DisableAttribute(GLuint attribute)
 {
-    glUniform1i(glGetUniformLocation(id, name.data()), value);
+    assert(attribute >= 0 && attribute < CUSTOM_MAX_VERTEX_ATTRIBUTES);
+    _currentEnabledAttributes[attribute] = false;
 }
 
-void ShaderProgram::SetFloat(const std::string_view& name, const float value) const
-{
-    glUniform1f(glGetUniformLocation(id, name.data()), value);
+void ShaderProgram::ApplyAttributeChanges() {
+    for (size_t i = 0; i < 16; i++)
+    {
+        if (_currentEnabledAttributes[i]) // Should enable attribute
+        {
+            if (!_enabledAttributes[i]) // Attribute not already enabled
+            {
+                glEnableVertexAttribArray(i);
+                _enabledAttributes[i] = true;
+            }
+            _currentEnabledAttributes[i] = false; // Reset for next call
+        }
+        else if (_enabledAttributes[i]) // Attribute was enabled
+        {
+            glDisableVertexAttribArray(i);
+            _enabledAttributes[i] = false;
+        }
+    }
 }
 
-void ShaderProgram::SetVec3(const std::string_view& name, const glm::vec3& value) const
+void ShaderProgram::SetBool(const std::string_view& name, const bool value)
 {
-    glUniform3f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z);
+    if (StoreUniformValue(name, value, _bools))
+    {
+        glUniform1i(glGetUniformLocation(id, name.data()), (int)value);
+    }
 }
 
-void ShaderProgram::SetVec4(const std::string_view& name, const glm::vec4& value) const
+void ShaderProgram::SetInt(const std::string_view& name, const int value)
 {
-    glUniform4f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z, value.w);
+    if (StoreUniformValue(name, value, _ints))
+    {
+        glUniform1i(glGetUniformLocation(id, name.data()), value);
+    }
 }
 
-void ShaderProgram::SetMat4(const std::string_view& name, const glm::mat4& value) const
+void ShaderProgram::SetFloat(const std::string_view& name, const float value)
 {
-    glUniformMatrix4fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, glm::value_ptr(value));
+    if (StoreUniformValue(name, value, _floats))
+    {
+        glUniform1f(glGetUniformLocation(id, name.data()), value);
+    }
+}
+
+void ShaderProgram::SetVec3(const std::string_view& name, const glm::vec3& value)
+{
+    if (StoreUniformValue(name, value, _vec3s))
+    {
+        glUniform3f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z);
+    }
+}
+
+void ShaderProgram::SetVec4(const std::string_view& name, const glm::vec4& value)
+{
+    if (StoreUniformValue(name, value, _vec4s))
+    {
+        glUniform4f(glGetUniformLocation(id, name.data()), value.x, value.y, value.z, value.w);
+    }
+}
+
+void ShaderProgram::SetMat4(const std::string_view& name, const glm::mat4& value)
+{
+    if (StoreUniformValue(name, value, _mat4s))
+    {
+        glUniformMatrix4fv(glGetUniformLocation(id, name.data()), 1, GL_FALSE, glm::value_ptr(value));
+    }
 }
 
 bool ShaderProgram::LinkProgram(const GLuint id)
