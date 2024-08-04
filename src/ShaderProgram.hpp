@@ -53,7 +53,7 @@ private:
     template<typename T>
     static bool StoreUniformValue(const std::string_view& name, T value, string_unordered_map<T>& map)
     {
-        auto it =map.find(name.data()); // Should work without data on cpp20
+        auto it = map.find(name.data()); // Should work without data on cpp20
         if (it != map.end() && it->second == value)
         {
             return false; // Value already set

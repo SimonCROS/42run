@@ -330,7 +330,10 @@ static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const s
 
     if (node.mesh >= 0 && node.mesh < model.meshes.size())
     {
+        // if (model.meshes[node.mesh].name.find("Object_27") != std::string::npos)
+        // {
         DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state, transform);
+        // }
     }
     for (const int &child : node.children)
     {
@@ -338,20 +341,23 @@ static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const s
     }
 }
 
-float wrapAngle(float angle) {
+float wrapAngle(float angle)
+{
     angle = fmod(angle + 180.0f, 360.0f);
-    if (angle < 0) {
+    if (angle < 0)
+    {
         angle += 360.0f;
     }
     return angle - 180.0f;
 }
 
-glm::vec3 getHorizontalDirection(const glm::vec3& v) {
+glm::vec3 getHorizontalDirection(const glm::vec3 &v)
+{
     glm::vec3 horizontalDir(v.x, 0.0f, v.z);
     return glm::normalize(horizontalDir);
 }
 
-void processInput(GLFWwindow *window, RendererState& state)
+void processInput(GLFWwindow *window, RendererState &state)
 {
     const float cameraSpeed = 2.4f * state.deltaTime;
     const float cameraRotationSpeed = 60.0f * state.deltaTime;
@@ -409,20 +415,6 @@ static int run(GLFWwindow *window)
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
 
-    // ModelLoader loader(RESOURCE_PATH "sea_house.glb");
-    // ModelLoader loader(RESOURCE_PATH "brick_wall_test/scene.gltf");
-    // ModelLoader loader(RESOURCE_PATH "goshingyu/scene.gltf");
-    // ModelLoader loader(RESOURCE_PATH "metal_dragon.glb");
-    // ModelLoader loader(RESOURCE_PATH "magic_laboratory.glb");
-    // ModelLoader loader(RESOURCE_PATH "Cube/Cube.gltf");
-    // ModelLoader loader(RESOURCE_PATH "buster_drone/scene.gltf");
-    // ModelLoader loader(RESOURCE_PATH "buster_drone.glb");
-    ModelLoader loader(RESOURCE_PATH "minecraft_castle.glb");
-    // ModelLoader loader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
-    // ModelLoader loader(RESOURCE_PATH "girl_speedsculpt.glb");
-
-    loader.LoadAsync();
-
     //! Create shader program
     ShaderProgramVariants programVariants(RESOURCE_PATH "shaders/default.vert", RESOURCE_PATH "shaders/default.frag");
 
@@ -444,46 +436,74 @@ static int run(GLFWwindow *window)
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    auto transform = glm::identity<glm::dmat4>();
-    transform = glm::scale(transform, glm::dvec3(0.2));
-    transform = glm::rotate(transform, glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0));
-    transform = glm::translate(transform, glm::dvec3(0.0, -6, 2));
-
-    while (!glfwWindowShouldClose(window) && !loader.IsCompleted())
-    {
-        glfwPollEvents();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glfwSwapBuffers(window);
-    }
-
-    if (loader.IsError())
-    {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-
-    loader.Prepare();
-
-    if (!programVariants.EnableVariants(loader.usedShaderFlagCombinations))
-    {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-
     glm::vec3 lightPos = glm::vec3(5, 50, 40);
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 1000.0f);
 
-    RendererState state {
+    RendererState state{
         .cameraPos = glm::vec3(0.0f, 3, 5),
         .cameraFront = glm::vec3(0.0f, 0.0f, -1.0f),
-        .cameraUp = glm::vec3(0.0f, 1.0f,  0.0f),
+        .cameraUp = glm::vec3(0.0f, 1.0f, 0.0f),
         .projection = proj,
         .lightPos = lightPos,
         .bindedVertexBuffer = 0,
         .bindedElementBuffer = 0,
-        .bindedTextures = { 0 },
+        .bindedTextures = {0},
     };
 
+    auto loaders = std::vector<ModelLoader>(42);
+    auto models = std::vector<ModelLoader>(42); // TODO Should not be ModelLoader
+
+    loaders.push_back(ModelLoader(RESOURCE_PATH "sea_house.glb"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "brick_wall_test/scene.gltf"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "goshingyu/scene.gltf"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "metal_dragon.glb"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "magic_laboratory.glb"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "Cube/Cube.gltf"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone/scene.gltf"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone.glb"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "minecraft_castle.glb"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "girl_speedsculpt.glb"));
+    loaders.push_back(ModelLoader(RESOURCE_PATH "low_poly_tree_scene_free.glb"));
+
+    for (auto &loader : loaders)
+    {
+        loader.LoadAsync();
+    }
+
+    glm::dmat4 transform;
     while (!glfwWindowShouldClose(window))
     {
+        // BUILD LOADERS
+        auto it = loaders.begin();
+        auto end = loaders.end();
+        while (it != end)
+        {
+            auto &loader = *it;
+            if (loader.IsCompleted())
+            {
+                if (!loader.IsError())
+                {
+                    loader.Prepare();
+                    if (!loader.BuildShaders(programVariants))
+                    {
+                        loader.Destroy();
+                    }
+                    else
+                    {
+                        models.push_back(loader);
+                    }
+                }
+
+                loaders.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        // UPDATE VALUES
         auto currentFrame = static_cast<float>(glfwGetTime());
         state.deltaTime = currentFrame - state.lastFrame;
         state.lastFrame = currentFrame;
@@ -493,50 +513,46 @@ static int run(GLFWwindow *window)
 
         glfwPollEvents();
 
-        if (!loader.IsCompleted())
-        {
-            glfwSwapBuffers(window);
-            continue;
-        }
-
+        // DRAW
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glBindVertexArray(loader.vao);
-
-        for (auto &[flags, program] : programVariants.programs)
+        for (auto &model : models)
         {
-            program.Use();
-            program.SetVec3("viewPos", state.cameraPos);
-            program.SetMat4("projection", proj);
-            program.SetMat4("view", state.view);
-            program.SetVec3("lightPos", lightPos);
-        }
+            glBindVertexArray(model.vao);
 
-        const auto &scene = loader.model.scenes[loader.model.defaultScene];
-        for (const int &node : scene.nodes)
-        {
-            DrawNode(loader.model, loader.model.nodes[node], loader.buffers, loader.textures, programVariants, state, transform);
-        }
+            for (auto &[flags, program] : programVariants.programs)
+            {
+                program.Use();
+                program.SetVec3("viewPos", state.cameraPos);
+                program.SetMat4("projection", proj);
+                program.SetMat4("view", state.view);
+                program.SetVec3("lightPos", lightPos);
+            }
 
-        glBindVertexArray(0);
+            const auto &scene = model.model.scenes[model.model.defaultScene];
+            for (const int &node : scene.nodes)
+            {
+                DrawNode(model.model, model.model.nodes[node], model.buffers, model.textures, programVariants, state, transform);
+            }
+
+            glBindVertexArray(0);
+        }
 
         glfwSwapBuffers(window);
         // transform = glm::rotate(transform, glm::radians(0.3), glm::dvec3(0.0, 1.0, 0.0));
     }
 
-    loader.Wait();
-
     programVariants.Destroy();
     glDeleteTextures(1, &whiteTexture);
-    for (auto &[id, texture] : loader.textures)
+    for (auto &loader : loaders)
     {
-        glDeleteTextures(1, &texture);
+        loader.Wait();
+        loader.Destroy();
     }
-    for (auto &[id, buffer] : loader.buffers)
+    for (auto &model : models)
     {
-        glDeleteBuffers(1, &buffer);
+        model.Destroy();
     }
-    glDeleteVertexArrays(1, &loader.vao);
 
     return 0;
 }

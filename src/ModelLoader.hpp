@@ -31,6 +31,8 @@ public:
     void LoadAsync();
     void Wait();
     void Prepare();
+    bool BuildShaders(ShaderProgramVariants& programVariants);
+    void Destroy();
 
     bool IsCompleted();
     bool IsError();
