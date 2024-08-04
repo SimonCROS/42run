@@ -22,7 +22,6 @@ GLuint whiteTexture = 0;
 
 struct RendererState
 {
-    GLuint currentShaderProgram;
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
     float pitch = 0.0f;
@@ -200,7 +199,7 @@ static bool BindTexture(const std::map<int, GLuint> &textures, const int texture
 }
 
 static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::map<int, GLuint> &buffers,
-                     const std::map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state)
+                     const std::map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
 {
     for (const auto &primitive : mesh.primitives)
     {
@@ -238,6 +237,7 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
         }
 
         program.ApplyAttributeChanges();
+        program.SetMat4("transform", transform);
 
         if (primitive.material >= 0)
         {
@@ -297,14 +297,7 @@ static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const s
 
     if (node.mesh >= 0 && node.mesh < model.meshes.size())
     {
-        for (auto &[flags, program] : programVariants.programs)
-        {
-            program.Use();
-            program.SetMat4("transform", transform);
-            state.currentShaderProgram = program.id;
-        }
-        
-        DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state);
+        DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state, transform);
     }
     for (const int &child : node.children)
     {
@@ -446,7 +439,6 @@ static int run(GLFWwindow *window)
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 1000.0f);
 
     RendererState state {
-        .currentShaderProgram = 0,
         .cameraPos = glm::vec3(0.0f, 3, 5),
         .cameraFront = glm::vec3(0.0f, 0.0f, -1.0f),
         .cameraUp = glm::vec3(0.0f, 1.0f,  0.0f),
@@ -482,7 +474,6 @@ static int run(GLFWwindow *window)
             program.SetMat4("projection", proj);
             program.SetMat4("view", state.view);
             program.SetVec3("lightPos", lightPos);
-            state.currentShaderProgram = program.id;
         }
 
         const auto &scene = loader.model.scenes[loader.model.defaultScene];
