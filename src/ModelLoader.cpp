@@ -10,6 +10,24 @@ ModelLoader::ModelLoader(const std::string_view &filename) : _filename(filename)
 {
 }
 
+ModelLoader::ModelLoader(ModelLoader&& other) : _filename(other._filename)
+{
+    *this = std::move(other);
+}
+
+ModelLoader& ModelLoader::operator=(ModelLoader&& other)
+{
+    if (this != &other)
+    {
+        vao = std::move(other.vao);
+        buffers = std::move(other.buffers);
+        textures = std::move(other.textures);
+        usedShaderFlagCombinations = std::move(other.usedShaderFlagCombinations);
+    }
+
+    return *this;
+}
+
 static inline bool EndsWith(const std::string_view &fullString, const std::string_view &ending)
 {
     if (fullString.length() >= ending.length())

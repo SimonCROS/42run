@@ -450,8 +450,10 @@ static int run(GLFWwindow *window)
         .bindedTextures = {0},
     };
 
-    auto loaders = std::vector<ModelLoader>(42);
-    auto models = std::vector<ModelLoader>(42); // TODO Should not be ModelLoader
+    auto loaders = std::vector<ModelLoader>();
+    loaders.reserve(42);
+    auto models = std::vector<ModelLoader>(); // TODO Should not be ModelLoader
+    models.reserve(42);
 
     loaders.push_back(ModelLoader(RESOURCE_PATH "sea_house.glb"));
     loaders.push_back(ModelLoader(RESOURCE_PATH "brick_wall_test/scene.gltf"));
@@ -491,7 +493,7 @@ static int run(GLFWwindow *window)
                     }
                     else
                     {
-                        models.push_back(loader);
+                        models.push_back(std::move(loader));
                     }
                 }
 

@@ -26,7 +26,10 @@ public:
 
     ModelLoader() = delete;
     ModelLoader(const ModelLoader&) = delete;
+    ModelLoader(ModelLoader&& other);
     explicit ModelLoader(const std::string_view& filename);
+
+    ModelLoader& operator=(ModelLoader&& other);
 
     void LoadAsync();
     void Wait();
