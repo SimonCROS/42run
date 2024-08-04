@@ -23,6 +23,9 @@ ModelLoader& ModelLoader::operator=(ModelLoader&& other)
         buffers = std::move(other.buffers);
         textures = std::move(other.textures);
         usedShaderFlagCombinations = std::move(other.usedShaderFlagCombinations);
+        loadingThread = std::move(other.loadingThread);
+        completed = other.completed.load();
+        error = other.error.load();
     }
 
     return *this;

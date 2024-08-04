@@ -41,12 +41,12 @@ public:
     bool IsError();
     bool IsBinaryFile() const;
 
+    std::thread loadingThread;
 private:
     const std::string _filename;
 
     std::atomic<bool> error = false;
     std::atomic<bool> completed = false;
-    std::thread loadingThread;
 
     bool LoadWorker();
     void LoadThread();

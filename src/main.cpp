@@ -455,18 +455,18 @@ static int run(GLFWwindow *window)
     auto models = std::vector<ModelLoader>(); // TODO Should not be ModelLoader
     models.reserve(42);
 
-    loaders.push_back(ModelLoader(RESOURCE_PATH "sea_house.glb"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "brick_wall_test/scene.gltf"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "goshingyu/scene.gltf"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "metal_dragon.glb"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "magic_laboratory.glb"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "Cube/Cube.gltf"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone/scene.gltf"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone.glb"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "minecraft_castle.glb"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "sea_house.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "brick_wall_test/scene.gltf"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "goshingyu/scene.gltf"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "metal_dragon.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "magic_laboratory.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "Cube/Cube.gltf"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone/scene.gltf"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "minecraft_castle.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb"));
     loaders.push_back(ModelLoader(RESOURCE_PATH "girl_speedsculpt.glb"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "low_poly_tree_scene_free.glb"));
+    // loaders.push_back(ModelLoader(RESOURCE_PATH "low_poly_tree_scene_free.glb"));
 
     for (auto &loader : loaders)
     {
@@ -484,6 +484,8 @@ static int run(GLFWwindow *window)
             auto &loader = *it;
             if (loader.IsCompleted())
             {
+                loader.Wait();
+
                 if (!loader.IsError())
                 {
                     loader.Prepare();
