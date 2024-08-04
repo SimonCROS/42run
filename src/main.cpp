@@ -20,6 +20,8 @@
 const GLuint WIDTH = 1440 / 2, HEIGHT = 846 - 80;
 GLuint whiteTexture = 0;
 
+#define CUSTOM_MAX_BINDED_TEXTURES 16
+
 struct RendererState
 {
     float deltaTime = 0.0f;
@@ -34,6 +36,7 @@ struct RendererState
     glm::vec3 lightPos;
     GLuint bindedVertexBuffer;
     GLuint bindedElementBuffer;
+    GLuint bindedTextures[CUSTOM_MAX_BINDED_TEXTURES];
 };
 
 void APIENTRY glDebugOutput(GLenum source,
@@ -201,20 +204,28 @@ static void BindElementBuffer(RendererState &state, GLuint buffer)
     }
 }
 
-static bool BindTexture(const std::map<int, GLuint> &textures, const int textureIndex, const ShaderProgram &program, const std::string_view &bindingKey, const int bindingValue)
+static bool BindTexture(RendererState &state, const std::map<int, GLuint> &textures, const int textureIndex, const ShaderProgram &program, const std::string_view &bindingKey, const GLuint bindingValue)
 {
+    assert(bindingValue < CUSTOM_MAX_BINDED_TEXTURES);
+
     if (textureIndex < 0)
     {
-        return false;
+        return false; // TODO throw ?
     }
 
     if (textures.count(textureIndex) != 0)
     {
         GLuint glTexture = textures.at(textureIndex);
 
+        if (state.bindedTextures[bindingValue] == glTexture)
+        {
+            return true;
+        }
+
         glActiveTexture(GL_TEXTURE0 + bindingValue);
         program.SetInt(bindingKey.data(), bindingValue);
         glBindTexture(GL_TEXTURE_2D, glTexture > 0 ? glTexture : whiteTexture);
+        state.bindedTextures[bindingValue] = glTexture;
     } // TODO Else throw ?
 
     return true;
@@ -263,10 +274,10 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
         if (primitive.material >= 0)
         {
             const auto &material = model.materials[primitive.material];
-            BindTexture(textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
-            BindTexture(textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program, "metallicRoughnessMap", 1);
-            BindTexture(textures, material.normalTexture.index, program, "normalMap", 2);
-            BindTexture(textures, material.emissiveTexture.index, program, "emissiveMap", 3);
+            BindTexture(state, textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
+            BindTexture(state, textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program, "metallicRoughnessMap", 1);
+            BindTexture(state, textures, material.normalTexture.index, program, "normalMap", 2);
+            BindTexture(state, textures, material.emissiveTexture.index, program, "emissiveMap", 3);
             program.SetFloat("metallicFactor", static_cast<float>(material.pbrMetallicRoughness.metallicFactor));
             program.SetFloat("roughnessFactor", static_cast<float>(material.pbrMetallicRoughness.roughnessFactor));
             program.SetVec3("emissiveFactor", glm::make_vec3(material.emissiveFactor.data()));
@@ -464,6 +475,9 @@ static int run(GLFWwindow *window)
         .cameraUp = glm::vec3(0.0f, 1.0f,  0.0f),
         .projection = proj,
         .lightPos = lightPos,
+        .bindedVertexBuffer = 0,
+        .bindedElementBuffer = 0,
+        .bindedTextures = { 0 },
     };
 
     while (!glfwWindowShouldClose(window))

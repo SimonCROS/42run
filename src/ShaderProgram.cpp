@@ -73,12 +73,14 @@ GLint ShaderProgram::GetAttributeLocation(const std::string& attribute) const
     return (it != attributeLocations.cend()) ? it->second : -1;
 }
 
-void ShaderProgram::EnableAttribute(GLint attribute) {
+void ShaderProgram::EnableAttribute(GLuint attribute) {
+    assert(attribute >= 0 && attribute < CUSTOM_MAX_VERTEX_ATTRIBUTES);
     _currentEnabledAttributes[attribute] = true;
 }
 
-void ShaderProgram::DisableAttribute(GLint attribute)
+void ShaderProgram::DisableAttribute(GLuint attribute)
 {
+    assert(attribute >= 0 && attribute < CUSTOM_MAX_VERTEX_ATTRIBUTES);
     _currentEnabledAttributes[attribute] = false;
 }
 

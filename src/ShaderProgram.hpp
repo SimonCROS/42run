@@ -9,6 +9,8 @@
 #include "glad/gl.h"
 #include "Shader.hpp"
 
+#define CUSTOM_MAX_VERTEX_ATTRIBUTES 16
+
 class ShaderProgram
 {
 public:
@@ -23,8 +25,8 @@ public:
 
     bool HasAttribute(const std::string& attribute) const;
     GLint GetAttributeLocation(const std::string& attribute) const;
-    void EnableAttribute(GLint attribute);
-    void DisableAttribute(GLint attribute);
+    void EnableAttribute(GLuint attribute);
+    void DisableAttribute(GLuint attribute);
     void ApplyAttributeChanges();
 
     void SetBool(const std::string_view& name, const bool value) const;
@@ -36,8 +38,8 @@ public:
 private:
     GLuint _vertId, _fragId;
     std::unordered_map<std::string, GLint> attributeLocations;
-    bool _enabledAttributes[16] = { 0 }; // Real map of enabled attributes
-    bool _currentEnabledAttributes[16] = { 0 }; // Attributes that will be enabled for the next reset
+    bool _enabledAttributes[CUSTOM_MAX_VERTEX_ATTRIBUTES] = { 0 }; // Real map of enabled attributes
+    bool _currentEnabledAttributes[CUSTOM_MAX_VERTEX_ATTRIBUTES] = { 0 }; // Attributes that will be enabled for the next reset
 
     static bool LinkProgram(const GLuint id);
 };
