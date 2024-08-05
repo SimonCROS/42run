@@ -147,7 +147,7 @@ static GLuint CreateWhiteTexture()
     return whiteTextureId;
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+static void key_callback(GLFWwindow* window, const int key, int scancode, int action, int mode)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -234,7 +234,7 @@ static bool BindTexture(RendererState& state, const std::unordered_map<int, GLui
 static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
                      const std::unordered_map<int, GLuint>& buffers,
                      const std::unordered_map<int, GLuint>& textures, ShaderProgramVariants& programVariants,
-                     RendererState& state, glm::dmat4 transform)
+                     RendererState& state, const glm::dmat4& transform)
 {
     for (const auto& primitive : mesh.primitives)
     {
@@ -295,7 +295,7 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
 
         BindVertexBuffer(state, buffers.at(indexAccessor.bufferView));
 
-        int mode = GetDrawMode(primitive.mode);
+        const int mode = GetDrawMode(primitive.mode);
         assert(mode != -1);
 
         glDrawElements(mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
@@ -332,10 +332,7 @@ static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const s
 
     if (node.mesh >= 0 && node.mesh < model.meshes.size())
     {
-        // if (model.meshes[node.mesh].name.find("Object_27") != std::string::npos)
-        // {
         DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state, transform);
-        // }
     }
     for (const int& child : node.children)
     {
