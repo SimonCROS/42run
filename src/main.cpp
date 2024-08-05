@@ -181,7 +181,7 @@ static int GetDrawMode(int tinygltfMode)
         return -1;
 }
 
-static void BindVertexBuffer(RendererState& state, GLuint buffer)
+static void BindVertexBuffer(RendererState& state, const GLuint buffer)
 {
     if (state.bindedVertexBuffer != buffer)
     {
@@ -191,7 +191,7 @@ static void BindVertexBuffer(RendererState& state, GLuint buffer)
     }
 }
 
-static void BindElementBuffer(RendererState& state, GLuint buffer)
+static void BindElementBuffer(RendererState& state, const GLuint buffer)
 {
     if (state.bindedElementBuffer != buffer)
     {
