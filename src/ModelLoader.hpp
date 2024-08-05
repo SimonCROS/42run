@@ -12,29 +12,28 @@
 #include <iostream>
 #include <unordered_set>
 #include <thread>
-#include <mutex>
-#include <atomic>
 
 class ModelLoader
 {
 public:
     GLuint vao = 0; // TODO Make a class to hold data when loaded
     tinygltf::Model model; // TODO Make a class to hold data when loaded
-    std::map<int, GLuint> buffers; // TODO Make a class to hold data when loaded
-    std::map<int, GLuint> textures; // TODO Make a class to hold data when loaded
+    std::unordered_map<int, GLuint> buffers; // TODO Make a class to hold data when loaded
+    std::unordered_map<int, GLuint> textures; // TODO Make a class to hold data when loaded
     std::unordered_set<ShaderFlags> usedShaderFlagCombinations; // TODO Make a class to hold data when loaded
 
     ModelLoader() = delete;
     ModelLoader(const ModelLoader&) = delete;
-    ModelLoader(ModelLoader&& other);
+    ModelLoader(ModelLoader&& other) noexcept;
     explicit ModelLoader(const std::string_view& filename);
 
-    ModelLoader& operator=(ModelLoader&& other);
+    ModelLoader& operator=(const ModelLoader& other) = delete;
+    ModelLoader& operator=(ModelLoader&& other) noexcept;
 
     void LoadAsync();
     void Wait();
     void Prepare();
-    bool BuildShaders(ShaderProgramVariants& programVariants);
+    bool BuildShaders(ShaderProgramVariants& programVariants) const;
     void Destroy();
 
     bool IsCompleted();

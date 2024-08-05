@@ -10,20 +10,21 @@ ModelLoader::ModelLoader(const std::string_view &filename) : _filename(filename)
 {
 }
 
-ModelLoader::ModelLoader(ModelLoader&& other) : _filename(other._filename)
+ModelLoader::ModelLoader(ModelLoader&& other) noexcept : _filename(other._filename)
 {
     *this = std::move(other);
 }
 
-ModelLoader& ModelLoader::operator=(ModelLoader&& other)
+ModelLoader& ModelLoader::operator=(ModelLoader&& other) noexcept
 {
     if (this != &other)
     {
         vao = other.vao;
+        model = std::move(other.model);
         buffers = std::move(other.buffers);
         textures = std::move(other.textures);
-        usedShaderFlagCombinations = std::move(other.usedShaderFlagCombinations);
         loadingThread = std::move(other.loadingThread);
+        usedShaderFlagCombinations = std::move(other.usedShaderFlagCombinations);
         completed = other.completed.load();
         error = other.error.load();
     }
@@ -113,7 +114,7 @@ bool ModelLoader::LoadWorker()
     return res;
 }
 
-static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std::map<int, GLuint> &textures, GLint internalformat)
+static bool LoadTexture(const tinygltf::Model &model, const int &textureId, std::unordered_map<int, GLuint> &textures, GLint internalformat)
 {
     if (textureId < 0)
     {
@@ -311,7 +312,7 @@ void ModelLoader::Prepare()
     glBindVertexArray(0);
 }
 
-bool ModelLoader::BuildShaders(ShaderProgramVariants &programVariants)
+bool ModelLoader::BuildShaders(ShaderProgramVariants &programVariants) const
 {
     return programVariants.EnableVariants(usedShaderFlagCombinations);
 }

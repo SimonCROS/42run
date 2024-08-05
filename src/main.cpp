@@ -158,7 +158,7 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static inline void* BufferOffset(const size_t offset)
+static void* BufferOffset(const size_t offset)
 {
     return reinterpret_cast<void*>(offset);
 }
@@ -201,7 +201,7 @@ static void BindElementBuffer(RendererState &state, GLuint buffer)
     }
 }
 
-static bool BindTexture(RendererState &state, const std::map<int, GLuint> &textures, const int textureIndex, ShaderProgram &program, const std::string_view &bindingKey, const GLuint bindingValue)
+static bool BindTexture(RendererState &state, const std::unordered_map<int, GLuint> &textures, const int textureIndex, ShaderProgram &program, const std::string_view &bindingKey, const GLuint bindingValue)
 {
     assert(bindingValue < CUSTOM_MAX_BINDED_TEXTURES);
 
@@ -230,8 +230,8 @@ static bool BindTexture(RendererState &state, const std::map<int, GLuint> &textu
     return true;
 }
 
-static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::map<int, GLuint> &buffers,
-                     const std::map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
+static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::unordered_map<int, GLuint> &buffers,
+                     const std::unordered_map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
 {
     for (const auto &primitive : mesh.primitives)
     {
@@ -300,8 +300,8 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
     }
 }
 
-static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::map<int, GLuint> &buffers,
-                     const std::map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
+static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::unordered_map<int, GLuint> &buffers,
+                     const std::unordered_map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
 {
     if (node.matrix.size() == 16)
     {
@@ -411,7 +411,8 @@ static int run(GLFWwindow* window)
     RendererState state{
         .projection = proj,
         .lightPos = lightPos,
-        .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 50), glm::vec3(0, 0, -1)),
+        .camera = Camera(2.4f, glm::vec3(0, 0, 5.0f), glm::vec3(0, 0, -1)),
+        // .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 50), glm::vec3(0, 0, -1)),
         // .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 29.5), glm::vec3(1, 0, 0)),
         .bindedVertexBuffer = 0,
         .bindedElementBuffer = 0,
@@ -423,18 +424,18 @@ static int run(GLFWwindow* window)
     auto models = std::vector<ModelLoader>(); // TODO Should not be ModelLoader
     models.reserve(42);
 
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "sea_house.glb"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "brick_wall_test/scene.gltf"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "goshingyu/scene.gltf"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "metal_dragon.glb"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "magic_laboratory.glb"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "Cube/Cube.gltf"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone/scene.gltf"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "buster_drone.glb"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "minecraft_castle.glb"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "free_porsche_911_carrera_4s.glb"));
-    loaders.push_back(ModelLoader(RESOURCE_PATH "girl_speedsculpt.glb"));
-    // loaders.push_back(ModelLoader(RESOURCE_PATH "low_poly_tree_scene_free.glb"));
+    // loaders.emplace_back(RESOURCE_PATH "sea_house.glb");
+    // loaders.emplace_back(RESOURCE_PATH "brick_wall_test/scene.gltf");
+    // loaders.emplace_back(RESOURCE_PATH "goshingyu/scene.gltf");
+    // loaders.emplace_back(RESOURCE_PATH "metal_dragon.glb");
+    loaders.emplace_back(RESOURCE_PATH "magic_laboratory.glb");
+    // loaders.emplace_back(RESOURCE_PATH "Cube/Cube.gltf");
+    // loaders.emplace_back(RESOURCE_PATH "buster_drone/scene.gltf");
+    // loaders.emplace_back(RESOURCE_PATH "buster_drone.glb");
+    // loaders.emplace_back(RESOURCE_PATH "minecraft_castle.glb");
+    // loaders.emplace_back(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
+    // loaders.emplace_back(RESOURCE_PATH "girl_speedsculpt.glb");
+    // loaders.emplace_back(RESOURCE_PATH "low_poly_tree_scene_free.glb");
 
     for (auto &loader : loaders)
     {
@@ -446,8 +447,7 @@ static int run(GLFWwindow* window)
     {
         // BUILD LOADERS
         auto it = loaders.begin();
-        auto end = loaders.end();
-        while (it != end)
+        while (it != loaders.end())
         {
             auto &loader = *it;
             if (loader.IsCompleted())
@@ -463,11 +463,11 @@ static int run(GLFWwindow* window)
                     }
                     else
                     {
-                        models.push_back(std::move(loader));
+                        models.emplace_back(std::move(loader));
                     }
                 }
 
-                loaders.erase(it);
+                it = loaders.erase(it);
             }
             else
             {
