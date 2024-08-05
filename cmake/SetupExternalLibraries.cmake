@@ -17,7 +17,7 @@ add_subdirectory(${EXTERNAL_LIBRARIES_DIR}/tinygltf EXCLUDE_FROM_ALL)
 find_package(OpenGL 4.1 REQUIRED)
 
 find_package(glfw3 3.3 QUIET)
-if(NOT glfw_FOUND)
+if(NOT glfw3_FOUND)
     include(FetchContent)
     FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_TAG master)
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
