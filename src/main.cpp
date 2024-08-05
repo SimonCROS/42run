@@ -125,7 +125,7 @@ void APIENTRY glDebugOutput(GLenum source,
     std::cout << std::endl;
 }
 
-static void CheckErrors(const std::string_view &desc)
+static void CheckErrors(const std::string_view& desc)
 {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR)
@@ -181,7 +181,7 @@ static int GetDrawMode(int tinygltfMode)
         return -1;
 }
 
-static void BindVertexBuffer(RendererState &state, GLuint buffer)
+static void BindVertexBuffer(RendererState& state, GLuint buffer)
 {
     if (state.bindedVertexBuffer != buffer)
     {
@@ -191,7 +191,7 @@ static void BindVertexBuffer(RendererState &state, GLuint buffer)
     }
 }
 
-static void BindElementBuffer(RendererState &state, GLuint buffer)
+static void BindElementBuffer(RendererState& state, GLuint buffer)
 {
     if (state.bindedElementBuffer != buffer)
     {
@@ -201,7 +201,8 @@ static void BindElementBuffer(RendererState &state, GLuint buffer)
     }
 }
 
-static bool BindTexture(RendererState &state, const std::unordered_map<int, GLuint> &textures, const int textureIndex, ShaderProgram &program, const std::string_view &bindingKey, const GLuint bindingValue)
+static bool BindTexture(RendererState& state, const std::unordered_map<int, GLuint>& textures, const int textureIndex,
+                        ShaderProgram& program, const std::string_view& bindingKey, const GLuint bindingValue)
 {
     assert(bindingValue < CUSTOM_MAX_BINDED_TEXTURES);
 
@@ -230,22 +231,24 @@ static bool BindTexture(RendererState &state, const std::unordered_map<int, GLui
     return true;
 }
 
-static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, const std::unordered_map<int, GLuint> &buffers,
-                     const std::unordered_map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
+static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
+                     const std::unordered_map<int, GLuint>& buffers,
+                     const std::unordered_map<int, GLuint>& textures, ShaderProgramVariants& programVariants,
+                     RendererState& state, glm::dmat4 transform)
 {
-    for (const auto &primitive : mesh.primitives)
+    for (const auto& primitive : mesh.primitives)
     {
         if (primitive.indices < 0)
             continue;
 
-        ShaderProgram &program = programVariants.GetProgram(GetPrimitiveShaderFlags(model, primitive));
+        ShaderProgram& program = programVariants.GetProgram(GetPrimitiveShaderFlags(model, primitive));
         program.Use();
 
-        for (const auto &[attribute, accessorId] : primitive.attributes)
+        for (const auto& [attribute, accessorId] : primitive.attributes)
         {
             assert(accessorId >= 0);
 
-            const tinygltf::Accessor &accessor = model.accessors[accessorId];
+            const tinygltf::Accessor& accessor = model.accessors[accessorId];
 
             BindVertexBuffer(state, buffers.at(accessor.bufferView));
 
@@ -272,9 +275,10 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
 
         if (primitive.material >= 0)
         {
-            const auto &material = model.materials[primitive.material];
+            const auto& material = model.materials[primitive.material];
             BindTexture(state, textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
-            BindTexture(state, textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program, "metallicRoughnessMap", 1);
+            BindTexture(state, textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program,
+                        "metallicRoughnessMap", 1);
             BindTexture(state, textures, material.normalTexture.index, program, "normalMap", 2);
             BindTexture(state, textures, material.emissiveTexture.index, program, "emissiveMap", 3);
             program.SetFloat("metallicFactor", static_cast<float>(material.pbrMetallicRoughness.metallicFactor));
@@ -287,7 +291,7 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
             }
         }
 
-        const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
+        const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
 
         BindVertexBuffer(state, buffers.at(indexAccessor.bufferView));
 
@@ -300,8 +304,9 @@ static void DrawMesh(const tinygltf::Model &model, const tinygltf::Mesh &mesh, c
     }
 }
 
-static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const std::unordered_map<int, GLuint> &buffers,
-                     const std::unordered_map<int, GLuint> &textures, ShaderProgramVariants &programVariants, RendererState &state, glm::dmat4 transform)
+static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const std::unordered_map<int, GLuint>& buffers,
+                     const std::unordered_map<int, GLuint>& textures, ShaderProgramVariants& programVariants,
+                     RendererState& state, glm::dmat4 transform)
 {
     if (node.matrix.size() == 16)
     {
@@ -332,7 +337,7 @@ static void DrawNode(tinygltf::Model &model, const tinygltf::Node &node, const s
         DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state, transform);
         // }
     }
-    for (const int &child : node.children)
+    for (const int& child : node.children)
     {
         DrawNode(model, model.nodes[child], buffers, textures, programVariants, state, transform);
     }
@@ -406,7 +411,8 @@ static int run(GLFWwindow* window)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glm::vec3 lightPos = glm::vec3(5, 50, 40);
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 1000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f,
+                                      1000.0f);
 
     RendererState state{
         .projection = proj,
@@ -428,16 +434,16 @@ static int run(GLFWwindow* window)
     // loaders.emplace_back(RESOURCE_PATH "brick_wall_test/scene.gltf");
     // loaders.emplace_back(RESOURCE_PATH "goshingyu/scene.gltf");
     // loaders.emplace_back(RESOURCE_PATH "metal_dragon.glb");
-    loaders.emplace_back(RESOURCE_PATH "magic_laboratory.glb");
+    // loaders.emplace_back(RESOURCE_PATH "magic_laboratory.glb");
     // loaders.emplace_back(RESOURCE_PATH "Cube/Cube.gltf");
     // loaders.emplace_back(RESOURCE_PATH "buster_drone/scene.gltf");
     // loaders.emplace_back(RESOURCE_PATH "buster_drone.glb");
-    // loaders.emplace_back(RESOURCE_PATH "minecraft_castle.glb");
+    loaders.emplace_back(RESOURCE_PATH "minecraft_castle.glb");
     // loaders.emplace_back(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // loaders.emplace_back(RESOURCE_PATH "girl_speedsculpt.glb");
     // loaders.emplace_back(RESOURCE_PATH "low_poly_tree_scene_free.glb");
 
-    for (auto &loader : loaders)
+    for (auto& loader : loaders)
     {
         loader.LoadAsync();
     }
@@ -449,7 +455,7 @@ static int run(GLFWwindow* window)
         auto it = loaders.begin();
         while (it != loaders.end())
         {
-            auto &loader = *it;
+            auto& loader = *it;
             if (loader.IsCompleted())
             {
                 loader.Wait();
@@ -487,11 +493,11 @@ static int run(GLFWwindow* window)
         // DRAW
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (auto &model : models)
+        for (auto& model : models)
         {
             glBindVertexArray(model.vao);
 
-            for (auto &[flags, program] : programVariants.programs)
+            for (auto& [flags, program] : programVariants.programs)
             {
                 program.Use();
                 program.SetVec3("viewPos", state.camera.Position);
@@ -500,10 +506,11 @@ static int run(GLFWwindow* window)
                 program.SetVec3("lightPos", lightPos);
             }
 
-            const auto &scene = model.model.scenes[model.model.defaultScene];
-            for (const int &node : scene.nodes)
+            const auto& scene = model.model.scenes[model.model.defaultScene];
+            for (const int& node : scene.nodes)
             {
-                DrawNode(model.model, model.model.nodes[node], model.buffers, model.textures, programVariants, state, transform);
+                DrawNode(model.model, model.model.nodes[node], model.buffers, model.textures, programVariants, state,
+                         transform);
             }
 
             glBindVertexArray(0);
@@ -515,12 +522,12 @@ static int run(GLFWwindow* window)
 
     programVariants.Destroy();
     glDeleteTextures(1, &whiteTexture);
-    for (auto &loader : loaders)
+    for (auto& loader : loaders)
     {
         loader.Wait();
         loader.Destroy();
     }
-    for (auto &model : models)
+    for (auto& model : models)
     {
         model.Destroy();
     }
