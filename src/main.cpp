@@ -293,7 +293,7 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
 
         const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
 
-        BindVertexBuffer(state, buffers.at(indexAccessor.bufferView));
+        BindElementBuffer(state, buffers.at(indexAccessor.bufferView));
 
         const int mode = GetDrawMode(primitive.mode);
         assert(mode != -1);
