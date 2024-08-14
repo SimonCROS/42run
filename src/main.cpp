@@ -34,15 +34,32 @@ struct RendererState
     GLuint bindedVertexBuffer;
     GLuint bindedElementBuffer;
     GLuint bindedTextures[CUSTOM_MAX_BINDED_TEXTURES];
+    bool doubleSided;
 };
+
+void SetDoubleSided(RendererState& state, bool value)
+{
+    if (state.doubleSided != value)
+    {
+        state.doubleSided = value;
+        if (value)
+        {
+            glDisable(GL_CULL_FACE);
+        }
+        else
+        {
+            glEnable(GL_CULL_FACE);
+        }
+    }
+}
 
 void APIENTRY glDebugOutput(GLenum source,
                             GLenum type,
                             unsigned int id,
                             GLenum severity,
                             GLsizei length,
-                            const char* message,
-                            const void* userParam)
+                            const char *message,
+                            const void *userParam)
 {
     // ignore non-significant error/warning codes
     if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
@@ -125,7 +142,7 @@ void APIENTRY glDebugOutput(GLenum source,
     std::cout << std::endl;
 }
 
-static void CheckErrors(const std::string_view& desc)
+static void CheckErrors(const std::string_view &desc)
 {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR)
@@ -147,20 +164,20 @@ static GLuint CreateWhiteTexture()
     return whiteTextureId;
 }
 
-static void key_callback(GLFWwindow* window, const int key, int scancode, int action, int mode)
+static void key_callback(GLFWwindow *window, const int key, int scancode, int action, int mode)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-static void error_callback(int error, const char* description)
+static void error_callback(int error, const char *description)
 {
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void* BufferOffset(const size_t offset)
+static void *BufferOffset(const size_t offset)
 {
-    return reinterpret_cast<void*>(offset);
+    return reinterpret_cast<void *>(offset);
 }
 
 static int GetDrawMode(int tinygltfMode)
@@ -181,7 +198,7 @@ static int GetDrawMode(int tinygltfMode)
         return -1;
 }
 
-static void BindVertexBuffer(RendererState& state, const GLuint buffer)
+static void BindVertexBuffer(RendererState &state, const GLuint buffer)
 {
     if (state.bindedVertexBuffer != buffer)
     {
@@ -191,7 +208,7 @@ static void BindVertexBuffer(RendererState& state, const GLuint buffer)
     }
 }
 
-static void BindElementBuffer(RendererState& state, const GLuint buffer)
+static void BindElementBuffer(RendererState &state, const GLuint buffer)
 {
     if (state.bindedElementBuffer != buffer)
     {
@@ -201,8 +218,8 @@ static void BindElementBuffer(RendererState& state, const GLuint buffer)
     }
 }
 
-static bool BindTexture(RendererState& state, const std::unordered_map<int, GLuint>& textures, const int textureIndex,
-                        ShaderProgram& program, const std::string_view& bindingKey, const GLuint bindingValue)
+static bool BindTexture(RendererState &state, const std::unordered_map<int, GLuint> &textures, const int textureIndex,
+                        ShaderProgram &program, const std::string_view &bindingKey, const GLuint bindingValue)
 {
     assert(bindingValue < CUSTOM_MAX_BINDED_TEXTURES);
 
@@ -231,24 +248,26 @@ static bool BindTexture(RendererState& state, const std::unordered_map<int, GLui
     return true;
 }
 
-static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
-                     const std::unordered_map<int, GLuint>& buffers,
-                     const std::unordered_map<int, GLuint>& textures, ShaderProgramVariants& programVariants,
-                     RendererState& state, const glm::dmat4& transform)
+static void DrawMesh(const tinygltf::Model &model, const int meshId,
+                     const std::unordered_map<int, GLuint> &buffers,
+                     const std::unordered_map<int, GLuint> &textures, ShaderProgramVariants &programVariants,
+                     RendererState &state, const glm::dmat4 &transform)
 {
-    for (const auto& primitive : mesh.primitives)
+    const auto &mesh = model.meshes[meshId];
+
+    for (const auto &primitive : mesh.primitives)
     {
         if (primitive.indices < 0)
             continue;
 
-        ShaderProgram& program = programVariants.GetProgram(GetPrimitiveShaderFlags(model, primitive));
+        ShaderProgram &program = programVariants.GetProgram(GetPrimitiveShaderFlags(model, primitive));
         program.Use();
 
-        for (const auto& [attribute, accessorId] : primitive.attributes)
+        for (const auto &[attribute, accessorId] : primitive.attributes)
         {
             assert(accessorId >= 0);
 
-            const tinygltf::Accessor& accessor = model.accessors[accessorId];
+            const tinygltf::Accessor &accessor = model.accessors[accessorId];
 
             BindVertexBuffer(state, buffers.at(accessor.bufferView));
 
@@ -275,7 +294,10 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
 
         if (primitive.material >= 0)
         {
-            const auto& material = model.materials[primitive.material];
+            const auto &material = model.materials[primitive.material];
+
+            SetDoubleSided(state, material.doubleSided);
+
             BindTexture(state, textures, material.pbrMetallicRoughness.baseColorTexture.index, program, "albedoMap", 0);
             BindTexture(state, textures, material.pbrMetallicRoughness.metallicRoughnessTexture.index, program,
                         "metallicRoughnessMap", 1);
@@ -290,8 +312,12 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
                 program.SetFloat("normalScale", static_cast<float>(material.normalTexture.scale));
             }
         }
+        else
+        {
+            SetDoubleSided(state, false);
+        }
 
-        const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
+        const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
 
         BindElementBuffer(state, buffers.at(indexAccessor.bufferView));
 
@@ -304,10 +330,12 @@ static void DrawMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
     }
 }
 
-static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const std::unordered_map<int, GLuint>& buffers,
-                     const std::unordered_map<int, GLuint>& textures, ShaderProgramVariants& programVariants,
-                     RendererState& state, glm::dmat4 transform)
+static void DrawNode(tinygltf::Model &model, const int nodeId, const std::unordered_map<int, GLuint> &buffers,
+                     const std::unordered_map<int, GLuint> &textures, ShaderProgramVariants &programVariants,
+                     RendererState &state, glm::dmat4 transform)
 {
+    const auto &node = model.nodes[nodeId];
+
     if (node.matrix.size() == 16)
     {
         transform *= glm::make_mat4(node.matrix.data());
@@ -332,18 +360,18 @@ static void DrawNode(tinygltf::Model& model, const tinygltf::Node& node, const s
 
     if (node.mesh >= 0 && node.mesh < model.meshes.size())
     {
-        DrawMesh(model, model.meshes[node.mesh], buffers, textures, programVariants, state, transform);
+        DrawMesh(model, node.mesh, buffers, textures, programVariants, state, transform);
     }
-    for (const int& child : node.children)
+    for (const int &child : node.children)
     {
-        DrawNode(model, model.nodes[child], buffers, textures, programVariants, state, transform);
+        DrawNode(model, child, buffers, textures, programVariants, state, transform);
     }
 }
 
-void processInput(GLFWwindow* window, RendererState& state)
+void processInput(GLFWwindow *window, RendererState &state)
 {
     const float cameraRotationSpeed = glm::radians(180.0f * state.deltaTime);
-    Camera& camera = state.camera;
+    Camera &camera = state.camera;
     float speed = camera.Speed * state.deltaTime;
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
@@ -374,7 +402,7 @@ void processInput(GLFWwindow* window, RendererState& state)
         std::cout << camera.Position.x << ", " << camera.Position.y << ", " << camera.Position.z << std::endl;
 }
 
-static int run(GLFWwindow* window)
+static int run(GLFWwindow *window)
 {
     int version = gladLoadGL(glfwGetProcAddress);
     std::cout << "OpenGL " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
@@ -423,6 +451,7 @@ static int run(GLFWwindow* window)
         .bindedVertexBuffer = 0,
         .bindedElementBuffer = 0,
         .bindedTextures = {0},
+        .doubleSided = false,
     };
 
     auto loaders = std::vector<ModelLoader>();
@@ -438,12 +467,13 @@ static int run(GLFWwindow* window)
     // loaders.emplace_back(RESOURCE_PATH "Cube/Cube.gltf");
     // loaders.emplace_back(RESOURCE_PATH "buster_drone/scene.gltf");
     // loaders.emplace_back(RESOURCE_PATH "buster_drone.glb");
-    loaders.emplace_back(RESOURCE_PATH "minecraft_castle.glb");
+    // loaders.emplace_back(RESOURCE_PATH "minecraft_castle.glb");
     // loaders.emplace_back(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // loaders.emplace_back(RESOURCE_PATH "girl_speedsculpt.glb");
     // loaders.emplace_back(RESOURCE_PATH "low_poly_tree_scene_free.glb");
+    loaders.emplace_back(RESOURCE_PATH "vinh_stadium.glb");
 
-    for (auto& loader : loaders)
+    for (auto &loader : loaders)
     {
         loader.LoadAsync();
     }
@@ -455,7 +485,7 @@ static int run(GLFWwindow* window)
         auto it = loaders.begin();
         while (it != loaders.end())
         {
-            auto& loader = *it;
+            auto &loader = *it;
             if (loader.IsCompleted())
             {
                 loader.Wait();
@@ -493,11 +523,11 @@ static int run(GLFWwindow* window)
         // DRAW
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (auto& model : models)
+        for (auto &model : models)
         {
             glBindVertexArray(model.vao);
 
-            for (auto& [flags, program] : programVariants.programs)
+            for (auto &[flags, program] : programVariants.programs)
             {
                 program.Use();
                 program.SetVec3("viewPos", state.camera.Position);
@@ -506,10 +536,10 @@ static int run(GLFWwindow* window)
                 program.SetVec3("lightPos", lightPos);
             }
 
-            const auto& scene = model.model.scenes[model.model.defaultScene];
-            for (const int& node : scene.nodes)
+            const auto &scene = model.model.scenes[model.model.defaultScene];
+            for (const int &node : scene.nodes)
             {
-                DrawNode(model.model, model.model.nodes[node], model.buffers, model.textures, programVariants, state,
+                DrawNode(model.model, node, model.buffers, model.textures, programVariants, state,
                          transform);
             }
 
@@ -522,12 +552,12 @@ static int run(GLFWwindow* window)
 
     programVariants.Destroy();
     glDeleteTextures(1, &whiteTexture);
-    for (auto& loader : loaders)
+    for (auto &loader : loaders)
     {
         loader.Wait();
         loader.Destroy();
     }
-    for (auto& model : models)
+    for (auto &model : models)
     {
         model.Destroy();
     }
@@ -552,7 +582,7 @@ int main()
     glfwWindowHint(GLFW_SAMPLES, 4);
 
     glfwSetErrorCallback(error_callback);
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "42run", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "42run", nullptr, nullptr);
     if (window == nullptr)
     {
         return 1;
