@@ -445,7 +445,7 @@ static int run(GLFWwindow* window)
         loader.LoadAsync();
     }
 
-    glm::dmat4 transform;
+    glm::dmat4 transform(1);
     while (!glfwWindowShouldClose(window))
     {
         // BUILD LOADERS
