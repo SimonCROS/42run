@@ -412,9 +412,9 @@ static int run(GLFWwindow* window)
                                       1000.0f);
 
     RendererState state{
+        .camera = Camera(2.4f, glm::vec3(0, 0, 5.0f), glm::vec3(0, 0, -1)),
         .projection = proj,
         .lightPos = lightPos,
-        .camera = Camera(2.4f, glm::vec3(0, 0, 5.0f), glm::vec3(0, 0, -1)),
         // .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 50), glm::vec3(0, 0, -1)),
         // .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 29.5), glm::vec3(1, 0, 0)),
         .bindedVertexBuffer = 0,

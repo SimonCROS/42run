@@ -12,6 +12,7 @@
 #include <iostream>
 #include <unordered_set>
 #include <thread>
+#include <atomic>
 
 class ModelLoader
 {
