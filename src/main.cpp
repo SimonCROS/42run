@@ -461,7 +461,7 @@ static int run(GLFWwindow *window)
 
     // loaders.emplace_back(RESOURCE_PATH "sea_house.glb");
     // loaders.emplace_back(RESOURCE_PATH "brick_wall_test/scene.gltf");
-    // loaders.emplace_back(RESOURCE_PATH "goshingyu/scene.gltf");
+    loaders.emplace_back(RESOURCE_PATH "goshingyu/scene.gltf");
     // loaders.emplace_back(RESOURCE_PATH "metal_dragon.glb");
     // loaders.emplace_back(RESOURCE_PATH "magic_laboratory.glb");
     // loaders.emplace_back(RESOURCE_PATH "Cube/Cube.gltf");
@@ -471,7 +471,7 @@ static int run(GLFWwindow *window)
     // loaders.emplace_back(RESOURCE_PATH "free_porsche_911_carrera_4s.glb");
     // loaders.emplace_back(RESOURCE_PATH "girl_speedsculpt.glb");
     // loaders.emplace_back(RESOURCE_PATH "low_poly_tree_scene_free.glb");
-    loaders.emplace_back(RESOURCE_PATH "vinh_stadium.glb");
+    // loaders.emplace_back(RESOURCE_PATH "vinh_stadium.glb");
 
     for (auto &loader : loaders)
     {
@@ -547,7 +547,7 @@ static int run(GLFWwindow *window)
         }
 
         glfwSwapBuffers(window);
-        // transform = glm::rotate(transform, glm::radians(0.3), glm::dvec3(0.0, 1.0, 0.0));
+        transform = glm::rotate(transform, glm::radians(0.3), glm::dvec3(0.0, 1.0, 0.0));
     }
 
     programVariants.Destroy();
