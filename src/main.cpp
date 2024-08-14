@@ -344,7 +344,10 @@ void processInput(GLFWwindow* window, RendererState& state)
 {
     const float cameraRotationSpeed = glm::radians(180.0f * state.deltaTime);
     Camera& camera = state.camera;
-    const float speed = camera.Speed * state.deltaTime;
+    float speed = camera.Speed * state.deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        speed *= 2;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.Position += speed * camera.Direction;
@@ -354,7 +357,7 @@ void processInput(GLFWwindow* window, RendererState& state)
         camera.Position -= speed * camera.GetCrossDirection();
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.Position += speed * camera.GetCrossDirection();
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         camera.Position -= glm::vec3(0, speed, 0);
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         camera.Position += glm::vec3(0, speed, 0);
@@ -412,7 +415,7 @@ static int run(GLFWwindow* window)
                                       1000.0f);
 
     RendererState state{
-        .camera = Camera(2.4f, glm::vec3(0, 0, 5.0f), glm::vec3(0, 0, -1)),
+        .camera = Camera(3.42f, glm::vec3(0, 0, 5.0f), glm::vec3(0, 0, -1)),
         .projection = proj,
         .lightPos = lightPos,
         // .camera = Camera(2.4f, glm::vec3(20.5, 0.5, 50), glm::vec3(0, 0, -1)),
