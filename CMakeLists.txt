@@ -1,15 +1,14 @@
 cmake_minimum_required(VERSION 3.22)
-project(42run)
+include(FetchContent)
 
-set(CMAKE_CXX_STANDARD 17)
+project(42run VERSION 1.0)
 
-#configure_file(42runConfig.h.in 42runConfig.h)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+configure_file(42runConfig.h.in 42runConfig.h)
 
 set(EXTERNAL_LIBRARIES_DIR ${CMAKE_SOURCE_DIR}/lib)
-
 include(${CMAKE_SOURCE_DIR}/cmake/SetupExternalLibraries.cmake)
 
-# ---------------------------------------------------------------------------------
-# 42run
-# ---------------------------------------------------------------------------------
 add_subdirectory(src)

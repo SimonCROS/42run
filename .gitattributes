@@ -1,0 +1,11 @@
+/lib/glad/** linguist-vendored
+/lib/imgui/** linguist-vendored
+/lib/stb/** linguist-vendored
+*.microgltf.h linguist-vendored
+
+/src/**/*.h linguist-language=C++
+
+/resources/screenshots/*.gif filter=lfs diff=lfs merge=lfs -text
+/resources/screenshots/*.png filter=lfs diff=lfs merge=lfs -text
+/resources/screenshots/*.jpg filter=lfs diff=lfs merge=lfs -text
+/resources/screenshots/*.jpeg filter=lfs diff=lfs merge=lfs -text

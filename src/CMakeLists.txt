@@ -1,55 +1,91 @@
-# ---------------------------------------------------------------------------------
-# Project name
-# ---------------------------------------------------------------------------------
-set(TARGET_NAME 42run)
-
-# ---------------------------------------------------------------------------------
-# Include paths
-# ---------------------------------------------------------------------------------
-# include_directories(${CMAKE_CURRENT_LIST_DIR} path)
-
-# ---------------------------------------------------------------------------------
-# Add source files
-# ---------------------------------------------------------------------------------
-file(GLOB_RECURSE PROJECT_INCLUDES
-        *.hpp
-        *.h
-)
-
-file(GLOB_RECURSE PROJECT_SOURCES
-        *.cpp
-        *.cxx
-        *.cc
-        *.c
-)
-
-# define a grouping for files in IDE
-source_group("include" FILES ${PROJECT_INCLUDES})
-source_group("source" FILES ${PROJECT_SOURCES})
-
-# ---------------------------------------------------------------------------------
-# Executable and target include/link libraries
-# ---------------------------------------------------------------------------------
-add_executable(${TARGET_NAME}
-        tiny_gltf_impl.cpp
+add_executable(42run
         main.cpp
-        utils/string_unordered_map.hpp
-        logger.hpp
+        Expected.h
+        WindowContext.cpp
+        WindowContext.h
+        StringUnorderedMap.h
         Camera.cpp
-        Camera.hpp
-        ModelLoader.cpp
-        ModelLoader.hpp
-        Shader.cpp
-        Shader.hpp
-        ShaderProgram.cpp
-        ShaderProgram.hpp
-        ShaderProgramVariants.cpp
-        ShaderProgramVariants.hpp
+        Camera.h
+        tiny_gltf_impl.cpp
+
+        Window/Window.cpp
+        Window/Window.h
+        Window/Controls.cpp
+        Window/Controls.h
+
+        OpenGL/VertexBuffer.h
+        OpenGL/VertexBuffer.cpp
+        OpenGL/VertexArray.cpp
+        OpenGL/VertexArray.h
+        OpenGL/IndicesBuffer.cpp
+        OpenGL/IndicesBuffer.h
+        OpenGL/Shader.cpp
+        OpenGL/Shader.h
+        OpenGL/ShaderProgramInstance.cpp
+        OpenGL/ShaderProgramInstance.h
+        OpenGL/ShaderProgram.cpp
+        OpenGL/ShaderProgram.h
+        OpenGL/Debug.cpp
+        OpenGL/Debug.h
+        OpenGL/Pipeline.cpp
+        OpenGL/Pipeline.h
+
+        Components/ImguiSingleton.cpp
+        Components/ImguiSingleton.h
+        Components/UserInterface.cpp
+        Components/UserInterface.h
+        Components/CameraController.cpp
+        Components/CameraController.h
+        Components/MeshRenderer.cpp
+        Components/MeshRenderer.h
+        Components/Animator.cpp
+        Components/Animator.h
+
+        Engine/Engine.cpp
+        Engine/Engine.h
+        Engine/AnimationSampler.cpp
+        Engine/AnimationSampler.h
+        Engine/Animation.cpp
+        Engine/Animation.h
+        Engine/Mesh.cpp
+        Engine/Mesh.h
+        Engine/EngineComponent.h
+        Engine/Object.cpp
+        Engine/Object.h
+        Engine/FrameInfo.h
+        Engine/Transform.cpp
+        Engine/Transform.h
+
+        Utility/EnumHelpers.h
+        Utility/StridedIterator.h
+        Utility/VectorMultiMap.h
+
+        InterfaceBlocks/DisplayInterfaceBlock.cpp
+        InterfaceBlocks/DisplayInterfaceBlock.h
+        InterfaceBlocks/GolemInterfaceBlock.cpp
+        InterfaceBlocks/GolemInterfaceBlock.h
+        InterfaceBlocks/CameraTargetInterfaceBlock.cpp
+        InterfaceBlocks/CameraTargetInterfaceBlock.h
 )
 
-target_link_libraries(${TARGET_NAME} PRIVATE glm::glm)
-target_link_libraries(${TARGET_NAME} PRIVATE glad)
-target_link_libraries(${TARGET_NAME} PRIVATE OpenGL::GL)
-target_link_libraries(${TARGET_NAME} PRIVATE glfw)
-target_link_libraries(${TARGET_NAME} PRIVATE stb)
-target_link_libraries(${TARGET_NAME} PRIVATE tinygltf)
+target_compile_definitions(42run PRIVATE
+        GLFW_INCLUDE_NONE
+        GLM_ENABLE_EXPERIMENTAL
+        TINYGLTF_NO_STB_IMAGE_WRITE
+        TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
+        TINYGLTF_USE_CPP14
+)
+
+target_link_libraries(42run PRIVATE
+        glad
+        glfw
+        glm::glm
+        imgui
+        OpenGL::GL
+        tinygltf
+)
+
+target_include_directories(42run PUBLIC
+        ${PROJECT_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)

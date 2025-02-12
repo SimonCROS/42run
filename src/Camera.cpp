@@ -1,25 +1,21 @@
 //
-// Created by Simon Cros on 03/08/2024.
+// Created by loumarti on 1/15/25.
 //
 
-#include "Camera.hpp"
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/norm.hpp"
-#include "glm/ext/matrix_transform.hpp"
+#include "Camera.h"
 
-Camera::Camera(const float speed, const glm::vec3& position, const glm::vec3& direction): Speed(speed),
-    Position(position),
-    Direction(direction)
+Camera::Camera(Object& object, const uint32_t width, const uint32_t height, const float fov) : EngineComponent(object), m_mode(COLOR)
 {
-    assert(glm::length2(Direction) != 0);
+    const float aspect = static_cast<float>(width) / static_cast<float>(height);
+
+    m_projectionMatrix = glm::perspective(glm::radians(fov), aspect, 0.1f, 100.0f);
 }
 
-glm::mat4 Camera::GetView() const
+auto Camera::computeViewMatrix() const -> glm::mat4
 {
-    return glm::lookAt(Position, Position + Direction, Up);
-}
-
-glm::vec3 Camera::GetCrossDirection() const
-{
-    return glm::normalize(glm::cross(Direction, Up));
+    const Transform& transform = object().transform();
+    const glm::vec3 forward = transform.rotation * glm::vec3(0.0f, 0.0f, -1.0f);
+    const glm::vec3 up = transform.rotation * glm::vec3(0.0f, 1.0f, 0.0f);
+    const glm::vec3 center = transform.translation + forward;
+    return glm::lookAt(transform.translation, center, up);
 }
