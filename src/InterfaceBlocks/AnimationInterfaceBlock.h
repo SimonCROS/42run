@@ -8,19 +8,15 @@
 #include "Components/MeshRenderer.h"
 #include "Components/UserInterface.h"
 
-class GolemInterfaceBlock : public InterfaceBlock
+class AnimationInterfaceBlock : public InterfaceBlock
 {
 private:
     Animator *m_animator;
-    MeshRenderer *m_meshRenderer;
 
     std::vector<const char *> m_animationsNames;
 
-    int m_selectedPart{0};
-    int m_selectedIndex{0};
-
 public:
-    explicit GolemInterfaceBlock(UserInterface& interface);
+    explicit AnimationInterfaceBlock(UserInterface& interface);
 
     auto onDrawUI(uint16_t blockId, Engine& engine, UserInterface& interface) -> void override;
 };

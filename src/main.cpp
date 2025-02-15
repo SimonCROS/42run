@@ -6,14 +6,14 @@
 #include "42runConfig.h"
 #include "Engine/Engine.h"
 #include "Window/Window.h"
-#include "WindowContext.h"
+#include "Window/WindowContext.h"
 #include "Components/UserInterface.h"
 #include "Components/CameraController.h"
 #include "Components/ImguiSingleton.h"
 #include "Components/MeshRenderer.h"
 #include "InterfaceBlocks/CameraTargetInterfaceBlock.h"
 #include "InterfaceBlocks/DisplayInterfaceBlock.h"
-#include "InterfaceBlocks/GolemInterfaceBlock.h"
+#include "InterfaceBlocks/AnimationInterfaceBlock.h"
 
 auto start() -> Expected<void, std::string>
 {
@@ -35,9 +35,13 @@ auto start() -> Expected<void, std::string>
     if (!e_shader)
         return Unexpected(std::move(e_shader).error());
 
-    auto e_droneMesh = engine.loadModel("drone", RESOURCE_PATH"models/buster_drone.glb", true);
-    if (!e_droneMesh)
-        return Unexpected("Failed to load model: " + std::move(e_droneMesh).error());
+    // auto e_droneMesh = engine.loadModel("drone", RESOURCE_PATH"models/buster_drone.glb", true);
+    // if (!e_droneMesh)
+    //     return Unexpected("Failed to load model: " + std::move(e_droneMesh).error());
+
+    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
+    if (!e_ancientMesh)
+        return Unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
 
     {
         // Imgui singleton
@@ -54,19 +58,42 @@ auto start() -> Expected<void, std::string>
         engine.setCamera(camera);
     }
 
+    // {
+    //     // Drone 1
+    //     auto& object = engine.instantiate();
+    //     auto& animator = object.addComponent<Animator>(*e_droneMesh);
+    //     auto& meshRenderer = object.addComponent<MeshRenderer>(*e_droneMesh, *e_shader);
+    //     meshRenderer.setAnimator(animator);
+    //     animator.setAnimation(0);
+    //     constexpr auto windowData = ImguiWindowData{
+    //         .s_frame_x = WIDTH - 8 - 230, .s_frame_y = 8, .s_frame_width = 230, .s_frame_height = 125
+    //     };
+    //     auto& interface = object.addComponent<UserInterface>("Buster Drone", windowData);
+    //     interface.addBlock<CameraTargetInterfaceBlock>(1, *cameraController, 1);
+    //     interface.addBlock<DisplayInterfaceBlock>(10);
+    // }
+
     {
-        // Drone 1
+        // Ancient 1
         auto& object = engine.instantiate();
-        auto& animator = object.addComponent<Animator>(*e_droneMesh);
-        auto& meshRenderer = object.addComponent<MeshRenderer>(*e_droneMesh, *e_shader);
+        auto& animator = object.addComponent<Animator>(*e_ancientMesh);
+        auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
         meshRenderer.setAnimator(animator);
         animator.setAnimation(0);
         constexpr auto windowData = ImguiWindowData{
-            .s_frame_x = WIDTH - 8 - 230, .s_frame_y = 8, .s_frame_width = 230, .s_frame_height = 125
+            .s_frame_x = WIDTH - 8 - 230, .s_frame_y = 8, .s_frame_width = 230, .s_frame_height = 200
         };
-        auto& interface = object.addComponent<UserInterface>("Buster Drone", windowData);
+        auto& interface = object.addComponent<UserInterface>("Ancient", windowData);
         interface.addBlock<CameraTargetInterfaceBlock>(1, *cameraController, 1);
         interface.addBlock<DisplayInterfaceBlock>(10);
+        interface.addBlock<AnimationInterfaceBlock>(100);
+    }
+
+    {
+        // Ancient 2
+        auto& object = engine.instantiate();
+        object.transform().translation = {-2.5, 0, 0};
+        object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
     }
 
     engine.run();

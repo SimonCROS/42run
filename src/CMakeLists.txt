@@ -1,17 +1,13 @@
 add_executable(42run
         main.cpp
-        Expected.h
-        WindowContext.cpp
-        WindowContext.h
-        StringUnorderedMap.h
-        Camera.cpp
-        Camera.h
         tiny_gltf_impl.cpp
 
         Window/Window.cpp
         Window/Window.h
         Window/Controls.cpp
         Window/Controls.h
+        Window/WindowContext.cpp
+        Window/WindowContext.h
 
         OpenGL/VertexBuffer.h
         OpenGL/VertexBuffer.cpp
@@ -40,6 +36,8 @@ add_executable(42run
         Components/MeshRenderer.h
         Components/Animator.cpp
         Components/Animator.h
+        Components/Camera.cpp
+        Components/Camera.h
 
         Engine/Engine.cpp
         Engine/Engine.h
@@ -59,11 +57,13 @@ add_executable(42run
         Utility/EnumHelpers.h
         Utility/StridedIterator.h
         Utility/VectorMultiMap.h
+        Utility/Expected.h
+        Utility/StringUnorderedMap.h
 
         InterfaceBlocks/DisplayInterfaceBlock.cpp
         InterfaceBlocks/DisplayInterfaceBlock.h
-        InterfaceBlocks/GolemInterfaceBlock.cpp
-        InterfaceBlocks/GolemInterfaceBlock.h
+        InterfaceBlocks/AnimationInterfaceBlock.cpp
+        InterfaceBlocks/AnimationInterfaceBlock.h
         InterfaceBlocks/CameraTargetInterfaceBlock.cpp
         InterfaceBlocks/CameraTargetInterfaceBlock.h
 )

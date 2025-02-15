@@ -36,7 +36,7 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
             const int attributeLocation = VertexArray::getAttributeLocation(attribute);
             if (attributeLocation != -1)
             {
-                vertexArray.bindArrayBuffer(accessorRenderInfo.bufferId);
+                vertexArray.bindArrayBuffer(accessorRenderInfo.glBuffer);
                 glVertexAttribPointer(attributeLocation,
                                       accessorRenderInfo.componentCount,
                                       accessor.componentType,
@@ -87,7 +87,17 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
     }
 }
 
-auto MeshRenderer::renderNode(Engine& engine, const int nodeIndex, glm::mat4 transform) -> void
+auto MeshRenderer::renderNodeRecursive(Engine& engine, const int nodeIndex) -> void
+{
+    const tinygltf::Node& node = m_mesh.model().nodes[nodeIndex];
+
+    if (node.mesh > -1)
+        renderMesh(engine, node.mesh, m_nodes[nodeIndex].globalTransform);
+    for (const auto childIndex : node.children)
+        renderNodeRecursive(engine, childIndex);
+}
+
+auto MeshRenderer::calculateGlobalTransformsRecursive(const int nodeIndex, glm::mat4 transform) -> void
 {
     const tinygltf::Node& node = m_mesh.model().nodes[nodeIndex];
 
@@ -114,7 +124,8 @@ auto MeshRenderer::renderNode(Engine& engine, const int nodeIndex, glm::mat4 tra
         if (tr.rotation.has_value())
             transform *= glm::mat4_cast(*tr.rotation);
         else if (!node.rotation.empty())
-            transform *= glm::mat4_cast(glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]));
+            transform *= glm::mat4_cast(glm::quat(node.rotation[3], node.rotation[0], node.rotation[1],
+                                                  node.rotation[2]));
 
         if (tr.scale.has_value())
             transform = glm::scale(transform, *tr.scale);
@@ -122,19 +133,73 @@ auto MeshRenderer::renderNode(Engine& engine, const int nodeIndex, glm::mat4 tra
             transform = glm::scale(transform, glm::vec3(node.scale[0], node.scale[1], node.scale[2]));
     }
 
-    transform = glm::scale(transform, m_scaleMultiplier[nodeIndex]);
+    m_nodes[nodeIndex].globalTransform = transform;
 
-    if (node.mesh > -1)
-        renderMesh(engine, node.mesh, transform);
     for (const auto childIndex : node.children)
-        renderNode(engine, childIndex, transform);
+        calculateGlobalTransformsRecursive(childIndex, transform);
+}
+
+auto MeshRenderer::calculateJointMatrices(const int skinIndex, const glm::mat4& transform) -> void
+{
+    const auto& gltfSkin = m_mesh.model().skins[skinIndex];
+    const auto& gltfJoints = gltfSkin.joints;
+    auto& jointMatrices = m_skins[skinIndex].jointMatrices;
+
+    glm::mat4 globalInverseTransform;
+    if (gltfSkin.skeleton > -1)
+        globalInverseTransform = glm::inverse(m_nodes[gltfSkin.skeleton].globalTransform);
+    else
+        globalInverseTransform = transform;
+
+    if (gltfSkin.inverseBindMatrices != -1)
+    {
+        for (int i = 0; i < gltfJoints.size(); ++i)
+            jointMatrices[i] = globalInverseTransform * m_nodes[gltfJoints[i]].globalTransform * m_mesh.renderInfo().
+                skins[skinIndex].inverseBindMatrices[i];
+    }
+    else
+    {
+        for (int i = 0; i < gltfJoints.size(); ++i)
+            jointMatrices[i] = globalInverseTransform * m_nodes[gltfJoints[i]].globalTransform;
+    }
 }
 
 void MeshRenderer::onRender(Engine& engine)
 {
     if (!displayed())
         return;
-    setPolygoneMode(engine, m_polygonMode);
+
+    if (engine.polygonMode() != m_polygonMode)
+        engine.setPolygoneMode(m_polygonMode);
+
+    glm::mat4 globalTransform = object().transform().trs();
+
     for (const auto nodeIndex : m_mesh.model().scenes[m_mesh.model().defaultScene].nodes)
-        renderNode(engine, nodeIndex, object().transform().trs());
+        calculateGlobalTransformsRecursive(nodeIndex, globalTransform);
+
+    for (int skinIndex = 0; skinIndex < m_mesh.model().skins.size(); ++skinIndex)
+    {
+        calculateJointMatrices(skinIndex, globalTransform);
+
+        const auto jointsUBO = m_mesh.renderInfo().skins[skinIndex].glBuffer;
+        const GLuint uniformBlockBinding = skinIndex;
+        glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlockBinding, jointsUBO);
+
+        for (auto& program : m_program.get().programs)
+        {
+            if (program.first & ShaderHasSkin)
+            {
+                program.second->setUniformBlock("JointMatrices", uniformBlockBinding);
+            }
+        }
+
+        glBindBuffer(GL_UNIFORM_BUFFER, jointsUBO);
+        glBufferSubData(
+            GL_UNIFORM_BUFFER, 0, static_cast<GLsizeiptr>(m_skins[skinIndex].jointMatrices.size() * sizeof(glm::mat4)),
+            m_skins[skinIndex].jointMatrices.data());
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    }
+
+    for (const auto nodeIndex : m_mesh.model().scenes[m_mesh.model().defaultScene].nodes)
+        renderNodeRecursive(engine, nodeIndex);
 }

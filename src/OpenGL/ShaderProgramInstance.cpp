@@ -4,6 +4,8 @@
 #include "glad/gl.h"
 #include "ShaderProgramInstance.h"
 
+#include <iostream>
+
 #include "Shader.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -107,6 +109,15 @@ auto ShaderProgramInstance::setMat4(const std::string_view& name, const glm::mat
     if (storeUniformValue(name, value, m_mat4s, &nullTerminated))
     {
         glUniformMatrix4fv(glGetUniformLocation(m_id, nullTerminated->c_str()), 1, GL_FALSE, glm::value_ptr(value));
+    }
+}
+
+void ShaderProgramInstance::setUniformBlock(const std::string_view& name, const GLuint uniformBlockBinding)
+{
+    const std::string* nullTerminated;
+    if (storeUniformValue(name, uniformBlockBinding, m_uniformBlocks, &nullTerminated))
+    {
+        glUniformBlockBinding(m_id, glGetUniformBlockIndex(m_id, nullTerminated->c_str()), uniformBlockBinding);
     }
 }
 

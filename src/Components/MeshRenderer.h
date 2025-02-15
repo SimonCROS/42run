@@ -12,22 +12,39 @@
 class MeshRenderer final : public EngineComponent
 {
 private:
+    struct Node
+    {
+        glm::mat4 globalTransform = glm::identity<glm::mat4>();
+    };
+
+    struct Skin
+    {
+        std::vector<glm::mat4> jointMatrices;
+    };
+
     const Mesh& m_mesh;
     bool m_displayed{true};
     GLenum m_polygonMode{GL_FILL};
     std::optional<std::reference_wrapper<const Animator>> m_animator;
-    std::vector<glm::vec3> m_scaleMultiplier;
-
     std::reference_wrapper<ShaderProgram>& m_program; // TODO Change
 
+    std::vector<Node> m_nodes;
+    std::vector<Skin> m_skins;
+
     auto renderMesh(Engine& engine, int meshIndex, const glm::mat4& transform) -> void;
-    auto renderNode(Engine& engine, int nodeIndex, glm::mat4 transform) -> void;
+    auto renderNodeRecursive(Engine& engine, int nodeIndex) -> void;
+    auto calculateGlobalTransformsRecursive(int nodeIndex, glm::mat4 transform) -> void;
+    auto calculateJointMatrices(int skin, const glm::mat4& transform) -> void;
 
 public:
     explicit MeshRenderer(Object& object, const Mesh& model, std::reference_wrapper<ShaderProgram>& program) :
         EngineComponent(object), m_mesh(model), m_program(program)
     {
-        m_scaleMultiplier.resize(m_mesh.model().nodes.size(), glm::vec3(1));
+        m_nodes.resize(m_mesh.model().nodes.size());
+        m_skins.resize(m_mesh.model().skins.size());
+
+        for (int i = 0; i < m_skins.size(); ++i)
+            m_skins[i].jointMatrices.resize(m_mesh.model().skins[i].joints.size());
 
         // maybe make Create static function
         auto e_prepareResult = m_mesh.prepareShaderPrograms(program);
@@ -39,16 +56,6 @@ public:
 
     auto setAnimator(const Animator& animator) -> void { m_animator = animator; }
     auto unsetAnimator() -> void { m_animator = std::nullopt; }
-
-    auto setScaleMultiplier(const size_t nodeIndex, const glm::vec3 scale) -> void
-    {
-        m_scaleMultiplier[nodeIndex] = scale;
-    }
-
-    [[nodiscard]] auto getScaleMultiplier(const size_t nodeIndex) const -> glm::vec3
-    {
-        return m_scaleMultiplier[nodeIndex];
-    }
 
     [[nodiscard]] auto displayed() const -> bool
     {
@@ -62,12 +69,7 @@ public:
 
     [[nodiscard]] auto polygonMode() const noexcept -> GLenum { return m_polygonMode; }
 
-    auto setPolygoneMode(Engine &engine, const GLenum polygonMode) -> void
-    {
-        m_polygonMode = polygonMode;
-        if (engine.polygonMode() != m_polygonMode)
-            engine.setPolygoneMode(polygonMode);
-    }
+    auto setPolygoneMode(const GLenum polygonMode) -> void { m_polygonMode = polygonMode; }
 
     auto onRender(Engine& engine) -> void override;
 };

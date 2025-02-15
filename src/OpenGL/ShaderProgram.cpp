@@ -90,6 +90,8 @@ auto ShaderProgram::getCodeWithFlags(const std::string_view& code, const ShaderF
         defines += "#define HAS_VEC3_COLORS\n";
     if (flags & ShaderHasVec4Colors)
         defines += "#define HAS_VEC4_COLORS\n";
+    if (flags & ShaderHasSkin)
+        defines += "#define HAS_SKIN\n";
 
     auto copy = std::string(code);
     if (defines.empty())

@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <glad/gl.h>
 
-#include "StringUnorderedMap.h"
+#include "../Utility/StringUnorderedMap.h"
 #include "Utility/EnumHelpers.h"
 
 enum VertexArrayFlags : unsigned char
@@ -17,6 +17,7 @@ enum VertexArrayFlags : unsigned char
     VertexArrayHasNormal = 1 << 1,
     VertexArrayHasColor0 = 1 << 2,
     VertexArrayHasTexCoord0 = 1 << 3,
+    VertexArrayHasSkin = 1 << 4,
 };
 
 MAKE_FLAG_ENUM(VertexArrayFlags)
@@ -34,6 +35,8 @@ private:
         {"NORMAL", 1},
         {"COLOR_0", 2},
         {"TEXCOORD_0", 3},
+        {"JOINTS_0", 5},
+        {"WEIGHTS_0", 6},
     };
 
 public:

@@ -1,7 +1,7 @@
 #include <string>
 #include "glad/gl.h"
 #include "Shader.h"
-#include "Expected.h"
+#include "../Utility/Expected.h"
 
 auto Shader::Create(const GLenum type, const std::string_view& code) -> Expected<Shader, std::string>
 {

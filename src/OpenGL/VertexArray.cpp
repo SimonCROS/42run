@@ -19,6 +19,11 @@ auto VertexArray::Create(VertexArrayFlags flags) -> VertexArray
         glEnableVertexAttribArray(2);
     if (flags & VertexArrayHasTexCoord0)
         glEnableVertexAttribArray(3);
+    if (flags & VertexArrayHasSkin)
+    {
+        glEnableVertexAttribArray(5);
+        glEnableVertexAttribArray(6);
+    }
 
     return {flags, id};
 }

@@ -1,5 +1,7 @@
 #version 410
 
+const int MAX_JOINTS = 128;
+
 layout (location = 0) in vec3 a_position;
 #ifdef HAS_NORMALS
 layout (location = 1) in vec3 a_normal;
@@ -12,6 +14,10 @@ layout (location = 2) in vec4 a_color0;
 layout (location = 3) in vec2 a_texCoord0;
 #ifdef HAS_TANGENTS
 layout (location = 4) in vec3 a_tangent;
+#endif
+#ifdef HAS_SKIN
+layout (location = 5) in vec4 a_joint;
+layout (location = 6) in vec4 a_weight;
 #endif
 
 layout (location = 0) out vec3 v_FragPos;
@@ -28,10 +34,30 @@ uniform mat4 u_projectionView;
 uniform mat4 u_transform;
 uniform vec3 u_viewPos;
 uniform vec3 u_lightPos;
+#ifdef HAS_SKIN
+layout(std140) uniform JointMatrices {
+    mat4 u_jointMatrix[MAX_JOINTS];
+};
+#endif
 
 void main()
 {
-    gl_Position = u_projectionView * u_transform * vec4(a_position, 1.0);
+#ifdef HAS_SKIN
+    mat4 skinMatrix =
+        a_weight.x * u_jointMatrix[int(a_joint.x)] +
+        a_weight.y * u_jointMatrix[int(a_joint.y)] +
+        a_weight.z * u_jointMatrix[int(a_joint.z)] +
+        a_weight.w * u_jointMatrix[int(a_joint.w)];
+#endif
+
+    gl_Position =
+        u_projectionView *
+        u_transform *
+#ifdef HAS_SKIN
+        skinMatrix *
+#endif
+        vec4(a_position, 1.0);
+
     v_FragPos = vec3(u_transform * vec4(a_position, 1.0));
 
 #ifdef HAS_NORMALS

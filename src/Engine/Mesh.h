@@ -15,10 +15,14 @@
 
 struct AccessorRenderInfo
 {
-    GLuint bufferId{0};
+    GLuint glBuffer{0};
     GLint componentSize{0};
     GLint componentCount{0};
     GLsizei byteStride{0};
+    int bufferView{};
+    size_t count;
+    size_t byteOffsetFromBuffer;
+    size_t byteOffsetFromBufferView;
 };
 
 struct PrimitiveRenderInfo
@@ -32,10 +36,17 @@ struct MeshRenderInfo
     std::unique_ptr<PrimitiveRenderInfo[]> primitives{nullptr};
 };
 
+struct SkinRenderInfo
+{
+    GLuint glBuffer{0};
+    std::vector<glm::mat4> inverseBindMatrices{};
+};
+
 struct ModelRenderInfo
 {
     std::unique_ptr<AccessorRenderInfo[]> accessors{nullptr};
     std::unique_ptr<MeshRenderInfo[]> meshes{nullptr};
+    std::unique_ptr<SkinRenderInfo[]> skins{nullptr};
 };
 
 class Mesh

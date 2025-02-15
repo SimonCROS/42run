@@ -6,11 +6,11 @@
 #include <string>
 #include <string_view>
 
-#include "Expected.h"
+#include "../Utility/Expected.h"
 #include "ShaderProgramInstance.h"
 #include "Utility/EnumHelpers.h"
 
-enum ShaderFlags : unsigned char
+enum ShaderFlags : unsigned short
 {
     ShaderHasNone = 0,
     ShaderHasNormals = 1 << 0,
@@ -21,6 +21,7 @@ enum ShaderFlags : unsigned char
     ShaderHasEmissiveMap = 1 << 5,
     ShaderHasVec3Colors = 1 << 6,
     ShaderHasVec4Colors = 1 << 7,
+    ShaderHasSkin = 1 << 8,
 };
 
 MAKE_FLAG_ENUM(ShaderFlags)
