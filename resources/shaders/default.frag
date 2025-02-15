@@ -8,6 +8,11 @@ layout (location = 1) in mat3 v_TBN;
 layout (location = 1) in vec3 v_Normal;
 #endif
 #endif
+#if defined HAS_VEC3_COLORS
+layout (location = 2) in vec3 v_color0;
+#elif defined HAS_VEC4_COLORS
+layout (location = 2) in vec4 v_color0;
+#endif
 layout (location = 4) in vec2 v_TexCoord;
 
 layout (location = 0) out vec4 FragColor;
@@ -118,10 +123,14 @@ vec3 CalcPointLight(PointLight light, float perceptualRoughness, float metallic,
 
 void main() {
     // The albedo may be defined from a base texture or a flat color
+    vec4 baseColor = vec4(1, 1, 1, 1);
 #ifdef HAS_BASECOLORMAP
-    vec4 baseColor = texture(u_baseColorTexture, v_TexCoord) * u_baseColorFactor;
-#else
-    vec4 baseColor = color;
+    baseColor *= texture(u_baseColorTexture, v_TexCoord) * u_baseColorFactor;
+#endif
+#if defined HAS_VEC3_COLORS
+    baseColor *= vec4(v_color0, 1.0f);
+#elif defined HAS_VEC4_COLORS
+    baseColor *= v_color0;
 #endif
 
     if(baseColor.a < 0.1)

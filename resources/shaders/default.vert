@@ -28,6 +28,11 @@ layout (location = 1) out mat3 v_TBN;
 layout (location = 1) out vec3 v_Normal;
 #endif
 #endif
+#if defined HAS_VEC3_COLORS
+layout (location = 2) out vec3 v_color0;
+#elif defined HAS_VEC4_COLORS
+layout (location = 2) out vec4 v_color0;
+#endif
 layout (location = 4) out vec2 v_TexCoord;
 
 uniform mat4 u_projectionView;

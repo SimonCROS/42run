@@ -35,14 +35,6 @@ auto start() -> Expected<void, std::string>
     if (!e_shader)
         return Unexpected(std::move(e_shader).error());
 
-    // auto e_droneMesh = engine.loadModel("drone", RESOURCE_PATH"models/buster_drone.glb", true);
-    // if (!e_droneMesh)
-    //     return Unexpected("Failed to load model: " + std::move(e_droneMesh).error());
-
-    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
-    if (!e_ancientMesh)
-        return Unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
-
     {
         // Imgui singleton
         auto& object = engine.instantiate();
@@ -58,20 +50,42 @@ auto start() -> Expected<void, std::string>
         engine.setCamera(camera);
     }
 
-    // {
-    //     // Drone 1
-    //     auto& object = engine.instantiate();
-    //     auto& animator = object.addComponent<Animator>(*e_droneMesh);
-    //     auto& meshRenderer = object.addComponent<MeshRenderer>(*e_droneMesh, *e_shader);
-    //     meshRenderer.setAnimator(animator);
-    //     animator.setAnimation(0);
-    //     constexpr auto windowData = ImguiWindowData{
-    //         .s_frame_x = WIDTH - 8 - 230, .s_frame_y = 8, .s_frame_width = 230, .s_frame_height = 125
-    //     };
-    //     auto& interface = object.addComponent<UserInterface>("Buster Drone", windowData);
-    //     interface.addBlock<CameraTargetInterfaceBlock>(1, *cameraController, 1);
-    //     interface.addBlock<DisplayInterfaceBlock>(10);
-    // }
+    auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
+    if (!e_floorMesh)
+        return Unexpected("Failed to load model: " + std::move(e_floorMesh).error());
+
+    auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
+    if (!e_deskMesh)
+        return Unexpected("Failed to load model: " + std::move(e_deskMesh).error());
+
+    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
+    if (!e_ancientMesh)
+        return Unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
+
+    {
+        // Floor
+        auto& object = engine.instantiate();
+        object.transform().translation = {0, 0, 0};
+        object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
+    }
+
+    {
+        // Desk
+        auto& object = engine.instantiate();
+        object.transform().scale *= 0.005f;
+        object.transform().translation = {-2, 0, -5};
+        object.transform().rotation = glm::quat({0, glm::radians(-90.0f), 0});
+        object.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+    }
+
+    {
+        // Desk
+        auto& object = engine.instantiate();
+        object.transform().scale *= 0.005f;
+        object.transform().translation = {2, 0, -2};
+        object.transform().rotation = glm::quat({0, glm::radians(-90.0f), 0});
+        object.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+    }
 
     {
         // Ancient 1
@@ -87,13 +101,6 @@ auto start() -> Expected<void, std::string>
         interface.addBlock<CameraTargetInterfaceBlock>(1, *cameraController, 1);
         interface.addBlock<DisplayInterfaceBlock>(10);
         interface.addBlock<AnimationInterfaceBlock>(100);
-    }
-
-    {
-        // Ancient 2
-        auto& object = engine.instantiate();
-        object.transform().translation = {-2.5, 0, 0};
-        object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
     }
 
     engine.run();
