@@ -185,7 +185,16 @@ auto Mesh::Create(tinygltf::Model&& model) -> Mesh
                     vertexArrayFlags |= VertexArrayHasPosition;
 
                 if (attributeName == "NORMAL")
-                    vertexArrayFlags |= VertexArrayHasNormal;
+                {
+                    vertexArrayFlags |= VertexArrayHasNormals;
+                    shaderFlags |= ShaderHasNormals;
+                }
+
+                if (attributeName == "TANGENT")
+                {
+                    vertexArrayFlags |= VertexArrayHasTangents;
+                    shaderFlags |= ShaderHasTangents;
+                }
 
                 if (attributeName == "COLOR_0")
                 {
@@ -213,6 +222,21 @@ auto Mesh::Create(tinygltf::Model&& model) -> Mesh
                 {
                     loadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures, GL_SRGB_ALPHA);
                     shaderFlags |= ShaderHasBaseColorMap;
+                }
+                if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
+                {
+                    loadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures, GL_RGB);
+                    shaderFlags |= ShaderHasNormalMap;
+                }
+                if (material.normalTexture.index >= 0)
+                {
+                    loadTexture(model, material.normalTexture.index, textures, GL_RGB);
+                    shaderFlags |= ShaderHasNormalMap;
+                }
+                if (material.emissiveTexture.index >= 0)
+                {
+                    loadTexture(model, material.emissiveTexture.index, textures, GL_SRGB);
+                    shaderFlags |= ShaderHasEmissiveMap;
                 }
             }
 

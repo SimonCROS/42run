@@ -58,16 +58,31 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
             {
                 engine.bindTexture(0, m_mesh.texture(material.pbrMetallicRoughness.baseColorTexture.index));
                 program.setInt("u_baseColorTexture", 0);
-                program.setVec4("u_baseColorFactor",
-                                glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
+            }
+
+            if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
+            {
+                engine.bindTexture(1, m_mesh.texture(material.pbrMetallicRoughness.metallicRoughnessTexture.index));
+                program.setInt("u_metallicRoughnessMap", 1);
             }
 
             if (material.normalTexture.index >= 0)
             {
-                engine.bindTexture(1, m_mesh.texture(material.normalTexture.index));
-                program.setInt("u_normalMap", 1);
-                program.setFloat("u_normalScale", static_cast<float>(material.normalTexture.scale));
+                engine.bindTexture(2, m_mesh.texture(material.normalTexture.index));
+                program.setInt("u_normalMap", 2);
             }
+
+            if (material.emissiveTexture.index >= 0)
+            {
+                engine.bindTexture(3, m_mesh.texture(material.normalTexture.index));
+                program.setInt("u_emissiveMap", 3);
+            }
+
+            program.setVec4("u_baseColorFactor", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
+            program.setFloat("u_metallicFactor", static_cast<float>(material.pbrMetallicRoughness.metallicFactor));
+            program.setFloat("u_roughnessFactor", static_cast<float>(material.pbrMetallicRoughness.roughnessFactor));
+            program.setFloat("u_normalScale", static_cast<float>(material.normalTexture.scale));
+            program.setVec3("u_emissiveFactor", glm::make_vec4(material.emissiveFactor.data()));
         }
         else
         {

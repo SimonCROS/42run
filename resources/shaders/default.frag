@@ -19,21 +19,21 @@ layout (location = 0) out vec4 FragColor;
 
 #ifdef HAS_BASECOLORMAP
 uniform sampler2D u_baseColorTexture;
-uniform vec4 u_baseColorFactor;
 #endif
 #ifdef HAS_METALROUGHNESSMAP
-uniform sampler2D metallicRoughnessMap;
+uniform sampler2D u_metallicRoughnessMap;
 #endif
 #ifdef HAS_NORMALMAP
-uniform sampler2D normalMap;
-uniform float normalScale;
+uniform sampler2D u_normalMap;
 #endif
 #ifdef HAS_EMISSIVEMAP
-uniform sampler2D emissiveMap;
+uniform sampler2D u_emissiveMap;
 #endif
-uniform float metallicFactor;
-uniform float roughnessFactor;
-uniform vec3 emissiveFactor;
+uniform vec4 u_baseColorFactor;
+uniform float u_metallicFactor;
+uniform float u_roughnessFactor;
+uniform float u_normalScale;
+uniform vec3 u_emissiveFactor;
 
 uniform vec3 viewPos;
 uniform vec3 lightPos;
@@ -82,9 +82,9 @@ vec3 getNormal()
 #endif
 
 #ifdef HAS_NORMALMAP
-    vec3 n = texture(normalMap, v_TexCoord).rgb;
+    vec3 n = texture(u_normalMap, v_TexCoord).rgb;
     n = normalize(n * 2.0 - 1.0); // make it [-1, 1]
-    n *= vec3(normalScale, normalScale, 1.0);
+    n *= vec3(u_normalScale, u_normalScale, 1.0);
     n *= tbn;
 #else
     // The tbn matrix is linearly interpolated, so we need to re-normalize
@@ -136,15 +136,12 @@ void main() {
     if(baseColor.a < 0.1)
         discard;
 
-    // Metallic and Roughness material properties are packed together
-    // In glTF, these factors can be specified by fixed scalar values
-    // or from a metallic-roughness map
-    float perceptualRoughness = roughnessFactor;
-    float metallic = metallicFactor;
+    float perceptualRoughness = u_roughnessFactor;
+    float metallic = u_metallicFactor;
 #ifdef HAS_METALROUGHNESSMAP
     // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
     // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-    vec4 mrSample = texture(metallicRoughnessMap, v_TexCoord); // TODO multiple texcoord possible
+    vec4 mrSample = texture(u_metallicRoughnessMap, v_TexCoord); // TODO multiple texcoord possible
     perceptualRoughness = mrSample.g * perceptualRoughness;
     metallic = mrSample.b * metallic;
 #endif
@@ -169,11 +166,11 @@ void main() {
 
     // Emissive
 #ifdef HAS_EMISSIVEMAP
-    vec3 emissive = texture(emissiveMap, v_TexCoord).rgb;
+    vec3 emissive = texture(u_emissiveMap, v_TexCoord).rgb;
 #else
     vec3 emissive = baseColor.rgb;
 #endif
-    emissive *= emissiveFactor;
+    emissive *= u_emissiveFactor;
     result += emissive;
 
     result = pow(result, vec3(c_GammaInverse));

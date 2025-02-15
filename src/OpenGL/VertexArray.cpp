@@ -13,12 +13,14 @@ auto VertexArray::Create(VertexArrayFlags flags) -> VertexArray
 
     if (flags & VertexArrayHasPosition)
         glEnableVertexAttribArray(0);
-    if (flags & VertexArrayHasNormal)
+    if (flags & VertexArrayHasNormals)
         glEnableVertexAttribArray(1);
     if (flags & VertexArrayHasColor0)
         glEnableVertexAttribArray(2);
     if (flags & VertexArrayHasTexCoord0)
         glEnableVertexAttribArray(3);
+    if (flags & VertexArrayHasTangents)
+        glEnableVertexAttribArray(4);
     if (flags & VertexArrayHasSkin)
     {
         glEnableVertexAttribArray(5);

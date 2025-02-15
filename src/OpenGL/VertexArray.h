@@ -14,9 +14,10 @@ enum VertexArrayFlags : unsigned char
 {
     VertexArrayHasNone = 0,
     VertexArrayHasPosition = 1 << 0,
-    VertexArrayHasNormal = 1 << 1,
+    VertexArrayHasNormals = 1 << 1,
     VertexArrayHasColor0 = 1 << 2,
     VertexArrayHasTexCoord0 = 1 << 3,
+    VertexArrayHasTangents = 1 << 4,
     VertexArrayHasSkin = 1 << 4,
 };
 
@@ -35,6 +36,7 @@ private:
         {"NORMAL", 1},
         {"COLOR_0", 2},
         {"TEXCOORD_0", 3},
+        {"TANGENT", 4},
         {"JOINTS_0", 5},
         {"WEIGHTS_0", 6},
     };
