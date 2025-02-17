@@ -1,8 +1,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "GLFW/glfw3.h"
-
 #include "42runConfig.h"
 #include "Engine/Engine.h"
 #include "Window/Window.h"
