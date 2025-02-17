@@ -1,5 +1,7 @@
 #version 410
 
+#define PI 3.1415926538
+
 layout (location = 0) in vec3 v_FragPos;
 #ifdef HAS_NORMALS
 #ifdef HAS_TANGENTS
@@ -35,15 +37,12 @@ uniform float u_roughnessFactor;
 uniform float u_normalScale;
 uniform vec3 u_emissiveFactor;
 
-uniform vec3 viewPos;
-uniform vec3 lightPos;
+uniform vec3 u_cameraPosition;
+uniform vec3 u_sunDirection;
 
-struct PointLight {
-    vec3 position;
+struct DirectionalLight {
+    vec3 direction;
     vec3 color;
-    float constant;
-    float linear;
-    float quadratic;
 };
 
 const float c_MinRoughness = 0.04;
@@ -97,31 +96,86 @@ vec3 getNormal()
     return n;
 }
 
-vec3 CalcPointLight(PointLight light, float perceptualRoughness, float metallic, vec3 normal, vec3 fragPos, vec3 viewDir)
+float distributionGGX(vec3 N, vec3 H, float roughness)
 {
-    // diffuse
-    vec3 lightDir = normalize(light.position - fragPos);
-    float diff = max(dot(normal, lightDir), 0.0);
+    float a      = roughness*roughness;
+    float a2     = a*a;
+    float NdotH  = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH*NdotH;
 
-    // specular
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), c_Shininess);
+    float num   = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
 
-    // Apply colors and effects
-    vec3 diffuse = light.color * (diff * perceptualRoughness);
-    vec3 specular = light.color * (spec * metallic);
-
-    // Light attenuation
-    float dist = length(lightPos - v_FragPos);
-    float attenuation = light.constant / (1.0 + (light.linear * dist) + (light.quadratic * dist * dist));
-
-    diffuse *= attenuation;
-    specular *= attenuation;
-
-    return diffuse + specular;
+    return num / denom;
 }
 
-void main() {
+float geometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+
+    float num   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return num / denom;
+}
+
+float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2  = geometrySchlickGGX(NdotV, roughness);
+    float ggx1  = geometrySchlickGGX(NdotL, roughness);
+
+    return ggx1 * ggx2;
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 calcPBRDirectionalLight(vec3 N, vec3 V, vec3 L, vec3 albedo, float metallic, float roughness, vec3 lightColor)
+{
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
+
+    // Light Direction and Radiance
+    vec3 H = normalize(V + L);
+    vec3 radiance = lightColor;            // No attenuation for directional light
+
+    // Cook-Torrance BRDF
+    float NDF = distributionGGX(N, H, roughness);
+    float G   = geometrySmith(N, V, L, roughness);
+    vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+
+    vec3 numerator    = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // Avoid division by zero
+    vec3 specular = numerator / denominator;
+
+    // kS is equal to Fresnel
+    vec3 kS = F;
+    // for energy conservation, the diffuse and specular light can't
+    // be above 1.0 (unless the surface emits light); to preserve this
+    // relationship the diffuse component (kD) should equal 1.0 - kS.
+    vec3 kD = vec3(1.0) - kS;
+    // multiply kD by the inverse metalness such that only non-metals
+    // have diffuse lighting, or a linear blend if partly metal (pure metals
+    // have no diffuse light).
+    kD *= 1.0 - metallic;
+
+    // scale light by NdotL
+    float NdotL = max(dot(N, L), 0.0);
+
+    // add to outgoing radiance Lo
+    return (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+}
+
+void main()
+{
     // The albedo may be defined from a base texture or a flat color
     vec4 baseColor = vec4(1, 1, 1, 1);
 #ifdef HAS_BASECOLORMAP
@@ -136,32 +190,30 @@ void main() {
     if(baseColor.a < 0.1)
         discard;
 
-    float perceptualRoughness = u_roughnessFactor;
+    float roughness = u_roughnessFactor;
     float metallic = u_metallicFactor;
 #ifdef HAS_METALROUGHNESSMAP
     // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
     // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
     vec4 mrSample = texture(u_metallicRoughnessMap, v_TexCoord); // TODO multiple texcoord possible
-    perceptualRoughness = mrSample.g * perceptualRoughness;
+    roughness = mrSample.g * roughness;
     metallic = mrSample.b * metallic;
 #endif
-    perceptualRoughness = clamp(perceptualRoughness, c_MinRoughness, 1.0);
+    roughness = clamp(roughness, c_MinRoughness, 1.0);
     metallic = clamp(metallic, c_MinMetallic, 1.0);
 
-    vec3 ambient = vec3(0.1);
+    vec3 ambient = vec3(0.2);
     vec3 normal = getNormal();
-    vec3 viewDir = normalize(viewPos - v_FragPos);
+    vec3 viewDir = normalize(u_cameraPosition - v_FragPos);
 
     vec3 result = ambient * baseColor.rgb;
     // --- IN LOOP
-    vec3 light = CalcPointLight(PointLight(lightPos, vec3(1), 1, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-    result += light * baseColor.rgb;
-     light = CalcPointLight(PointLight(vec3(40, 42, 10), vec3(1), 1, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-     result += light * baseColor.rgb;
-     light = CalcPointLight(PointLight(vec3(10, 23, -5), vec3(1), 1, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-     result += light * baseColor.rgb;
-     light = CalcPointLight(PointLight(vec3(-10, 12, -18), vec3(1), 1, 0, 0), perceptualRoughness, metallic, normal, v_FragPos, viewDir);
-     result += light * baseColor.rgb;
+    DirectionalLight sunLight;
+    sunLight.direction = vec3(-7, -0.5, -8);
+    sunLight.color = vec3(10.0, 9.8, 9.0);
+
+    vec3 lightContribution = calcPBRDirectionalLight(normal, viewDir, normalize(-sunLight.direction), baseColor.rgb, metallic, roughness, sunLight.color);
+    result += lightContribution;
     // --- NOT IN LOOP
 
     // Emissive
@@ -175,5 +227,4 @@ void main() {
 
     result = pow(result, vec3(c_GammaInverse));
     FragColor = vec4(result, baseColor.a);
-    FragColor = vec4(normal, 1);
 }
