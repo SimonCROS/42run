@@ -53,11 +53,7 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
             const auto& material = m_mesh.model().materials[primitive.material];
 
             engine.setDoubleSided(material.doubleSided);
-
-            if (material.alphaMode == "BLEND")
-                glEnable(GL_BLEND);
-            else
-                glDisable(GL_BLEND);
+            engine.setBlendEnabled(material.alphaMode == "BLEND");
 
             if (material.pbrMetallicRoughness.baseColorTexture.index >= 0)
             {

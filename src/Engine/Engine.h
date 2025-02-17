@@ -47,6 +47,7 @@ private:
     std::unordered_map<VertexArrayFlags, VertexArray> m_vertexArrays;
 
     bool m_doubleSided{false};
+    bool m_blendEnabled{false};
     GLenum m_polygonMode{GL_FILL};
     GLuint m_currentShaderProgram{0};
     GLuint m_currentTextures[MaxTextures]{};
@@ -83,6 +84,18 @@ public:
                 glDisable(GL_CULL_FACE);
             else
                 glEnable(GL_CULL_FACE);
+        }
+    }
+
+    auto setBlendEnabled(const bool value) -> void
+    {
+        if (m_blendEnabled != value)
+        {
+            m_blendEnabled = value;
+            if (value)
+                glEnable(GL_BLEND);
+            else
+                glDisable(GL_BLEND);
         }
     }
 

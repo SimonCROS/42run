@@ -53,6 +53,11 @@ auto Engine::run() -> void
         glDisable(GL_CULL_FACE);
     else
         glEnable(GL_CULL_FACE);
+    if (m_blendEnabled)
+        glEnable(GL_BLEND);
+    else
+        glDisable(GL_BLEND);
+
     glPolygonMode(GL_FRONT_AND_BACK, m_polygonMode);
 
     glClearColor(0.4705882353f, 0.6549019608f, 1.0f, 1.0f);
