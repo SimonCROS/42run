@@ -132,7 +132,7 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
     if (!warn.empty())
         std::cout << "[WARN] " << warn << std::endl;
 
-    auto model = Mesh::Create(std::move(rawModel));
+    auto model = Mesh::Create(*this, std::move(rawModel));
 
     const auto& modelRenderInfo = model.renderInfo();
     for (size_t i = 0; i < model.model().meshes.size(); i++)

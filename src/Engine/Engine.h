@@ -49,9 +49,11 @@ private:
     bool m_doubleSided{false};
     GLenum m_polygonMode{GL_FILL};
     GLuint m_currentShaderProgram{0};
-    GLuint m_currentVertexArray{0};
-    GLenum m_currentBoundTextureTarget{0};
     GLuint m_currentTextures[MaxTextures]{};
+    GLenum m_currentBoundTextureTarget{0};
+    GLuint m_currentBoundVertexArray{0};
+    GLuint m_currentBoundArrayBuffer{0};
+    GLuint m_currentBoundArrayElementBuffer{0};
 
     const Camera* m_camera{nullptr};
 
@@ -104,10 +106,28 @@ public:
 
     auto bindVertexArray(const VertexArray& vertexArray) -> void
     {
-        if (m_currentVertexArray != vertexArray.id())
+        if (m_currentBoundVertexArray != vertexArray.id())
         {
-            m_currentVertexArray = vertexArray.id();
+            m_currentBoundVertexArray = vertexArray.id();
             vertexArray.bind();
+        }
+    }
+
+    auto bindBuffer(const GLenum target, const GLuint id) -> void
+    {
+        if (target == GL_ARRAY_BUFFER && m_currentBoundArrayBuffer != id)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, id);
+            m_currentBoundArrayBuffer = id;
+        }
+        else if (target == GL_ELEMENT_ARRAY_BUFFER && m_currentBoundArrayElementBuffer != id)
+        {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
+            m_currentBoundArrayElementBuffer = id;
+        }
+        else
+        {
+            glBindBuffer(target, id);
         }
     }
 

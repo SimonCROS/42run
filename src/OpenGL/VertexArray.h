@@ -28,8 +28,6 @@ class VertexArray
 private:
     VertexArrayFlags m_flags{VertexArrayHasNone};
     GLuint m_id{0};
-    GLuint m_currentlyBoundArrayBuffer{0};
-    GLuint m_currentlyBoundArrayElementBuffer{0};
 
     static inline const StringUnorderedMap<int> attributeLocations{
         {"POSITION", 0},
@@ -73,24 +71,6 @@ public:
     auto bind() const -> void
     {
         glBindVertexArray(m_id);
-    }
-
-    auto bindArrayBuffer(const GLuint id) -> void
-    {
-        if (m_currentlyBoundArrayBuffer != id)
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, id);
-            m_currentlyBoundArrayBuffer = id;
-        }
-    }
-
-    auto bindElementArrayBuffer(const GLuint id) -> void
-    {
-        if (m_currentlyBoundArrayElementBuffer != id)
-        {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-            m_currentlyBoundArrayElementBuffer = id;
-        }
     }
 
     [[nodiscard]] auto id() const -> GLuint { return m_id; }

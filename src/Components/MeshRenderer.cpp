@@ -36,7 +36,7 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
             const int attributeLocation = VertexArray::getAttributeLocation(attribute);
             if (attributeLocation != -1)
             {
-                vertexArray.bindArrayBuffer(accessorRenderInfo.glBuffer);
+                engine.bindBuffer(GL_ARRAY_BUFFER, accessorRenderInfo.glBuffer);
                 glVertexAttribPointer(attributeLocation,
                                       accessorRenderInfo.componentCount,
                                       accessor.componentType,
@@ -91,13 +91,13 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
 
         assert(primitive.indices >= 0); // TODO handle non indexed primitives
 
-        const tinygltf::Accessor& indexAccessor = m_mesh.model().accessors[primitive.indices];
+        const auto& indexAccessor = m_mesh.model().accessors[primitive.indices];
+        const auto& indexAccessorRenderInfo = m_mesh.renderInfo().accessors[primitive.indices];
 
-        const GLuint bufferId = m_mesh.buffer(indexAccessor.bufferView);
-        vertexArray.bindElementArrayBuffer(bufferId);
+        engine.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexAccessorRenderInfo.glBuffer);
 
-        glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
-                       bufferOffset(indexAccessor.byteOffset));
+        glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessorRenderInfo.count), indexAccessor.componentType,
+                       bufferOffset(indexAccessorRenderInfo.byteOffsetFromBufferView));
     }
 }
 

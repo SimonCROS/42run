@@ -11,7 +11,7 @@
 
 #define MAX_JOINTS 128
 
-static auto addBuffer(const tinygltf::Model& model, const size_t accessorId,
+static auto addBuffer(Engine& engine, const tinygltf::Model& model, const size_t accessorId,
                       std::vector<GLuint>& buffers, ModelRenderInfo& renderInfo) -> GLuint
 {
     GLuint glBuffer = 0;
@@ -24,7 +24,7 @@ static auto addBuffer(const tinygltf::Model& model, const size_t accessorId,
         const auto& buffer = model.buffers[bufferView.buffer];
 
         glGenBuffers(1, &glBuffer);
-        glBindBuffer(bufferView.target, glBuffer);
+        engine.bindBuffer(bufferView.target, glBuffer);
         glBufferData(bufferView.target, bufferView.byteLength, &buffer.data.at(0) + bufferView.byteOffset,
                      GL_STATIC_DRAW);
 
@@ -104,7 +104,7 @@ static auto loadTexture(const tinygltf::Model& model, const int& textureId, std:
     textures[textureId] = glTexture;
 }
 
-auto Mesh::Create(tinygltf::Model&& model) -> Mesh
+auto Mesh::Create(Engine& engine, tinygltf::Model&& model) -> Mesh
 {
     std::vector<GLuint> buffers;
     std::vector<GLuint> textures;
@@ -148,7 +148,7 @@ auto Mesh::Create(tinygltf::Model&& model) -> Mesh
         }
 
         glGenBuffers(1, &renderInfo.skins[i].glBuffer);
-        glBindBuffer(GL_UNIFORM_BUFFER, renderInfo.skins[i].glBuffer);
+        engine.bindBuffer(GL_UNIFORM_BUFFER, renderInfo.skins[i].glBuffer);
         glBufferData(GL_UNIFORM_BUFFER, MAX_JOINTS * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
@@ -172,11 +172,11 @@ auto Mesh::Create(tinygltf::Model&& model) -> Mesh
             ShaderFlags shaderFlags = ShaderHasNone;
 
             if (primitive.indices >= 0)
-                addBuffer(model, primitive.indices, buffers, renderInfo);
+                addBuffer(engine, model, primitive.indices, buffers, renderInfo);
 
             for (const auto& [attributeName, accessorId] : primitive.attributes)
             {
-                addBuffer(model, accessorId, buffers, renderInfo);
+                addBuffer(engine, model, accessorId, buffers, renderInfo);
 
                 if (attributeName == "POSITION")
                     vertexArrayFlags |= VertexArrayHasPosition;

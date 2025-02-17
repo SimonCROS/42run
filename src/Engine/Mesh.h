@@ -60,7 +60,7 @@ private:
     tinygltf::Model m_model;
 
 public:
-    static auto Create(tinygltf::Model&& model) -> Mesh;
+    static auto Create(Engine& engine, tinygltf::Model&& model) -> Mesh;
 
     Mesh(std::vector<GLuint>&& buffers, std::vector<GLuint>&& textures, std::vector<Animation>&& animations,
          ModelRenderInfo&& renderInfo, tinygltf::Model&& model) :
