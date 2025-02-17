@@ -40,9 +40,9 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
                 glVertexAttribPointer(attributeLocation,
                                       accessorRenderInfo.componentCount,
                                       accessor.componentType,
-                                      GL_FALSE,
+                                      accessor.normalized,
                                       accessorRenderInfo.byteStride,
-                                      bufferOffset(accessor.byteOffset));
+                                      bufferOffset(accessorRenderInfo.byteOffsetFromBufferView));
             }
         }
 
@@ -98,7 +98,6 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
 
         glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
                        bufferOffset(indexAccessor.byteOffset));
-        // CheckErrors("draw elements");
     }
 }
 

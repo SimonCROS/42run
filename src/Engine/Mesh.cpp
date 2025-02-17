@@ -120,10 +120,7 @@ auto Mesh::Create(tinygltf::Model&& model) -> Mesh
         auto& accessorRenderInfo = renderInfo.accessors[i];
         accessorRenderInfo.componentSize = tinygltf::GetComponentSizeInBytes(accessor.componentType);
         accessorRenderInfo.componentCount = tinygltf::GetNumComponentsInType(accessor.type);
-        accessorRenderInfo.byteStride = bufferView.byteStride > 0
-                                            ? static_cast<GLsizei>(bufferView.byteStride)
-                                            : accessorRenderInfo.byteStride = accessorRenderInfo.componentSize *
-                                            accessorRenderInfo.componentCount;
+        accessorRenderInfo.byteStride = accessor.ByteStride(bufferView);
         accessorRenderInfo.count = accessor.count;
         accessorRenderInfo.bufferView = accessor.bufferView;
         accessorRenderInfo.byteOffsetFromBuffer = accessor.byteOffset + bufferView.byteOffset;
