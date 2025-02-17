@@ -64,6 +64,12 @@ auto Engine::run() -> void
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        for (const auto& object : m_objects)
+            object->willUpdate(*this);
+
+        for (const auto& object : m_objects)
+            object->update(*this);
+
         const auto pvMat = m_camera->projectionMatrix() * m_camera->computeViewMatrix();
         for (auto& [id, shader] : m_shaders)
         {
@@ -73,12 +79,6 @@ auto Engine::run() -> void
                 variant.get()->setMat4("u_projectionView", pvMat);
             }
         }
-
-        for (const auto& object : m_objects)
-            object->willUpdate(*this);
-
-        for (const auto& object : m_objects)
-            object->update(*this);
 
         for (const auto& object : m_objects)
             object->render(*this);

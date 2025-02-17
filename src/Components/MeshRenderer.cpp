@@ -74,7 +74,7 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
 
             if (material.emissiveTexture.index >= 0)
             {
-                engine.bindTexture(3, m_mesh.texture(material.normalTexture.index));
+                engine.bindTexture(3, m_mesh.texture(material.emissiveTexture.index));
                 program.setInt("u_emissiveMap", 3);
             }
 

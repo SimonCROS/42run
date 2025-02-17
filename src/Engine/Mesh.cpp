@@ -226,7 +226,7 @@ auto Mesh::Create(tinygltf::Model&& model) -> Mesh
                 if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
                 {
                     loadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures, GL_RGB);
-                    shaderFlags |= ShaderHasNormalMap;
+                    shaderFlags |= ShaderHasMetalRoughnessMap;
                 }
                 if (material.normalTexture.index >= 0)
                 {

@@ -175,4 +175,5 @@ void main() {
 
     result = pow(result, vec3(c_GammaInverse));
     FragColor = vec4(result, baseColor.a);
+    FragColor = vec4(normal, 1);
 }
