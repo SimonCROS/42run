@@ -177,9 +177,9 @@ vec3 calcPBRDirectionalLight(vec3 N, vec3 V, vec3 L, vec3 albedo, float metallic
 void main()
 {
     // The albedo may be defined from a base texture or a flat color
-    vec4 baseColor = vec4(1, 1, 1, 1);
+    vec4 baseColor = u_baseColorFactor;
 #ifdef HAS_BASECOLORMAP
-    baseColor *= texture(u_baseColorTexture, v_TexCoord) * u_baseColorFactor;
+    baseColor *= texture(u_baseColorTexture, v_TexCoord);
 #endif
 #if defined HAS_VEC3_COLORS
     baseColor *= vec4(v_color0, 1.0f);
