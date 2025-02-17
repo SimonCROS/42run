@@ -41,6 +41,8 @@ Engine::Engine(Window&& window) noexcept :
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             window.setShouldClose();
     });
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 auto Engine::run() -> void
