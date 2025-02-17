@@ -88,7 +88,7 @@ auto start() -> Expected<void, std::string>
     }
 
     {
-        // Ancient 1
+        // Ancient
         auto& object = engine.instantiate();
         auto& animator = object.addComponent<Animator>(*e_ancientMesh);
         auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
