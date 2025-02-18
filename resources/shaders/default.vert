@@ -63,10 +63,21 @@ void main()
 #endif
         vec4(a_position, 1.0);
 
-    v_FragPos = vec3(u_transform * vec4(a_position, 1.0));
+    v_FragPos = vec3(
+        u_transform *
+#ifdef HAS_SKIN
+        skinMatrix *
+#endif
+        vec4(a_position, 1.0)
+    );
 
 #ifdef HAS_NORMALS
-    mat3 normalMatrix = transpose(inverse(mat3(u_transform))); // TODO pass normal matrix as argument
+    mat3 rsMatrix = mat3(u_transform);
+#ifdef HAS_SKIN
+    rsMatrix *= mat3(skinMatrix);
+#endif
+
+    mat3 normalMatrix = transpose(inverse(rsMatrix)); // TODO pass normal matrix as argument
     vec3 N = normalize(normalMatrix * a_normal);
 #ifdef HAS_TANGENTS
     vec3 T = normalize(normalMatrix * a_tangent);
