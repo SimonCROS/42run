@@ -69,11 +69,14 @@ auto ShaderProgram::enableVariant(const ShaderFlags flags)
     return *it->second;
 }
 
+#define QUDI(x) #x
+#define QUdi(x) QUDI(x)
 auto ShaderProgram::getCodeWithFlags(const std::string_view& code, const ShaderFlags flags) -> std::string
 {
     constexpr std::size_t afterVersionIndex = 13;
 
     std::string defines;
+    defines += "#define MAX_JOINTS " QUdi(MAX_JOINTS) "\n";
     if (flags & ShaderHasNormals)
         defines += "#define HAS_NORMALS\n";
     if (flags & ShaderHasTangents)

@@ -1,7 +1,5 @@
 #version 410
 
-const int MAX_JOINTS = 128;
-
 layout (location = 0) in vec3 a_position;
 #ifdef HAS_NORMALS
 layout (location = 1) in vec3 a_normal;

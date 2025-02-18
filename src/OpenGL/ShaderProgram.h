@@ -10,6 +10,8 @@
 #include "Utility/Expected.h"
 #include "Utility/EnumHelpers.h"
 
+#define MAX_JOINTS 256
+
 enum ShaderFlags : unsigned short
 {
     ShaderHasNone = 0,

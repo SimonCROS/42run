@@ -9,8 +9,6 @@
 #include "OpenGL/ShaderProgram.h"
 #include "Utility/StridedIterator.h"
 
-#define MAX_JOINTS 128
-
 static auto addBuffer(Engine& engine, const tinygltf::Model& model, const size_t accessorId,
                       std::vector<GLuint>& buffers, ModelRenderInfo& renderInfo) -> GLuint
 {
@@ -143,13 +141,16 @@ auto Mesh::Create(Engine& engine, tinygltf::Model&& model) -> Mesh
                 reinterpret_cast<const glm::mat4*>(buffer.data.data() + accessor.byteOffsetFromBuffer),
                 static_cast<StridedIterator<const glm::mat4*>::difference_type>(attributeStride),
             };
-            renderInfo.skins[i].inverseBindMatrices =
-            std::vector<glm::mat4>{it, it + static_cast<long>(accessor.count)};
+            renderInfo.skins[i].inverseBindMatrices = std::vector<glm::mat4>{
+                it, it + static_cast<long>(accessor.count)
+            };
         }
 
         glGenBuffers(1, &renderInfo.skins[i].glBuffer);
         engine.bindBuffer(GL_UNIFORM_BUFFER, renderInfo.skins[i].glBuffer);
-        glBufferData(GL_UNIFORM_BUFFER, MAX_JOINTS * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
+        assert(skin.joints.size() <= MAX_JOINTS && "Too many joints");
+        glBufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(skin.joints.size() * sizeof(glm::mat4)), nullptr,
+                     GL_DYNAMIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
