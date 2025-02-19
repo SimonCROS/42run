@@ -19,6 +19,7 @@ class Object
 
 private:
     Transform m_transform{};
+    std::unordered_set<std::weak_ptr<>> m_children;
     std::unordered_set<std::unique_ptr<EngineComponent>> m_components;
 
     auto willUpdate(Engine& engine) const -> void

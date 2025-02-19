@@ -66,6 +66,9 @@ add_executable(42run
         InterfaceBlocks/AnimationInterfaceBlock.h
         InterfaceBlocks/CameraTargetInterfaceBlock.cpp
         InterfaceBlocks/CameraTargetInterfaceBlock.h
+        Engine/ObjectsManager.cpp
+        Engine/ObjectsManager.h
+        Utility/SlotSet.h
 )
 
 target_compile_definitions(42run PRIVATE

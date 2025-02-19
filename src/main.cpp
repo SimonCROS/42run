@@ -65,24 +65,24 @@ auto start() -> Expected<void, std::string>
         auto& object = engine.instantiate();
         object.transform().translation = {0, 0, 0};
         object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
-    }
 
-    {
-        // Desk
-        auto& object = engine.instantiate();
-        object.transform().scale *= 0.005f;
-        object.transform().translation = {-2, 0, -5};
-        object.transform().rotation = glm::quat({0, glm::radians(-90.0f), 0});
-        object.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
-    }
+        {
+            // Desk
+            auto& object = engine.instantiate();
+            object.transform().scale *= 0.005f;
+            object.transform().translation = {-2, 0, -5};
+            object.transform().rotation = glm::quat({0, glm::radians(-90.0f), 0});
+            object.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+        }
 
-    {
-        // Desk
-        auto& object = engine.instantiate();
-        object.transform().scale *= 0.005f;
-        object.transform().translation = {2, 0, -2};
-        object.transform().rotation = glm::quat({0, glm::radians(-90.0f), 0});
-        object.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+        {
+            // Desk
+            auto& object = engine.instantiate();
+            object.transform().scale *= 0.005f;
+            object.transform().translation = {2, 0, -2};
+            object.transform().rotation = glm::quat({0, glm::radians(-90.0f), 0});
+            object.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+        }
     }
 
     {

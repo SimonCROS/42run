@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <vector>
 
+// GCC 15 will add an equivalent, std::flat_multiset (to test and benchmark)
+
 template <typename Key, typename Value>
 class VectorMultiMap
 {
@@ -17,15 +19,10 @@ public:
         Key key;
         Value value;
 
-        bool operator<(const Entry& other) const
-        {
-            return key < other.key;
-        }
-
-        bool operator<(const Key& other) const
-        {
-            return key < other;
-        }
+        auto operator<(const Entry& other) const -> bool { return key < other.key; }
+        auto operator<(const Key& other) const -> bool { return key < other; }
+        auto operator==(const Entry& other) const -> bool { return key == other.key; }
+        auto operator==(const Key& other) const -> bool { return key == other; }
     };
 
     using Container = std::vector<Entry>;
