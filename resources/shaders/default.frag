@@ -209,7 +209,7 @@ void main()
     vec3 result = ambient * baseColor.rgb;
     // --- IN LOOP
     DirectionalLight sunLight;
-    sunLight.direction = vec3(-4, -6, -8);
+    sunLight.direction = vec3(4, -6, 8);
     sunLight.color = vec3(10.0, 9.8, 9.0);
 
     vec3 lightContribution = calcPBRDirectionalLight(normal, viewDir, normalize(-sunLight.direction), baseColor.rgb, metallic, roughness, sunLight.color);
