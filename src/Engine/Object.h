@@ -7,43 +7,27 @@
 #include <memory>
 #include <unordered_set>
 
-#include "EngineComponent.h"
-#include "Mesh.h"
 #include "Transform.h"
+#include "Utility/SlotSet.h"
 
 class Engine;
+class EngineComponent;
 
 class Object
 {
     friend class Engine;
 
+public:
+    SlotSetIndex index;
+
 private:
     Transform m_transform{};
     std::unordered_set<std::unique_ptr<EngineComponent>> m_components;
 
-    auto willUpdate(Engine& engine) const -> void
-    {
-        for (auto& component : m_components)
-            component->onWillUpdate(engine);
-    }
-
-    auto update(Engine& engine) const -> void
-    {
-        for (auto& component : m_components)
-            component->onUpdate(engine);
-    }
-
-    auto render(Engine& engine) const -> void
-    {
-        for (auto& component : m_components)
-            component->onRender(engine);
-    }
-
-    auto postRender(Engine& engine) const -> void
-    {
-        for (auto& component : m_components)
-            component->onPostRender(engine);
-    }
+    auto willUpdate(Engine& engine) const -> void;
+    auto update(Engine& engine) const -> void;
+    auto render(Engine& engine) const -> void;
+    auto postRender(Engine& engine) const -> void;
 
 public:
     [[nodiscard]] auto transform() -> Transform& { return m_transform; }

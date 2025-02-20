@@ -5,8 +5,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "../Engine/Transform.h"
-#include "../Engine/Object.h"
+#include "Engine/EngineComponent.h"
+#include "Engine/Object.h"
 
 enum ViewMode
 {

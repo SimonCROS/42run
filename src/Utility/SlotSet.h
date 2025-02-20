@@ -9,19 +9,20 @@
 #include <queue>
 #include <concepts>
 
+using SlotSetIndex = uint32_t;
+
 template <class T>
-concept SlotSetCompatible = requires(T a)
+concept Indexed = requires(T a)
 {
-    ++a.version;
-    a.version = std::declval<int>();
+    a.index = std::declval<SlotSetIndex>();
 };
 
-template <SlotSetCompatible T>
+template <Indexed T>
 class SlotSet
 {
 public:
     using Value = T;
-    using Index = uint32_t;
+    using Index = SlotSetIndex;
 
     using ValueContainer = std::deque<Value>;
     using Iterator = typename ValueContainer::iterator;
@@ -43,18 +44,21 @@ public:
     auto emplace(Args&&... args) -> Value&
     {
         Index valueIndex = m_values.size();
+        Index index;
         if (m_freeSlots.empty())
         {
-            m_values.emplace_back(valueIndex);
+            index = m_slots.size();
+            m_slots.emplace_back(valueIndex);
         }
         else
         {
-            Index index = m_freeSlots.front();
+            index = m_freeSlots.front();
             m_freeSlots.pop();
-            m_values[index] = valueIndex;
+            m_slots[index] = valueIndex;
         }
 
         auto& ref = m_values.emplace_back(std::forward<Args>(args)...);
+        ref.index = index;
         return ref;
     }
 

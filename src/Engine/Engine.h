@@ -9,15 +9,16 @@
 #include <unordered_set>
 
 #include "FrameInfo.h"
+#include "Object.h"
 #include "glad/gl.h"
 #include "tiny_gltf.h"
 #include "OpenGL/ShaderProgram.h"
 #include "OpenGL/VertexArray.h"
+#include "Utility/SlotSet.h"
 #include "Window/Window.h"
 
 class Camera;
 class Mesh;
-class Object;
 
 class Engine
 {
@@ -27,7 +28,6 @@ public:
     using ShaderProgramVariantsRef = std::reference_wrapper<ShaderProgram>;
 
     using ModelPtr = std::unique_ptr<Mesh>;
-    using ObjectPtr = std::unique_ptr<Object>;
     using ShaderProgramPtr = std::unique_ptr<ShaderProgram>;
 
     static constexpr size_t MaxTextures = 8;
@@ -43,7 +43,7 @@ private:
 
     StringUnorderedMap<ModelPtr> m_models;
     StringUnorderedMap<ShaderProgramPtr> m_shaders;
-    std::unordered_set<ObjectPtr> m_objects;
+    SlotSet<Object> m_objects;
     std::unordered_map<VertexArrayFlags, VertexArray> m_vertexArrays;
 
     bool m_doubleSided{false};

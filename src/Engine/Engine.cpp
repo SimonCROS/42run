@@ -4,6 +4,8 @@
 
 #include "../Components/Camera.h"
 #include "Engine.h"
+
+#include "Mesh.h"
 #include "OpenGL/Debug.h"
 
 auto Engine::Create(Window&& window) -> Engine
@@ -72,10 +74,10 @@ auto Engine::run() -> void
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (const auto& object : m_objects)
-            object->willUpdate(*this);
+            object.willUpdate(*this);
 
         for (const auto& object : m_objects)
-            object->update(*this);
+            object.update(*this);
 
         const auto pvMat = m_camera->projectionMatrix() * m_camera->computeViewMatrix();
         for (auto& [id, shader] : m_shaders)
@@ -90,10 +92,10 @@ auto Engine::run() -> void
         }
 
         for (const auto& object : m_objects)
-            object->render(*this);
+            object.render(*this);
 
         for (const auto& object : m_objects)
-            object->postRender(*this);
+            object.postRender(*this);
 
         m_window.swapBuffers();
 
@@ -172,5 +174,5 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
 
 auto Engine::instantiate() -> Object&
 {
-    return **m_objects.emplace(std::make_unique<Object>()).first;
+    return m_objects.emplace();
 }
