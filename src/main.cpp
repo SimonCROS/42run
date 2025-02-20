@@ -39,15 +39,6 @@ auto start() -> Expected<void, std::string>
         object.addComponent<ImguiSingleton>(engine.getWindow());
     }
 
-    CameraController* cameraController;
-    {
-        // Camera
-        auto& object = engine.instantiate();
-        const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
-        cameraController = &object.addComponent<CameraController>(glm::vec3{0, 1.4, 0}, 5);
-        engine.setCamera(camera);
-    }
-
     auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
     if (!e_floorMesh)
         return Unexpected("Failed to load model: " + std::move(e_floorMesh).error());
@@ -63,15 +54,15 @@ auto start() -> Expected<void, std::string>
     {
         // Floor
         auto& object = engine.instantiate();
-        object.transform().setTranslation({0, 0, 0});
+        object.transform().setTranslation({0, 0, 5});
         object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
 
         {
             // Desk
             auto& subObject = engine.instantiate();
             subObject.transform().setScale({0.005f, 0.005f, 0.005f});
-            subObject.transform().setTranslation({-2, 0, -5});
-            subObject.transform().setRotation(glm::quat({0, glm::radians(-90.0f), 0}));
+            subObject.transform().setTranslation({-2, 0, 5});
+            subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
             subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
             subObject.setParent(object, engine.objects());
         }
@@ -80,8 +71,35 @@ auto start() -> Expected<void, std::string>
             // Desk
             auto& subObject = engine.instantiate();
             subObject.transform().setScale({0.005f, 0.005f, 0.005f});
-            subObject.transform().setTranslation({2, 0, -2});
-            subObject.transform().setRotation(glm::quat({0, glm::radians(-90.0f), 0}));
+            subObject.transform().setTranslation({2, 0, 2});
+            subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+            subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+            subObject.setParent(object, engine.objects());
+        }
+    }
+
+    {
+        // Floor
+        auto& object = engine.instantiate();
+        object.transform().setTranslation({0, 0, 25});
+        object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
+
+        {
+            // Desk
+            auto& subObject = engine.instantiate();
+            subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+            subObject.transform().setTranslation({-2, 0, 5});
+            subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+            subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+            subObject.setParent(object, engine.objects());
+        }
+
+        {
+            // Desk
+            auto& subObject = engine.instantiate();
+            subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+            subObject.transform().setTranslation({2, 0, 2});
+            subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
             subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
             subObject.setParent(object, engine.objects());
         }
@@ -98,9 +116,18 @@ auto start() -> Expected<void, std::string>
             .s_frame_x = WIDTH - 8 - 230, .s_frame_y = 8, .s_frame_width = 230, .s_frame_height = 200
         };
         auto& interface = object.addComponent<UserInterface>("Ancient", windowData);
-        interface.addBlock<CameraTargetInterfaceBlock>(1, *cameraController, 1);
         interface.addBlock<DisplayInterfaceBlock>(10);
         interface.addBlock<AnimationInterfaceBlock>(100);
+    }
+
+    {
+        // Camera
+        auto& object = engine.instantiate();
+        object.transform().setTranslation({0, 4, -5});
+        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-20.0f), glm::radians(180.0f), 0)));
+
+        const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
+        engine.setCamera(camera);
     }
 
     engine.run();
