@@ -14,8 +14,8 @@ Camera::Camera(Object& object, const uint32_t width, const uint32_t height, cons
 auto Camera::computeViewMatrix() const -> glm::mat4
 {
     const Transform& transform = object().transform();
-    const glm::vec3 forward = transform.rotation * glm::vec3(0.0f, 0.0f, -1.0f);
-    const glm::vec3 up = transform.rotation * glm::vec3(0.0f, 1.0f, 0.0f);
-    const glm::vec3 center = transform.translation + forward;
-    return glm::lookAt(transform.translation, center, up);
+    const glm::vec3 forward = transform.rotation() * glm::vec3(0.0f, 0.0f, -1.0f);
+    const glm::vec3 up = transform.rotation() * glm::vec3(0.0f, 1.0f, 0.0f);
+    const glm::vec3 center = transform.translation() + forward;
+    return glm::lookAt(transform.translation(), center, up);
 }

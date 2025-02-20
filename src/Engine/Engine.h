@@ -183,6 +183,8 @@ public:
         -> Object&;
 
     auto setCamera(const Camera& camera) -> void { m_camera = &camera; }
+
+    [[deprecated("Temporary")]] auto objects() -> SlotSet<Object>& { return m_objects; };
 };
 
 #endif //ENGINE_H

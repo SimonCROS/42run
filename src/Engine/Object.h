@@ -13,6 +13,8 @@
 class Engine;
 class EngineComponent;
 
+constexpr SlotSetIndex ObjectNoneIndex = -1;
+
 class Object
 {
     friend class Engine;
@@ -21,13 +23,23 @@ public:
     SlotSetIndex index;
 
 private:
+    SlotSetIndex m_parentIndex{ObjectNoneIndex};
+    SlotSetIndex m_firstChildIndex{ObjectNoneIndex};
+    SlotSetIndex m_nextSiblingIndex{ObjectNoneIndex};
+
     Transform m_transform{};
+
+    glm::mat4 m_worldTransform{};
+
     std::unordered_set<std::unique_ptr<EngineComponent>> m_components;
 
     auto willUpdate(Engine& engine) const -> void;
     auto update(Engine& engine) const -> void;
     auto render(Engine& engine) const -> void;
     auto postRender(Engine& engine) const -> void;
+
+    auto markDirty(SlotSet<Object>& objects) -> void;
+    auto updateWorldTransformIfDirty(SlotSet<Object>& objects) -> void;
 
 public:
     [[nodiscard]] auto transform() -> Transform& { return m_transform; }
@@ -53,6 +65,15 @@ public:
             }
         }
         return std::nullopt;
+    }
+
+    auto setParent(Object& object, SlotSet<Object>& objects) -> void;
+    auto unsetParent(SlotSet<Object>& objects) -> void;
+
+    auto worldTransform(SlotSet<Object>& objects) -> glm::mat4
+    {
+        updateWorldTransformIfDirty(objects);
+        return m_worldTransform;
     }
 };
 

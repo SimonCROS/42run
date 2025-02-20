@@ -85,7 +85,7 @@ auto Engine::run() -> void
             for (auto& [flags, variant] : shader->programs)
             {
                 useProgram(*variant.get());
-                variant.get()->setVec3("u_cameraPosition", m_camera->object().transform().translation);
+                variant.get()->setVec3("u_cameraPosition", m_camera->object().transform().translation());
                 variant.get()->setVec3("u_lightPosition", {4, 5, 8});
                 variant.get()->setMat4("u_projectionView", pvMat);
             }

@@ -9,15 +9,16 @@
 #include <queue>
 #include <concepts>
 
-using SlotSetIndex = uint32_t;
+using SlotSetIndex = int32_t;
+
+// template <class T>
+// concept Indexed = requires(T a)
+// {
+//     { a.index } -> std::same_as<SlotSetIndex>;
+//     a.index = std::declval<SlotSetIndex>();
+// };
 
 template <class T>
-concept Indexed = requires(T a)
-{
-    a.index = std::declval<SlotSetIndex>();
-};
-
-template <Indexed T>
 class SlotSet
 {
 public:
@@ -71,7 +72,11 @@ public:
         m_slots[index] = 0;
         if (valueIndex != lastValueIndex)
         {
-            std::swap(m_values[valueIndex], m_values[lastValueIndex]);
+            auto& other = m_values[lastValueIndex];
+            m_slots[other.index] = valueIndex;
+            other.index = valueIndex;
+
+            std::swap(m_values[valueIndex], other);
         }
         m_values.pop_back();
         return true; // currently always true
@@ -83,6 +88,8 @@ public:
     [[nodiscard]] auto end() -> Iterator { return m_values.end(); }
     [[nodiscard]] auto begin() const -> ConstIterator { return m_values.begin(); }
     [[nodiscard]] auto end() const -> ConstIterator { return m_values.end(); }
+
+    [[nodiscard]] auto operator[](const Index index) -> Value& { return m_values[m_slots[index]]; }
 
     // Object:
     //   int index

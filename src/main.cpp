@@ -63,25 +63,27 @@ auto start() -> Expected<void, std::string>
     {
         // Floor
         auto& object = engine.instantiate();
-        object.transform().translation = {0, 0, 0};
+        object.transform().setTranslation({0, 0, 0});
         object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
 
         {
             // Desk
-            auto& object = engine.instantiate();
-            object.transform().scale *= 0.005f;
-            object.transform().translation = {-2, 0, -5};
-            object.transform().rotation = glm::quat({0, glm::radians(-90.0f), 0});
-            object.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+            auto& subObject = engine.instantiate();
+            subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+            subObject.transform().setTranslation({-2, 0, -5});
+            subObject.transform().setRotation(glm::quat({0, glm::radians(-90.0f), 0}));
+            subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+            subObject.setParent(object, engine.objects());
         }
 
         {
             // Desk
-            auto& object = engine.instantiate();
-            object.transform().scale *= 0.005f;
-            object.transform().translation = {2, 0, -2};
-            object.transform().rotation = glm::quat({0, glm::radians(-90.0f), 0});
-            object.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+            auto& subObject = engine.instantiate();
+            subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+            subObject.transform().setTranslation({2, 0, -2});
+            subObject.transform().setRotation(glm::quat({0, glm::radians(-90.0f), 0}));
+            subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+            subObject.setParent(object, engine.objects());
         }
     }
 

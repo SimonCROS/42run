@@ -13,5 +13,5 @@ CameraTargetInterfaceBlock::CameraTargetInterfaceBlock(UserInterface& interface,
 auto CameraTargetInterfaceBlock::onDrawUI(uint16_t blockId, Engine& engine, UserInterface& interface) -> void
 {
     if (ImGui::Button("Focus"))
-        m_cameraController.setTarget(interface.object().transform().translation, m_focusDistance);
+        m_cameraController.setTarget(interface.object().transform().translation(), m_focusDistance);
 }
