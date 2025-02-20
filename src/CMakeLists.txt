@@ -69,6 +69,10 @@ add_executable(42run
         Engine/ObjectsManager.cpp
         Engine/ObjectsManager.h
         Utility/SlotSet.h
+        Components/MapController.cpp
+        Components/MapController.h
+        Components/PlayerController.cpp
+        Components/PlayerController.h
 )
 
 target_compile_definitions(42run PRIVATE

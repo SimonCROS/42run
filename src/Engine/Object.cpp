@@ -46,7 +46,7 @@ auto Object::markDirty(SlotSet<Object>& objects) -> void
 
 auto Object::updateWorldTransformIfDirty(SlotSet<Object>& objects) -> void
 {
-    if (m_transform.m_dirty)
+    // if (m_transform.m_dirty)
     {
         if (m_parentIndex != ObjectNoneIndex)
         {

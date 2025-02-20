@@ -8,8 +8,8 @@
 #include "Components/UserInterface.h"
 #include "Components/CameraController.h"
 #include "Components/ImguiSingleton.h"
+#include "Components/MapController.h"
 #include "Components/MeshRenderer.h"
-#include "InterfaceBlocks/CameraTargetInterfaceBlock.h"
 #include "InterfaceBlocks/DisplayInterfaceBlock.h"
 #include "InterfaceBlocks/AnimationInterfaceBlock.h"
 
@@ -52,56 +52,63 @@ auto start() -> Expected<void, std::string>
         return Unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
 
     {
-        // Floor
-        auto& object = engine.instantiate();
-        object.transform().setTranslation({0, 0, 5});
-        object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
+        auto& map = engine.instantiate();
+        map.addComponent<MapController>();
 
         {
-            // Desk
-            auto& subObject = engine.instantiate();
-            subObject.transform().setScale({0.005f, 0.005f, 0.005f});
-            subObject.transform().setTranslation({-2, 0, 5});
-            subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-            subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
-            subObject.setParent(object, engine.objects());
+            // Floor
+            auto& object = engine.instantiate();
+            object.transform().setTranslation({0, 0, 5});
+            object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
+
+            {
+                // Desk
+                auto& subObject = engine.instantiate();
+                subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+                subObject.transform().setTranslation({-2, 0, 5});
+                subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+                subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+                subObject.setParent(object, engine.objects());
+            }
+
+            {
+                // Desk
+                auto& subObject = engine.instantiate();
+                subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+                subObject.transform().setTranslation({2, 0, 2});
+                subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+                subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+                subObject.setParent(object, engine.objects());
+            }
+            object.setParent(map, engine.objects());
         }
 
         {
-            // Desk
-            auto& subObject = engine.instantiate();
-            subObject.transform().setScale({0.005f, 0.005f, 0.005f});
-            subObject.transform().setTranslation({2, 0, 2});
-            subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-            subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
-            subObject.setParent(object, engine.objects());
-        }
-    }
+            // Floor
+            auto& object = engine.instantiate();
+            object.transform().setTranslation({0, 0, 25});
+            object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
 
-    {
-        // Floor
-        auto& object = engine.instantiate();
-        object.transform().setTranslation({0, 0, 25});
-        object.addComponent<MeshRenderer>(*e_floorMesh, *e_shader);
+            {
+                // Desk
+                auto& subObject = engine.instantiate();
+                subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+                subObject.transform().setTranslation({-2, 0, 5});
+                subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+                subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+                subObject.setParent(object, engine.objects());
+            }
 
-        {
-            // Desk
-            auto& subObject = engine.instantiate();
-            subObject.transform().setScale({0.005f, 0.005f, 0.005f});
-            subObject.transform().setTranslation({-2, 0, 5});
-            subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-            subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
-            subObject.setParent(object, engine.objects());
-        }
-
-        {
-            // Desk
-            auto& subObject = engine.instantiate();
-            subObject.transform().setScale({0.005f, 0.005f, 0.005f});
-            subObject.transform().setTranslation({2, 0, 2});
-            subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-            subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
-            subObject.setParent(object, engine.objects());
+            {
+                // Desk
+                auto& subObject = engine.instantiate();
+                subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+                subObject.transform().setTranslation({2, 0, 2});
+                subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+                subObject.addComponent<MeshRenderer>(*e_deskMesh, *e_shader);
+                subObject.setParent(object, engine.objects());
+            }
+            object.setParent(map, engine.objects());
         }
     }
 
@@ -123,7 +130,7 @@ auto start() -> Expected<void, std::string>
     {
         // Camera
         auto& object = engine.instantiate();
-        object.transform().setTranslation({0, 4, -5});
+        object.transform().setTranslation({0, 5, -5});
         object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-20.0f), glm::radians(180.0f), 0)));
 
         const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
