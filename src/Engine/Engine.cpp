@@ -86,6 +86,7 @@ auto Engine::run() -> void
             {
                 useProgram(*variant.get());
                 variant.get()->setVec3("u_cameraPosition", m_camera->object().transform().translation());
+                variant.get()->setVec4("u_fogColor", glm::vec4(0.4705882353f, 0.6549019608f, 1.0f, 1.0f));
                 variant.get()->setVec3("u_lightPosition", {4, 5, 8});
                 variant.get()->setMat4("u_projectionView", pvMat);
             }

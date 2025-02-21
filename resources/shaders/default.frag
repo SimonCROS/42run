@@ -39,6 +39,7 @@ uniform vec3 u_emissiveFactor;
 
 uniform vec3 u_cameraPosition;
 uniform vec3 u_sunDirection;
+uniform vec4 u_fogColor;
 
 struct DirectionalLight {
     vec3 direction;
@@ -176,6 +177,12 @@ vec3 calcPBRDirectionalLight(vec3 N, vec3 V, vec3 L, vec3 albedo, float metallic
 
 void main()
 {
+    float dist = length(u_cameraPosition - v_FragPos);
+    float fogFactor = max(0, dist - 30) * 0.05;
+    fogFactor *= fogFactor;
+    if (fogFactor >= 1)
+        discard;
+
     // The albedo may be defined from a base texture or a flat color
     vec4 baseColor = u_baseColorFactor;
 #ifdef HAS_BASECOLORMAP
@@ -226,5 +233,7 @@ void main()
     result += emissive;
 
     result = pow(result, vec3(c_GammaInverse));
+    result = mix(result, vec3(u_fogColor), fogFactor);
+
     FragColor = vec4(result, baseColor.a);
 }
