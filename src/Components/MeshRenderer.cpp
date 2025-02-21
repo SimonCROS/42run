@@ -83,11 +83,16 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
             program.setFloat("u_metallicFactor", static_cast<float>(material.pbrMetallicRoughness.metallicFactor));
             program.setFloat("u_roughnessFactor", static_cast<float>(material.pbrMetallicRoughness.roughnessFactor));
             program.setFloat("u_normalScale", static_cast<float>(material.normalTexture.scale));
-            program.setVec3("u_emissiveFactor", glm::make_vec4(material.emissiveFactor.data()));
+            program.setVec3("u_emissiveFactor", glm::make_vec3(material.emissiveFactor.data()));
         }
         else
         {
             engine.setDoubleSided(false);
+            program.setVec4("u_baseColorFactor", glm::vec4(1));
+            program.setFloat("u_metallicFactor", 1);
+            program.setFloat("u_roughnessFactor", 1);
+            program.setFloat("u_normalScale", 1);
+            program.setVec3("u_emissiveFactor", glm::vec3(0));
         }
 
         assert(primitive.indices >= 0); // TODO handle non indexed primitives
