@@ -11,56 +11,29 @@ class Object;
 
 class Transform
 {
-    friend class Object;
-
 private:
-    bool m_dirty{true};
+    Object& m_object;
     glm::vec3 m_translation{};
     glm::quat m_rotation = glm::identity<glm::quat>();
     glm::vec3 m_scale{1.0f};
 
 public:
+    explicit Transform(Object& object)
+        : m_object(object)
+    {
+    }
+
     [[nodiscard]] auto translation() const -> glm::vec3 { return m_translation; }
-
-    auto setTranslation(const glm::vec3& translation) -> void
-    {
-        m_translation = translation;
-        m_dirty = true;
-    }
-
-    auto translate(const glm::vec3& translation) -> void
-    {
-        m_translation += translation;
-        m_dirty = true;
-    }
+    auto setTranslation(const glm::vec3& translation) -> void;
+    auto translate(const glm::vec3& translation) -> void;
 
     [[nodiscard]] auto rotation() const -> glm::quat { return m_rotation; }
-
-    auto setRotation(const glm::quat& rotation) -> void
-    {
-        m_rotation = rotation;
-        m_dirty = true;
-    }
-
-    auto rotate(const glm::quat& rotation) -> void
-    {
-        m_rotation *= rotation;
-        m_dirty = true;
-    }
+    auto setRotation(const glm::quat& rotation) -> void;
+    auto rotate(const glm::quat& rotation) -> void;
 
     [[nodiscard]] auto scale() const -> glm::vec3 { return m_scale; }
-
-    auto setScale(const glm::vec3& scale) -> void
-    {
-        m_scale = scale;
-        m_dirty = true;
-    }
-
-    auto scale(const glm::vec3& scale) -> void
-    {
-        m_scale *= scale;
-        m_dirty = true;
-    }
+    auto setScale(const glm::vec3& scale) -> void;
+    auto scale(const glm::vec3& scale) -> void;
 
     [[nodiscard]] auto trs() const -> glm::mat4
     {

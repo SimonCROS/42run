@@ -33,9 +33,9 @@ auto Object::postRender(Engine& engine) -> void
 
 auto Object::markDirty() -> void
 {
-    if (!m_transform.m_dirty)
+    if (!m_dirty)
     {
-        m_transform.m_dirty = true;
+        m_dirty = true;
 
         auto child = m_firstChildIndex;
         while (child != ObjectNoneIndex)
@@ -48,7 +48,7 @@ auto Object::markDirty() -> void
 
 auto Object::updateWorldTransformIfDirty() -> void
 {
-    if (m_transform.m_dirty)
+    if (m_dirty)
     {
         if (m_parentIndex != ObjectNoneIndex)
         {
@@ -61,7 +61,7 @@ auto Object::updateWorldTransformIfDirty() -> void
             m_worldTransform = m_transform.trs();
         }
 
-        m_transform.m_dirty = false;
+        m_dirty = false;
     }
 }
 

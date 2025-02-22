@@ -19,12 +19,16 @@ constexpr SlotSetIndex ObjectNoneIndex = -1;
 class Object
 {
     friend class Engine;
+    friend class Transform;
 
 public:
     SlotSetIndex index{ObjectNoneIndex};
 
 private:
     Engine& m_engine;
+    Transform m_transform;
+
+    bool m_dirty{true};
 
     bool m_isActive{true};
     bool m_isParentActive{true};
@@ -32,8 +36,6 @@ private:
     SlotSetIndex m_parentIndex{ObjectNoneIndex};
     SlotSetIndex m_firstChildIndex{ObjectNoneIndex};
     SlotSetIndex m_nextSiblingIndex{ObjectNoneIndex};
-
-    Transform m_transform{};
 
     glm::mat4 m_worldTransform{};
 
@@ -51,7 +53,7 @@ private:
 
 public:
     explicit Object(Engine& engine)
-        : m_engine(engine)
+        : m_engine(engine), m_transform(*this)
     {
     }
 
