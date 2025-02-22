@@ -10,6 +10,7 @@
 #include "Components/ImguiSingleton.h"
 #include "Components/MapController.h"
 #include "Components/MeshRenderer.h"
+#include "Components/PlayerController.h"
 #include "InterfaceBlocks/DisplayInterfaceBlock.h"
 #include "InterfaceBlocks/AnimationInterfaceBlock.h"
 
@@ -201,6 +202,7 @@ auto start() -> Expected<void, std::string>
         auto& object = engine.instantiate();
         auto& animator = object.addComponent<Animator>(*e_ancientMesh);
         auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
+        object.addComponent<PlayerController>();
         meshRenderer.setAnimator(animator);
         animator.setAnimation(0);
         constexpr auto windowData = ImguiWindowData{
