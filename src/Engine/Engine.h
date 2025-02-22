@@ -184,7 +184,23 @@ public:
 
     auto setCamera(const Camera& camera) -> void { m_camera = &camera; }
 
-    [[deprecated("Temporary")]] auto objects() -> SlotSet<Object>& { return m_objects; };
+    [[deprecated("Temporary")]] auto objects() -> SlotSet<Object>& { return m_objects; }
+
+    auto getShaderProgram(const std::string_view& id) const -> std::optional<std::reference_wrapper<ShaderProgram>>
+    {
+        const auto it = m_shaders.find(id);
+        if (it == m_shaders.end())
+            return std::nullopt;
+        return *it->second;
+    }
+
+    auto getModel(const std::string_view& id) const -> std::optional<std::reference_wrapper<Mesh>>
+    {
+        const auto it = m_models.find(id);
+        if (it == m_models.end())
+            return std::nullopt;
+        return *it->second;
+    }
 };
 
 #endif //ENGINE_H

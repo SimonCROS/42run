@@ -4,7 +4,42 @@
 
 #include "MapController.h"
 
-void MapController::onUpdate(Engine& engine)
+#include "MeshRenderer.h"
+
+static auto instantiatePlaneTwoTables(Engine& engine) -> Object&
+{
+    auto& shaderProgram = engine.getShaderProgram("default")->get();
+    auto& floorMesh = engine.getModel("floor")->get();
+    auto& deskMesh = engine.getModel("desk")->get();
+
+    // Floor
+    auto& object = engine.instantiate();
+    object.transform().setTranslation({0, 0, 5});
+    object.addComponent<MeshRenderer>(floorMesh, shaderProgram);
+
+    {
+        // Desk
+        auto& subObject = engine.instantiate();
+        subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+        subObject.transform().setTranslation({-2, 0, 5});
+        subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+        subObject.addComponent<MeshRenderer>(deskMesh, shaderProgram);
+        subObject.setParent(object, engine.objects());
+    }
+
+    {
+        // Desk
+        auto& subObject = engine.instantiate();
+        subObject.transform().setScale({0.005f, 0.005f, 0.005f});
+        subObject.transform().setTranslation({2, 0, 2});
+        subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+        subObject.addComponent<MeshRenderer>(deskMesh, shaderProgram);
+        subObject.setParent(object, engine.objects());
+    }
+    return object;
+}
+
+auto MapController::onUpdate(Engine& engine) -> void
 {
     constexpr float maxSpeedFromBase = MaxSpeed - BaseSpeed;
 

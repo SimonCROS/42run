@@ -26,7 +26,7 @@ private:
     bool m_displayed{true};
     GLenum m_polygonMode{GL_FILL};
     std::optional<std::reference_wrapper<const Animator>> m_animator;
-    std::reference_wrapper<ShaderProgram>& m_program; // TODO Change
+    ShaderProgram& m_program; // TODO Change
 
     std::vector<Node> m_nodes;
     std::vector<Skin> m_skins;
@@ -37,7 +37,7 @@ private:
     auto calculateJointMatrices(int skin, const glm::mat4& transform) -> void;
 
 public:
-    explicit MeshRenderer(Object& object, const Mesh& model, std::reference_wrapper<ShaderProgram>& program) :
+    explicit MeshRenderer(Object& object, const Mesh& model, ShaderProgram& program) :
         EngineComponent(object), m_mesh(model), m_program(program)
     {
         m_nodes.resize(m_mesh.model().nodes.size());

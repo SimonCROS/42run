@@ -46,7 +46,7 @@ auto Object::markDirty(SlotSet<Object>& objects) -> void
 
 auto Object::updateWorldTransformIfDirty(SlotSet<Object>& objects) -> void
 {
-    // if (m_transform.m_dirty)
+    // if (m_transform.m_dirty) // TODO
     {
         if (m_parentIndex != ObjectNoneIndex)
         {
@@ -63,22 +63,37 @@ auto Object::updateWorldTransformIfDirty(SlotSet<Object>& objects) -> void
     }
 }
 
-auto Object::setParent(Object& object, SlotSet<Object>& objects) -> void
+auto Object::setActiveFromParent(const bool active, SlotSet<Object>& objects) -> void
 {
-    assert(index != object.index);
-    if (m_parentIndex == object.index)
-        return;
+    m_isParentActive = active;
 
-    unsetParent(objects);
-
-    m_parentIndex = object.index;
-    m_nextSiblingIndex = object.m_firstChildIndex;
-    object.m_firstChildIndex = index;
-
-    markDirty(objects);
+    if (m_isActive) // stop propagation if already disabled
+    {
+        auto child = m_firstChildIndex;
+        while (child != ObjectNoneIndex)
+        {
+            objects[child].setActiveFromParent(active, objects);
+            child = objects[child].m_nextSiblingIndex;
+        }
+    }
 }
 
-auto Object::unsetParent(SlotSet<Object>& objects) -> void
+auto Object::setActive(const bool active, SlotSet<Object>& objects) -> void
+{
+    if (m_isActive != active)
+    {
+        m_isActive = active;
+
+        auto child = m_firstChildIndex;
+        while (child != ObjectNoneIndex)
+        {
+            objects[child].setActiveFromParent(active, objects);
+            child = objects[child].m_nextSiblingIndex;
+        }
+    }
+}
+
+auto Object::unsetParentInternal(SlotSet<Object>& objects, const bool recursiveUpdate) -> void
 {
     if (m_parentIndex == ObjectNoneIndex)
         return;
@@ -100,5 +115,30 @@ auto Object::unsetParent(SlotSet<Object>& objects) -> void
     m_parentIndex = ObjectNoneIndex;
     m_nextSiblingIndex = ObjectNoneIndex;
 
+    if (recursiveUpdate)
+    {
+        setActiveFromParent(isActiveSelf(), objects);
+        markDirty(objects);
+    }
+}
+
+auto Object::setParent(Object& object, SlotSet<Object>& objects) -> void
+{
+    assert(index != object.index);
+    if (m_parentIndex == object.index)
+        return;
+
+    unsetParentInternal(objects, false);
+
+    m_parentIndex = object.index;
+    m_nextSiblingIndex = object.m_firstChildIndex;
+    object.m_firstChildIndex = index;
+
+    setActiveFromParent(object.isActive(), objects);
     markDirty(objects);
+}
+
+auto Object::unsetParent(SlotSet<Object>& objects) -> void
+{
+    unsetParentInternal(objects, true);
 }

@@ -74,10 +74,16 @@ auto Engine::run() -> void
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (const auto& object : m_objects)
-            object.willUpdate(*this);
+        {
+            if (object.isActive())
+                object.willUpdate(*this);
+        }
 
         for (const auto& object : m_objects)
-            object.update(*this);
+        {
+            if (object.isActive())
+                object.update(*this);
+        }
 
         const auto pvMat = m_camera->projectionMatrix() * m_camera->computeViewMatrix();
         for (auto& [id, shader] : m_shaders)
@@ -93,10 +99,16 @@ auto Engine::run() -> void
         }
 
         for (const auto& object : m_objects)
-            object.render(*this);
+        {
+            if (object.isActive())
+                object.render(*this);
+        }
 
         for (const auto& object : m_objects)
-            object.postRender(*this);
+        {
+            if (object.isActive())
+                object.postRender(*this);
+        }
 
         m_window.swapBuffers();
 

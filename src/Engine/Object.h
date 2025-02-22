@@ -23,6 +23,9 @@ public:
     SlotSetIndex index;
 
 private:
+    bool m_isActive{true};
+    bool m_isParentActive{true};
+
     SlotSetIndex m_parentIndex{ObjectNoneIndex};
     SlotSetIndex m_firstChildIndex{ObjectNoneIndex};
     SlotSetIndex m_nextSiblingIndex{ObjectNoneIndex};
@@ -41,9 +44,16 @@ private:
     auto markDirty(SlotSet<Object>& objects) -> void;
     auto updateWorldTransformIfDirty(SlotSet<Object>& objects) -> void;
 
+    auto setActiveFromParent(bool active, SlotSet<Object>& objects) -> void;
+
 public:
     [[nodiscard]] auto transform() -> Transform& { return m_transform; }
     [[nodiscard]] auto transform() const -> const Transform& { return m_transform; }
+
+    [[nodiscard]] auto isActiveSelf() const -> bool { return m_isActive; }
+    [[nodiscard]] auto isActive() const -> bool { return isActiveSelf() && m_isParentActive; }
+
+    auto setActive(bool active, SlotSet<Object>& objects) -> void;
 
     template <class T, class... Args>
         requires std::derived_from<T, EngineComponent> && std::constructible_from<T, Object&, Args...>
@@ -67,6 +77,9 @@ public:
         return std::nullopt;
     }
 
+private:
+    auto unsetParentInternal(SlotSet<Object>& objects, bool recursiveUpdate) -> void;
+public:
     auto setParent(Object& object, SlotSet<Object>& objects) -> void;
     auto unsetParent(SlotSet<Object>& objects) -> void;
 

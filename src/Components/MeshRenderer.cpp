@@ -22,7 +22,7 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
         const auto& primitive = mesh.primitives[p];
         const auto& primitiveRenderInfo = meshRenderInfo.primitives[p];
 
-        auto& program = m_program.get().getProgram(primitiveRenderInfo.shaderFlags);
+        auto& program = m_program.getProgram(primitiveRenderInfo.shaderFlags);
         engine.useProgram(program);
 
         auto& vertexArray = engine.getVertexArray(primitiveRenderInfo.vertexArrayFlags);
@@ -205,7 +205,7 @@ void MeshRenderer::onRender(Engine& engine)
         const GLuint uniformBlockBinding = skinIndex;
         glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlockBinding, jointsUBO);
 
-        for (auto& program : m_program.get().programs)
+        for (auto& program : m_program.programs)
         {
             if (program.first & ShaderHasSkin)
             {
