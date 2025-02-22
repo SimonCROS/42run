@@ -3,33 +3,35 @@
 //
 
 #include "Object.h"
+
+#include "Engine.h"
 #include "EngineComponent.h"
 
-auto Object::willUpdate(Engine& engine) const -> void
+auto Object::willUpdate(Engine& engine) -> void
 {
     for (auto& component : m_components)
         component->onWillUpdate(engine);
 }
 
-auto Object::update(Engine& engine) const -> void
+auto Object::update(Engine& engine) -> void
 {
     for (auto& component : m_components)
         component->onUpdate(engine);
 }
 
-auto Object::render(Engine& engine) const -> void
+auto Object::render(Engine& engine) -> void
 {
     for (auto& component : m_components)
         component->onRender(engine);
 }
 
-auto Object::postRender(Engine& engine) const -> void
+auto Object::postRender(Engine& engine) -> void
 {
     for (auto& component : m_components)
         component->onPostRender(engine);
 }
 
-auto Object::markDirty(SlotSet<Object>& objects) -> void
+auto Object::markDirty() -> void
 {
     if (!m_transform.m_dirty)
     {
@@ -38,20 +40,20 @@ auto Object::markDirty(SlotSet<Object>& objects) -> void
         auto child = m_firstChildIndex;
         while (child != ObjectNoneIndex)
         {
-            objects[child].markDirty(objects);
-            child = objects[child].m_nextSiblingIndex;
+            m_engine.objects()[child].markDirty();
+            child = m_engine.objects()[child].m_nextSiblingIndex;
         }
     }
 }
 
-auto Object::updateWorldTransformIfDirty(SlotSet<Object>& objects) -> void
+auto Object::updateWorldTransformIfDirty() -> void
 {
-    // if (m_transform.m_dirty) // TODO
+    if (m_transform.m_dirty)
     {
         if (m_parentIndex != ObjectNoneIndex)
         {
-            auto& parent = objects[m_parentIndex];
-            parent.updateWorldTransformIfDirty(objects);
+            auto& parent = m_engine.objects()[m_parentIndex];
+            parent.updateWorldTransformIfDirty();
             m_worldTransform = parent.m_worldTransform * m_transform.trs();
         }
         else
@@ -63,7 +65,7 @@ auto Object::updateWorldTransformIfDirty(SlotSet<Object>& objects) -> void
     }
 }
 
-auto Object::setActiveFromParent(const bool active, SlotSet<Object>& objects) -> void
+auto Object::setActiveFromParent(const bool active) -> void
 {
     m_isParentActive = active;
 
@@ -72,13 +74,13 @@ auto Object::setActiveFromParent(const bool active, SlotSet<Object>& objects) ->
         auto child = m_firstChildIndex;
         while (child != ObjectNoneIndex)
         {
-            objects[child].setActiveFromParent(active, objects);
-            child = objects[child].m_nextSiblingIndex;
+            m_engine.objects()[child].setActiveFromParent(active);
+            child = m_engine.objects()[child].m_nextSiblingIndex;
         }
     }
 }
 
-auto Object::setActive(const bool active, SlotSet<Object>& objects) -> void
+auto Object::setActive(const bool active) -> void
 {
     if (m_isActive != active)
     {
@@ -87,18 +89,18 @@ auto Object::setActive(const bool active, SlotSet<Object>& objects) -> void
         auto child = m_firstChildIndex;
         while (child != ObjectNoneIndex)
         {
-            objects[child].setActiveFromParent(active, objects);
-            child = objects[child].m_nextSiblingIndex;
+            m_engine.objects()[child].setActiveFromParent(active);
+            child = m_engine.objects()[child].m_nextSiblingIndex;
         }
     }
 }
 
-auto Object::unsetParentInternal(SlotSet<Object>& objects, const bool recursiveUpdate) -> void
+auto Object::unsetParentInternal(const bool recursiveUpdate) -> void
 {
     if (m_parentIndex == ObjectNoneIndex)
         return;
 
-    auto* prevNextPtr = &objects[m_parentIndex].m_firstChildIndex;
+    auto* prevNextPtr = &m_engine.objects()[m_parentIndex].m_firstChildIndex;
     auto current = *prevNextPtr;
 
     while (current != ObjectNoneIndex)
@@ -108,8 +110,8 @@ auto Object::unsetParentInternal(SlotSet<Object>& objects, const bool recursiveU
             *prevNextPtr = m_nextSiblingIndex;
             break;
         }
-        prevNextPtr = &objects[current].m_nextSiblingIndex;
-        current = objects[current].m_nextSiblingIndex;
+        prevNextPtr = &m_engine.objects()[current].m_nextSiblingIndex;
+        current = m_engine.objects()[current].m_nextSiblingIndex;
     }
 
     m_parentIndex = ObjectNoneIndex;
@@ -117,28 +119,28 @@ auto Object::unsetParentInternal(SlotSet<Object>& objects, const bool recursiveU
 
     if (recursiveUpdate)
     {
-        setActiveFromParent(isActiveSelf(), objects);
-        markDirty(objects);
+        setActiveFromParent(isActiveSelf());
+        markDirty();
     }
 }
 
-auto Object::setParent(Object& object, SlotSet<Object>& objects) -> void
+auto Object::setParent(Object& object) -> void
 {
     assert(index != object.index);
     if (m_parentIndex == object.index)
         return;
 
-    unsetParentInternal(objects, false);
+    unsetParentInternal(false);
 
     m_parentIndex = object.index;
     m_nextSiblingIndex = object.m_firstChildIndex;
     object.m_firstChildIndex = index;
 
-    setActiveFromParent(object.isActive(), objects);
-    markDirty(objects);
+    setActiveFromParent(object.isActive());
+    markDirty();
 }
 
-auto Object::unsetParent(SlotSet<Object>& objects) -> void
+auto Object::unsetParent() -> void
 {
-    unsetParentInternal(objects, true);
+    unsetParentInternal(true);
 }

@@ -24,7 +24,7 @@ static auto instantiatePlaneTwoTables(Engine& engine) -> Object&
         subObject.transform().setTranslation({-2, 0, 5});
         subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
         subObject.addComponent<MeshRenderer>(deskMesh, shaderProgram);
-        subObject.setParent(object, engine.objects());
+        subObject.setParent(object);
     }
 
     {
@@ -34,7 +34,7 @@ static auto instantiatePlaneTwoTables(Engine& engine) -> Object&
         subObject.transform().setTranslation({2, 0, 2});
         subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
         subObject.addComponent<MeshRenderer>(deskMesh, shaderProgram);
-        subObject.setParent(object, engine.objects());
+        subObject.setParent(object);
     }
     return object;
 }

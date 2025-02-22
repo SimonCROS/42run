@@ -192,7 +192,7 @@ void MeshRenderer::onRender(Engine& engine)
     if (engine.polygonMode() != m_polygonMode)
         engine.setPolygoneMode(m_polygonMode);
 
-    const auto globalTransform = object().worldTransform(engine.objects());
+    const auto globalTransform = object().worldTransform();
 
     for (const auto nodeIndex : m_mesh.model().scenes[m_mesh.model().defaultScene].nodes)
         calculateGlobalTransformsRecursive(nodeIndex, globalTransform);

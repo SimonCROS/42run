@@ -4,9 +4,7 @@
 
 #ifndef ENGINE_H
 #define ENGINE_H
-#include <iostream>
 #include <functional>
-#include <unordered_set>
 
 #include "FrameInfo.h"
 #include "Object.h"
@@ -184,7 +182,7 @@ public:
 
     auto setCamera(const Camera& camera) -> void { m_camera = &camera; }
 
-    [[deprecated("Temporary")]] auto objects() -> SlotSet<Object>& { return m_objects; }
+    auto objects() -> SlotSet<Object>& { return m_objects; }
 
     auto getShaderProgram(const std::string_view& id) const -> std::optional<std::reference_wrapper<ShaderProgram>>
     {

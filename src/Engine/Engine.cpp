@@ -2,10 +2,11 @@
 // Created by Simon Cros on 1/13/25.
 //
 
-#include "../Components/Camera.h"
-#include "Engine.h"
+#include <iostream>
 
+#include "Engine.h"
 #include "Mesh.h"
+#include "Components/Camera.h"
 #include "OpenGL/Debug.h"
 
 auto Engine::Create(Window&& window) -> Engine
@@ -73,13 +74,13 @@ auto Engine::run() -> void
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (const auto& object : m_objects)
+        for (auto& object : m_objects)
         {
             if (object.isActive())
                 object.willUpdate(*this);
         }
 
-        for (const auto& object : m_objects)
+        for (auto& object : m_objects)
         {
             if (object.isActive())
                 object.update(*this);
@@ -98,13 +99,13 @@ auto Engine::run() -> void
             }
         }
 
-        for (const auto& object : m_objects)
+        for (auto& object : m_objects)
         {
             if (object.isActive())
                 object.render(*this);
         }
 
-        for (const auto& object : m_objects)
+        for (auto& object : m_objects)
         {
             if (object.isActive())
                 object.postRender(*this);
@@ -187,5 +188,5 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
 
 auto Engine::instantiate() -> Object&
 {
-    return m_objects.emplace();
+    return m_objects.emplace(*this);
 }
