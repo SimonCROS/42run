@@ -5,10 +5,11 @@
 module;
 
 #include <cmath>
-#include "Engine/Engine.h"
 #include "GLFW/glfw3.h"
 
 module Components;
+
+import Engine;
 
 auto PlayerController::ChangeLaneAnimation::update(const float deltaTime) -> void
 {

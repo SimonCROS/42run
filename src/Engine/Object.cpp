@@ -3,8 +3,8 @@
 //
 
 #include "Object.h"
+#include "Engine/Engine.h"
 
-#include "Engine.h"
 #include "EngineComponent.h"
 
 auto Object::willUpdate(Engine& engine) -> void

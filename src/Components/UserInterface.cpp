@@ -2,6 +2,7 @@
 // Created by loumarti on 1/25/25.
 //
 
+#include "Engine/Engine.h"
 #include "Animator.h"
 #include "MeshRenderer.h"
 #include "UserInterface.h"

@@ -7,7 +7,6 @@
 
 #include "UserInterface.h"
 #include "Engine/FrameInfo.h"
-#include "Engine/Engine.h"
 #include "Engine/EngineComponent.h"
 #include "Engine/Mesh.h"
 #include <utility>

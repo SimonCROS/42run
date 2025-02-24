@@ -4,10 +4,11 @@
 
 module;
 
-#include "Engine/Engine.h"
 #include "Engine/EngineComponent.h"
 
 export module Components:MapController;
+
+import Engine;
 
 export class MapController final : public EngineComponent
 {

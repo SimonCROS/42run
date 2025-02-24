@@ -2,6 +2,7 @@
 // Created by Simon Cros on 1/23/25.
 //
 
+#include "tiny_gltf.h"
 #include "Animation.h"
 
 auto Animation::initInputBuffer(const tinygltf::Model& model, const int accessorIndex)

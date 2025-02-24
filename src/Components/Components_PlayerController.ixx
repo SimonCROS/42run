@@ -4,10 +4,12 @@
 
 module;
 
-#include "Engine/Engine.h"
+#include <chrono>
 #include "Engine/EngineComponent.h"
 
 export module Components:PlayerController;
+
+import Engine;
 
 export class PlayerController final : public EngineComponent
 {

@@ -2,17 +2,20 @@
 // Created by Simon Cros on 1/13/25.
 //
 
-#ifndef WINDOW_H
-#define WINDOW_H
+module;
+
 #include <string>
 #include <functional>
 #include <utility>
 
 #include "GLFW/glfw3.h"
-#include "Controls.h"
 #include "Utility/Expected.h"
 
-class Window
+export module Window:Window;
+
+import :Controls;
+
+export class Window
 {
 public:
     using KeyListener = std::function<void (Window&, int, int, int)>;
@@ -93,5 +96,3 @@ public:
         return m_window;
     }
 };
-
-#endif //WINDOW_H

@@ -2,11 +2,13 @@
 // Created by Simon Cros on 1/16/25.
 //
 
-#ifndef CONTROLS_H
-#define CONTROLS_H
+module;
+
 #include "GLFW/glfw3.h"
 
-class Controls
+export module Window:Controls;
+
+export class Controls
 {
 private:
     GLFWwindow* m_window;
@@ -31,5 +33,3 @@ public:
         return glfwGetKey(m_window, key);
     }
 };
-
-#endif //CONTROLS_H

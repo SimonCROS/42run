@@ -5,3 +5,5 @@
 export module Window;
 
 export import :Context;
+export import :Controls;
+export import :Window;

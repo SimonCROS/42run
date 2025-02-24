@@ -14,7 +14,16 @@
 //
 // module Window;
 
-#include "Window_Window.h"
+module;
+
+#include <utility>
+#include <string>
+#include <functional>
+
+#include "GLFW/glfw3.h"
+#include "Utility/Expected.h"
+
+module Window;
 
 auto Window::Create(const int width, const int height, const std::string& title) -> Expected<Window, std::string>
 {

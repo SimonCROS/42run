@@ -1,11 +1,6 @@
 add_executable(42run
         tiny_gltf_impl.cpp
 
-        Window/Window_Window.cpp
-        Window/Window_Window.h
-        Window/Controls.cpp
-        Window/Controls.h
-
         OpenGL/VertexBuffer.h
         OpenGL/VertexBuffer.cpp
         OpenGL/VertexArray.cpp
@@ -32,7 +27,6 @@ add_executable(42run
         Components/Camera.cpp
         Components/Camera.h
 
-        Engine/Engine.cpp
         Engine/Engine.h
         Engine/AnimationSampler.cpp
         Engine/AnimationSampler.h
@@ -60,6 +54,7 @@ add_executable(42run
         Engine/ObjectsManager.cpp
         Engine/ObjectsManager.h
         Utility/SlotSet.h
+        Engine/Engine.h
 )
 
 target_sources(42run
@@ -69,16 +64,21 @@ target_sources(42run
                         main.ixx
                         Window/Window.ixx
                         Window/Window_Context.ixx
+                        Window/Window_Controls.ixx
+                        Window/Window_Window.ixx
                         Components/Components.ixx
                         Components/Components_CameraController.ixx
                         Components/Components_ImguiSingleton.ixx
                         Components/Components_MapController.ixx
                         Components/Components_PlayerController.ixx
+                        Engine/Engine.ixx
         PRIVATE
                 Window/Window_Context.cpp
+                Window/Window_Window.cpp
                 Components/Components_ImguiSingleton.cpp
                 Components/Components_MapController.cpp
                 Components/Components_PlayerController.cpp
+                Engine/Engine.cpp
 )
 
 target_compile_definitions(42run PRIVATE

@@ -6,8 +6,10 @@
 #define USERINTERFACE_H
 
 #include <imgui.h>
+#include <cstdint>
+#include <string>
+#include <memory>
 
-#include "Engine/Engine.h"
 #include "Engine/EngineComponent.h"
 #include "Utility/VectorMultiMap.h"
 

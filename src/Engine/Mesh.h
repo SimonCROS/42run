@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+#include "Engine/Engine.h"
 #include "tiny_gltf.h"
 #include "Animation.h"
 #include "OpenGL/ShaderProgram.h"

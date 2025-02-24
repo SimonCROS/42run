@@ -2,12 +2,17 @@
 // Created by Simon Cros on 1/13/25.
 //
 
-#include <iostream>
+module;
 
-#include "Engine.h"
+#include <iostream>
+#include <chrono>
+
+#include "GLFW/glfw3.h"
 #include "Mesh.h"
 #include "Components/Camera.h"
 #include "OpenGL/Debug.h"
+
+module Engine;
 
 auto Engine::Create(Window&& window) -> Engine
 {

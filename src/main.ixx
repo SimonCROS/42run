@@ -4,8 +4,6 @@ module;
 #include <iostream>;
 
 #include "42runConfig.h"
-#include "Engine/Engine.h"
-#include "Window/Window_Window.h"
 #include "Components/UserInterface.h"
 #include "Components/MeshRenderer.h"
 #include "InterfaceBlocks/DisplayInterfaceBlock.h"
@@ -13,6 +11,7 @@ module;
 
 export module main;
 
+import Engine;
 import Window;
 import Components;
 

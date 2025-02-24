@@ -12,9 +12,10 @@ module;
 #include "imgui_impl_opengl3.h"
 #include "Engine/Object.h"
 #include "Engine/EngineComponent.h"
-#include "Window/Window_Window.h"
 
 module Components;
+
+import Window;
 
 ImguiSingleton::ImguiSingleton(Object& object, const Window& window)
     : EngineComponent(object)

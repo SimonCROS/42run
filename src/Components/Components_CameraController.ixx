@@ -4,12 +4,13 @@
 
 module;
 
-#include "Engine/Engine.h"
 #include "Camera.h"
-#include "Window/Controls.h"
 #include "Engine/EngineComponent.h"
 
 export module Components:CameraController;
+
+import Engine;
+import Window;
 
 class CameraController final : public EngineComponent
 {

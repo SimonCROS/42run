@@ -5,7 +5,7 @@
 #ifndef ANIMATIONSAMPLER_H
 #define ANIMATIONSAMPLER_H
 
-#include "Engine.h"
+#include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 
