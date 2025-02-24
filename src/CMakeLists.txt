@@ -1,13 +1,10 @@
 add_executable(42run
-        main.cpp
         tiny_gltf_impl.cpp
 
-        Window/Window.cpp
-        Window/Window.h
+        Window/Window_Window.cpp
+        Window/Window_Window.h
         Window/Controls.cpp
         Window/Controls.h
-        Window/WindowContext.cpp
-        Window/WindowContext.h
 
         OpenGL/VertexBuffer.h
         OpenGL/VertexBuffer.cpp
@@ -73,6 +70,17 @@ add_executable(42run
         Components/MapController.h
         Components/PlayerController.cpp
         Components/PlayerController.h
+)
+
+target_sources(42run
+        PUBLIC
+                FILE_SET CXX_MODULES
+                FILES
+                        main.ixx
+                        Window/Window.ixx
+                        Window/Window_Context.ixx
+        PRIVATE
+                Window/Window_Context.cpp
 )
 
 target_compile_definitions(42run PRIVATE

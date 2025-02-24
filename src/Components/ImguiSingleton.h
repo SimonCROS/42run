@@ -6,8 +6,7 @@
 #define IMGUISINGLETON_H
 
 #include "Engine/EngineComponent.h"
-#include "Window/Window.h"
-
+#include "Window/Window_Window.h"
 
 class ImguiSingleton final : public EngineComponent {
 
@@ -28,9 +27,5 @@ private:
     auto initializeImGui(const Window& window) -> void;
     auto newFrame() const -> void;
 };
-
-
-
-
 
 #endif //IMGUISINGLETON_H

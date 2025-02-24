@@ -2,7 +2,19 @@
 // Created by Simon Cros on 1/13/25.
 //
 
-#include "Window.h"
+// module;
+//
+// #include <string>
+// #include <functional>
+// #include <utility>
+//
+// #include "GLFW/glfw3.h"
+// #include "Controls.h"
+// #include "Utility/Expected.h"
+//
+// module Window;
+
+#include "Window_Window.h"
 
 auto Window::Create(const int width, const int height, const std::string& title) -> Expected<Window, std::string>
 {

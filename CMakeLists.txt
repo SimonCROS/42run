@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.28)
 include(FetchContent)
 
 project(42run VERSION 1.0)

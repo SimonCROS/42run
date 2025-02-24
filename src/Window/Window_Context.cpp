@@ -2,7 +2,14 @@
 // Created by Simon Cros on 1/15/25.
 //
 
-#include "WindowContext.h"
+module;
+
+#include <string>
+
+#include "Utility/Expected.h"
+#include "GLFW/glfw3.h"
+
+module Window;
 
 auto WindowContext::Create(const int glMajor, const int glMinor) -> Expected<WindowContext, std::string>
 {

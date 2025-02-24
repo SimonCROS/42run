@@ -1,10 +1,11 @@
-#include <fstream>
-#include <iostream>
+module;
+
+#include <fstream>;
+#include <iostream>;
 
 #include "42runConfig.h"
 #include "Engine/Engine.h"
-#include "Window/Window.h"
-#include "Window/WindowContext.h"
+#include "Window/Window_Window.h"
 #include "Components/UserInterface.h"
 #include "Components/CameraController.h"
 #include "Components/ImguiSingleton.h"
@@ -13,6 +14,10 @@
 #include "Components/PlayerController.h"
 #include "InterfaceBlocks/DisplayInterfaceBlock.h"
 #include "InterfaceBlocks/AnimationInterfaceBlock.h"
+
+export module main;
+
+import Window;
 
 auto start() -> Expected<void, std::string>
 {
@@ -228,7 +233,7 @@ auto start() -> Expected<void, std::string>
     return {};
 }
 
-auto main() -> int
+export auto main() -> int
 {
     auto e_result = start();
     if (!e_result)

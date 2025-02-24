@@ -10,7 +10,7 @@
 
 #include "GLFW/glfw3.h"
 #include "Controls.h"
-#include "../Utility/Expected.h"
+#include "Utility/Expected.h"
 
 class Window
 {

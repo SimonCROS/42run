@@ -13,7 +13,7 @@
 #include "OpenGL/ShaderProgram.h"
 #include "OpenGL/VertexArray.h"
 #include "Utility/SlotSet.h"
-#include "Window/Window.h"
+#include "Window/Window_Window.h"
 
 class Camera;
 class Mesh;

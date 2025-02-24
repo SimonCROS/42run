@@ -1,16 +1,18 @@
 //
-// Created by Simon Cros on 1/15/25.
+// Created by Simon Cros on 2/24/25.
 //
 
-#ifndef WINDOWCONTEXT_H
-#define WINDOWCONTEXT_H
+module;
+
 #include <string>
 #include <utility>
-#include <GLFW/glfw3.h>
 
-#include "../Utility/Expected.h"
+#include "GLFW/glfw3.h"
+#include "Utility/Expected.h"
 
-class WindowContext
+export module Window:Context;
+
+export class WindowContext
 {
 private:
     bool m_moved = false;
@@ -34,5 +36,3 @@ public:
 
     [[nodiscard]] static auto Create(int glMajor, int glMinor) -> Expected<WindowContext, std::string>;
 };
-
-#endif //WINDOWCONTEXT_H
