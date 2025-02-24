@@ -2,14 +2,14 @@
 // Created by loumarti on 2/8/25.
 //
 
-#ifndef IMGUISINGLETON_H
-#define IMGUISINGLETON_H
+module;
 
 #include "Engine/EngineComponent.h"
 #include "Window/Window_Window.h"
 
-class ImguiSingleton final : public EngineComponent {
+export module Components:ImguiSingleton;
 
+export class ImguiSingleton final : public EngineComponent {
 private:
     inline static bool s_singletonExists;
 
@@ -27,5 +27,3 @@ private:
     auto initializeImGui(const Window& window) -> void;
     auto newFrame() const -> void;
 };
-
-#endif //IMGUISINGLETON_H

@@ -2,9 +2,11 @@
 // Created by Simon Cros on 2/20/25.
 //
 
-#include "MapController.h"
+module;
 
 #include "MeshRenderer.h"
+
+module Components;
 
 static auto instantiatePlaneTwoTables(Engine& engine) -> Object&
 {

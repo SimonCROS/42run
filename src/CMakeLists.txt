@@ -23,12 +23,8 @@ add_executable(42run
         OpenGL/Pipeline.cpp
         OpenGL/Pipeline.h
 
-        Components/ImguiSingleton.cpp
-        Components/ImguiSingleton.h
         Components/UserInterface.cpp
         Components/UserInterface.h
-        Components/CameraController.cpp
-        Components/CameraController.h
         Components/MeshRenderer.cpp
         Components/MeshRenderer.h
         Components/Animator.cpp
@@ -61,15 +57,9 @@ add_executable(42run
         InterfaceBlocks/DisplayInterfaceBlock.h
         InterfaceBlocks/AnimationInterfaceBlock.cpp
         InterfaceBlocks/AnimationInterfaceBlock.h
-        InterfaceBlocks/CameraTargetInterfaceBlock.cpp
-        InterfaceBlocks/CameraTargetInterfaceBlock.h
         Engine/ObjectsManager.cpp
         Engine/ObjectsManager.h
         Utility/SlotSet.h
-        Components/MapController.cpp
-        Components/MapController.h
-        Components/PlayerController.cpp
-        Components/PlayerController.h
 )
 
 target_sources(42run
@@ -79,8 +69,16 @@ target_sources(42run
                         main.ixx
                         Window/Window.ixx
                         Window/Window_Context.ixx
+                        Components/Components.ixx
+                        Components/Components_CameraController.ixx
+                        Components/Components_ImguiSingleton.ixx
+                        Components/Components_MapController.ixx
+                        Components/Components_PlayerController.ixx
         PRIVATE
                 Window/Window_Context.cpp
+                Components/Components_ImguiSingleton.cpp
+                Components/Components_MapController.cpp
+                Components/Components_PlayerController.cpp
 )
 
 target_compile_definitions(42run PRIVATE

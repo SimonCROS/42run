@@ -2,12 +2,14 @@
 // Created by Simon Cros on 2/20/25.
 //
 
-#ifndef MAPCONTROLLER_H
-#define MAPCONTROLLER_H
+module;
+
 #include "Engine/Engine.h"
 #include "Engine/EngineComponent.h"
 
-class MapController final : public EngineComponent
+export module Components:MapController;
+
+export class MapController final : public EngineComponent
 {
 private:
     static constexpr float BaseSpeed = 2;
@@ -29,5 +31,3 @@ public:
 
     auto onUpdate(Engine& engine) -> void override;
 };
-
-#endif //MAPCONTROLLER_H

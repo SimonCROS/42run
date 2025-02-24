@@ -2,13 +2,14 @@
 // Created by Simon Cros on 2/20/25.
 //
 
-#ifndef PLAYERCONTROLLER_H
-#define PLAYERCONTROLLER_H
+module;
+
 #include "Engine/Engine.h"
 #include "Engine/EngineComponent.h"
-#include "glm/gtx/quaternion.hpp"
 
-class PlayerController : public EngineComponent
+export module Components:PlayerController;
+
+export class PlayerController final : public EngineComponent
 {
 public:
     static constexpr float LaneSize = 2;
@@ -104,6 +105,3 @@ public:
 private:
     auto processInput(const Engine& engine) -> void;
 };
-
-
-#endif //PLAYERCONTROLLER_H

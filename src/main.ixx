@@ -7,17 +7,14 @@ module;
 #include "Engine/Engine.h"
 #include "Window/Window_Window.h"
 #include "Components/UserInterface.h"
-#include "Components/CameraController.h"
-#include "Components/ImguiSingleton.h"
-#include "Components/MapController.h"
 #include "Components/MeshRenderer.h"
-#include "Components/PlayerController.h"
 #include "InterfaceBlocks/DisplayInterfaceBlock.h"
 #include "InterfaceBlocks/AnimationInterfaceBlock.h"
 
 export module main;
 
 import Window;
+import Components;
 
 auto start() -> Expected<void, std::string>
 {

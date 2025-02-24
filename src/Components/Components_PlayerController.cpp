@@ -2,7 +2,13 @@
 // Created by Simon Cros on 2/20/25.
 //
 
-#include "PlayerController.h"
+module;
+
+#include <cmath>
+#include "Engine/Engine.h"
+#include "GLFW/glfw3.h"
+
+module Components;
 
 auto PlayerController::ChangeLaneAnimation::update(const float deltaTime) -> void
 {

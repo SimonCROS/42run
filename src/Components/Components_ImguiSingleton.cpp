@@ -2,13 +2,19 @@
 // Created by loumarti on 2/8/25.
 //
 
-#include "ImguiSingleton.h"
+module;
 
 #include <iostream>
 #include <ostream>
+#include <cassert>
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "Engine/Object.h"
+#include "Engine/EngineComponent.h"
+#include "Window/Window_Window.h"
+
+module Components;
 
 ImguiSingleton::ImguiSingleton(Object& object, const Window& window)
     : EngineComponent(object)

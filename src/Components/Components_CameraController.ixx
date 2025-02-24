@@ -2,13 +2,14 @@
 // Created by Simon Cros on 1/16/25.
 //
 
-#ifndef CAMERACONTROLLER_H
-#define CAMERACONTROLLER_H
+module;
 
 #include "Engine/Engine.h"
 #include "Camera.h"
 #include "Window/Controls.h"
 #include "Engine/EngineComponent.h"
+
+export module Components:CameraController;
 
 class CameraController final : public EngineComponent
 {
@@ -69,5 +70,3 @@ public:
         object().transform().setRotation(rotation);
     }
 };
-
-#endif //CAMERACONTROLLER_H
