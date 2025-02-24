@@ -5,7 +5,7 @@
 #include "Object.h"
 #include "Engine/Engine.h"
 
-#include "EngineComponent.h"
+#include "Engine_Component.ixx"
 
 auto Object::willUpdate(Engine& engine) -> void
 {

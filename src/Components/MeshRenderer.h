@@ -5,11 +5,11 @@
 #ifndef MODELRENDERER_H
 #define MODELRENDERER_H
 #include "Animator.h"
-#include "Engine/EngineComponent.h"
+#include "Engine/Engine_Component.ixx"
 #include "Engine/Mesh.h"
 #include "OpenGL/ShaderProgram.h"
 
-class MeshRenderer final : public EngineComponent
+class MeshRenderer final : public Component
 {
 private:
     struct Node
@@ -38,7 +38,7 @@ private:
 
 public:
     explicit MeshRenderer(Object& object, const Mesh& model, ShaderProgram& program) :
-        EngineComponent(object), m_mesh(model), m_program(program)
+        Component(object), m_mesh(model), m_program(program)
     {
         m_nodes.resize(m_mesh.model().nodes.size());
         m_skins.resize(m_mesh.model().skins.size());

@@ -4,13 +4,12 @@
 
 module;
 
-#include "Engine/EngineComponent.h"
-
 export module Components:ImguiSingleton;
 
 import Window;
+import Engine;
 
-export class ImguiSingleton final : public EngineComponent {
+export class ImguiSingleton final : public Component {
 private:
     inline static bool s_singletonExists{false};
 

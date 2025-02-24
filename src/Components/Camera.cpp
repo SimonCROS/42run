@@ -4,7 +4,7 @@
 
 #include "Camera.h"
 
-Camera::Camera(Object& object, const uint32_t width, const uint32_t height, const float fov) : EngineComponent(object), m_mode(COLOR)
+Camera::Camera(Object& object, const uint32_t width, const uint32_t height, const float fov) : Component(object), m_mode(COLOR)
 {
     const float aspect = static_cast<float>(width) / static_cast<float>(height);
 

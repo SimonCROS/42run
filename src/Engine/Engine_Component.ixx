@@ -2,23 +2,22 @@
 // Created by Simon Cros on 1/27/25.
 //
 
-#ifndef ENGINECOMPONENT_H
-#define ENGINECOMPONENT_H
+export module Engine:Component;
 
 class Engine;
 class Object;
 
-class EngineComponent
+export class Component
 {
 protected:
     Object& m_object;
 
 public:
-    explicit EngineComponent(Object& object) : m_object(object)
+    explicit Component(Object& object) : m_object(object)
     {
     }
 
-    virtual ~EngineComponent() = default;
+    virtual ~Component() = default;
 
     [[nodiscard]] auto object() -> Object& { return m_object; }
     [[nodiscard]] auto object() const -> const Object& { return m_object; }
@@ -39,5 +38,3 @@ public:
     {
     }
 };
-
-#endif //ENGINECOMPONENT_H

@@ -2,14 +2,13 @@
 // Created by loumarti on 1/25/25.
 //
 
-#include "Engine/Engine.h"
 #include "Animator.h"
 #include "MeshRenderer.h"
 #include "UserInterface.h"
 #include "imgui_impl_opengl3.h"
 
 UserInterface::UserInterface(Object& object, const std::string_view& name, const ImguiWindowData& windowData)
-    : EngineComponent(object), m_windowData(windowData)
+    : Component(object), m_windowData(windowData)
 {
     m_name = name;
 }

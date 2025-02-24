@@ -5,14 +5,14 @@
 module;
 
 #include "Camera.h"
-#include "Engine/EngineComponent.h"
+#include "Engine/Engine_Component.ixx"
 
 export module Components:CameraController;
 
 import Engine;
 import Window;
 
-class CameraController final : public EngineComponent
+class CameraController final : public Component
 {
 public:
     static constexpr float DefaultDistance = 10.0f;
@@ -25,7 +25,7 @@ private:
     float m_yaw{};
 
 public:
-    CameraController(Object& object, const glm::vec3 target, const float distance) : EngineComponent(object),
+    CameraController(Object& object, const glm::vec3 target, const float distance) : Component(object),
         m_target(target), m_distance(distance)
     {
     }

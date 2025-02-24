@@ -7,12 +7,12 @@
 #include <memory>
 #include <unordered_set>
 
-#include "EngineComponent.h"
+#include "Engine_Component.ixx"
 #include "Transform.h"
 #include "Utility/SlotSet.h"
 
 class Engine;
-class EngineComponent;
+class Component;
 
 constexpr SlotSetIndex ObjectNoneIndex = -1;
 
@@ -39,7 +39,7 @@ private:
 
     glm::mat4 m_worldTransform{};
 
-    std::unordered_set<std::unique_ptr<EngineComponent>> m_components;
+    std::unordered_set<std::unique_ptr<Component>> m_components;
 
     auto willUpdate(Engine& engine) -> void;
     auto update(Engine& engine) -> void;
@@ -66,7 +66,7 @@ public:
     auto setActive(bool active) -> void;
 
     template <class T, class... Args>
-        requires std::derived_from<T, EngineComponent> && std::constructible_from<T, Object&, Args...>
+        requires std::derived_from<T, Component> && std::constructible_from<T, Object&, Args...>
     auto addComponent(Args&&... args) -> T&
     {
         return dynamic_cast<T&>(**m_components.emplace(std::make_unique<T>(
@@ -74,7 +74,7 @@ public:
     }
 
     template <class T>
-        requires std::derived_from<T, EngineComponent>
+        requires std::derived_from<T, Component>
     auto getComponent() -> std::optional<std::reference_wrapper<T>>
     {
         for (auto& component : m_components)

@@ -7,11 +7,10 @@
 
 #include "UserInterface.h"
 #include "Engine/FrameInfo.h"
-#include "Engine/EngineComponent.h"
 #include "Engine/Mesh.h"
 #include <utility>
 
-class Animator final : public EngineComponent
+class Animator final : public Component
 {
 public:
     struct AnimatedTransform

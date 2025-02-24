@@ -5,7 +5,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "Engine/EngineComponent.h"
+#include "Engine/Engine_Component.ixx"
 #include "Engine/Object.h"
 
 enum ViewMode
@@ -14,7 +14,7 @@ enum ViewMode
     TEXTURE
 };
 
-class Camera final : public EngineComponent
+class Camera final : public Component
 {
 private:
     ViewMode m_mode;

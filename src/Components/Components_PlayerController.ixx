@@ -5,13 +5,12 @@
 module;
 
 #include <chrono>
-#include "Engine/EngineComponent.h"
 
 export module Components:PlayerController;
 
 import Engine;
 
-export class PlayerController final : public EngineComponent
+export class PlayerController final : public Component
 {
 public:
     static constexpr float LaneSize = 2;
@@ -57,7 +56,7 @@ private:
     Move m_nextMove{}; // Cache for next move. Overwritten when new input is received while m_isMoving is true.
 
 public:
-    explicit PlayerController(Object& object) : EngineComponent(object)
+    explicit PlayerController(Object& object) : Component(object)
     {
     }
 

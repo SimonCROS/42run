@@ -11,14 +11,14 @@ module;
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "Engine/Object.h"
-#include "Engine/EngineComponent.h"
+#include "Engine/Engine_Component.ixx"
 
 module Components;
 
 import Window;
 
 ImguiSingleton::ImguiSingleton(Object& object, const Window& window)
-    : EngineComponent(object)
+    : Component(object)
 {
     assert(!s_singletonExists);
     s_singletonExists = true;

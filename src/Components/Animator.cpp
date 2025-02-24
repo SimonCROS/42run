@@ -5,7 +5,7 @@
 #include "Animator.h"
 #include "Engine/Mesh.h"
 
-Animator::Animator(Object& object, const Mesh& mesh): EngineComponent(object), m_mesh(mesh)
+Animator::Animator(Object& object, const Mesh& mesh): Component(object), m_mesh(mesh)
 {
     m_nodeTransforms.resize(mesh.model().nodes.size());
 }

@@ -4,13 +4,11 @@
 
 module;
 
-#include "Engine/EngineComponent.h"
-
 export module Components:MapController;
 
 import Engine;
 
-export class MapController final : public EngineComponent
+export class MapController final : public Component
 {
 private:
     static constexpr float BaseSpeed = 2;
@@ -26,7 +24,7 @@ private:
     }
 
 public:
-    explicit MapController(Object& object) : EngineComponent(object)
+    explicit MapController(Object& object) : Component(object)
     {
     }
 

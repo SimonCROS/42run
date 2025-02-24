@@ -10,7 +10,6 @@
 #include <string>
 #include <memory>
 
-#include "Engine/EngineComponent.h"
 #include "Utility/VectorMultiMap.h"
 
 class MeshRenderer;
@@ -45,7 +44,7 @@ public:
     }
 };
 
-class UserInterface : public EngineComponent
+class UserInterface : public Component
 {
 protected:
     std::string m_name;

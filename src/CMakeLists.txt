@@ -27,14 +27,12 @@ add_executable(42run
         Components/Camera.cpp
         Components/Camera.h
 
-        Engine/Engine.h
         Engine/AnimationSampler.cpp
         Engine/AnimationSampler.h
         Engine/Animation.cpp
         Engine/Animation.h
         Engine/Mesh.cpp
         Engine/Mesh.h
-        Engine/EngineComponent.h
         Engine/Object.cpp
         Engine/Object.h
         Engine/FrameInfo.h
@@ -54,7 +52,6 @@ add_executable(42run
         Engine/ObjectsManager.cpp
         Engine/ObjectsManager.h
         Utility/SlotSet.h
-        Engine/Engine.h
 )
 
 target_sources(42run
@@ -72,13 +69,16 @@ target_sources(42run
                         Components/Components_MapController.ixx
                         Components/Components_PlayerController.ixx
                         Engine/Engine.ixx
+                        Engine/Engine_Component.ixx
+                        Engine/Engine_Engine.ixx
         PRIVATE
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
                 Components/Components_ImguiSingleton.cpp
                 Components/Components_MapController.cpp
                 Components/Components_PlayerController.cpp
-                Engine/Engine.cpp
+                Engine/Engine_Component.ixx
+                Engine/Engine_Engine.cpp
 )
 
 target_compile_definitions(42run PRIVATE
