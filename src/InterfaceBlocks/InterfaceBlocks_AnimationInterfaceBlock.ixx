@@ -2,13 +2,16 @@
 // Created by Simon Cros on 08/02/2025.
 //
 
-#ifndef GOLEMINTERFACEBLOCK_H
-#define GOLEMINTERFACEBLOCK_H
-#include "Components/Animator.h"
-#include "Components/MeshRenderer.h"
-#include "Components/UserInterface.h"
+module;
 
-class AnimationInterfaceBlock : public InterfaceBlock
+#include <vector>
+
+export module InterfaceBlocks:AnimationInterfaceBlock;
+
+import Components;
+import Engine;
+
+export class AnimationInterfaceBlock : public InterfaceBlock
 {
 private:
     Animator *m_animator;
@@ -20,5 +23,3 @@ public:
 
     auto onDrawUI(uint16_t blockId, Engine& engine, UserInterface& interface) -> void override;
 };
-
-#endif //GOLEMINTERFACEBLOCK_H

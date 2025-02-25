@@ -2,14 +2,16 @@
 // Created by Simon Cros on 1/17/25.
 //
 
-#ifndef TRANSFORM_H
-#define TRANSFORM_H
+module;
+
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 
-class Object;
+export module Engine:Transform;
 
-class Transform
+export class Object;
+
+export class Transform
 {
 private:
     Object& m_object;
@@ -44,5 +46,3 @@ public:
         return mat;
     }
 };
-
-#endif //TRANSFORM_H

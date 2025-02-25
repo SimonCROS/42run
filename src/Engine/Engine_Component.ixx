@@ -4,8 +4,8 @@
 
 export module Engine:Component;
 
-class Engine;
-class Object;
+export class Engine;
+export class Object;
 
 export class Component
 {

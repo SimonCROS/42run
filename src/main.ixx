@@ -1,19 +1,19 @@
 module;
 
-#include <fstream>;
-#include <iostream>;
+#include <fstream>
+#include <iostream>
 
+#include "glm/glm.hpp"
+#include "glm/gtc/quaternion.hpp"
 #include "42runConfig.h"
-#include "Components/UserInterface.h"
-#include "Components/MeshRenderer.h"
-#include "InterfaceBlocks/DisplayInterfaceBlock.h"
-#include "InterfaceBlocks/AnimationInterfaceBlock.h"
+#include "Utility/Expected.h"
 
 export module main;
 
-import Engine;
-import Window;
 import Components;
+import Engine;
+import InterfaceBlocks;
+import Window;
 
 auto start() -> Expected<void, std::string>
 {

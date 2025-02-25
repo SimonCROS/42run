@@ -2,10 +2,12 @@
 // Created by Simon Cros on 1/29/25.
 //
 
-#include "Object.h"
-#include "Engine/Engine.h"
+module;
 
-#include "Engine_Component.ixx"
+#include <cassert>
+#include "glm/glm.hpp"
+
+module Engine;
 
 auto Object::willUpdate(Engine& engine) -> void
 {

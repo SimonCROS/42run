@@ -2,12 +2,13 @@
 // Created by Simon Cros on 22/01/2025.
 //
 
-#ifndef ANIMATIONSAMPLER_H
-#define ANIMATIONSAMPLER_H
+module;
 
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
+
+export module Engine:AnimationSampler;
 
 class AnimationSampler
 {
@@ -77,5 +78,3 @@ public:
                           result.t);
     }
 };
-
-#endif //ANIMATIONSAMPLER_H

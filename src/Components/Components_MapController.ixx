@@ -4,6 +4,8 @@
 
 module;
 
+#include <chrono>
+
 export module Components:MapController;
 
 import Engine;

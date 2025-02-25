@@ -2,14 +2,19 @@
 // Created by Simon Cros on 1/29/25.
 //
 
-#ifndef MODELRENDERER_H
-#define MODELRENDERER_H
-#include "Animator.h"
-#include "Engine/Engine_Component.ixx"
-#include "Engine/Mesh.h"
+module;
+
+#include <vector>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include "OpenGL/ShaderProgram.h"
 
-class MeshRenderer final : public Component
+export module Components:MeshRenderer;
+import :Animator;
+import Engine;
+
+export class MeshRenderer final : public Component
 {
 private:
     struct Node
@@ -73,5 +78,3 @@ public:
 
     auto onRender(Engine& engine) -> void override;
 };
-
-#endif //MODELRENDERER_H

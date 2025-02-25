@@ -2,11 +2,13 @@
 // Created by Simon Cros on 22/01/2025.
 //
 
-#include "AnimationSampler.h"
+module;
 
 #include <algorithm>
 
 #include "Utility/StridedIterator.h"
+
+module Engine;
 
 using difference_type = StridedIterator<float*>::difference_type;
 

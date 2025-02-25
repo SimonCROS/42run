@@ -2,11 +2,13 @@
 // Created by loumarti on 1/15/25.
 //
 
-#ifndef CAMERA_H
-#define CAMERA_H
+module;
 
-#include "Engine/Engine_Component.ixx"
-#include "Engine/Object.h"
+#include "glm/glm.hpp"
+
+export module Engine:Camera;
+
+import :Component;
 
 enum ViewMode
 {
@@ -28,6 +30,3 @@ public:
 
     [[nodiscard]] glm::mat4 computeViewMatrix() const;
 };
-
-
-#endif //CAMERA_H

@@ -2,8 +2,14 @@
 // Created by Simon Cros on 29/01/2025.
 //
 
-#include "Animator.h"
-#include "Engine/Mesh.h"
+module;
+
+#include <algorithm>
+
+#include "tiny_gltf.h"
+
+module Components;
+import Engine;
 
 Animator::Animator(Object& object, const Mesh& mesh): Component(object), m_mesh(mesh)
 {

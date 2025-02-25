@@ -2,13 +2,17 @@
 // Created by Simon Cros on 1/23/25.
 //
 
-#ifndef ANIMATION_H
-#define ANIMATION_H
+module;
+
 #include <vector>
 
-#include "AnimationSampler.h"
+#include "tiny_gltf.h"
 
-class Animation
+export module Engine:Animation;
+
+import :AnimationSampler;
+
+export class Animation
 {
 private:
     float m_duration;
@@ -35,5 +39,3 @@ public:
     [[nodiscard]] auto sampler(const size_t index) const -> const AnimationSampler& { return m_samplers[index]; }
     [[nodiscard]] auto samplersCount() const -> size_t { return m_samplerCount; }
 };
-
-#endif //ANIMATION_H

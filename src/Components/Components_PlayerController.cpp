@@ -5,6 +5,7 @@
 module;
 
 #include <cmath>
+#include <algorithm>
 #include "GLFW/glfw3.h"
 
 module Components;

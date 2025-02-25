@@ -4,9 +4,15 @@
 
 module;
 
-#include "MeshRenderer.h"
+#include <chrono>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/quaternion.hpp"
 
 module Components;
+
+import :MeshRenderer;
+import Engine;
 
 static auto instantiatePlaneTwoTables(Engine& engine) -> Object&
 {

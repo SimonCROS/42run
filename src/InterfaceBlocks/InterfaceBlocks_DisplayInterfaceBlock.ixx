@@ -2,12 +2,16 @@
 // Created by Simon Cros on 08/02/2025.
 //
 
-#ifndef DISPLAYINTERFACEBLOCK_H
-#define DISPLAYINTERFACEBLOCK_H
-#include "Components/MeshRenderer.h"
-#include "Components/UserInterface.h"
+module;
 
-class DisplayInterfaceBlock : public InterfaceBlock
+#include <cstdint>
+
+export module InterfaceBlocks:DisplayInterfaceBlock;
+
+import Components;
+import Engine;
+
+export class DisplayInterfaceBlock : public InterfaceBlock
 {
 private:
     MeshRenderer *m_meshRenderer;
@@ -20,5 +24,3 @@ public:
 
     auto onDrawUI(uint16_t blockId, Engine& engine, UserInterface& interface) -> void override;
 };
-
-#endif //DISPLAYINTERFACEBLOCK_H

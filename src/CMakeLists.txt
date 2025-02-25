@@ -18,39 +18,15 @@ add_executable(42run
         OpenGL/Pipeline.cpp
         OpenGL/Pipeline.h
 
-        Components/UserInterface.cpp
-        Components/UserInterface.h
-        Components/MeshRenderer.cpp
-        Components/MeshRenderer.h
-        Components/Animator.cpp
-        Components/Animator.h
-        Components/Camera.cpp
-        Components/Camera.h
-
-        Engine/AnimationSampler.cpp
-        Engine/AnimationSampler.h
-        Engine/Animation.cpp
-        Engine/Animation.h
-        Engine/Mesh.cpp
-        Engine/Mesh.h
-        Engine/Object.cpp
-        Engine/Object.h
         Engine/FrameInfo.h
-        Engine/Transform.cpp
-        Engine/Transform.h
+        Engine/ObjectsManager.cpp
+        Engine/ObjectsManager.h
 
         Utility/EnumHelpers.h
         Utility/StridedIterator.h
         Utility/VectorMultiMap.h
         Utility/Expected.h
         Utility/StringUnorderedMap.h
-
-        InterfaceBlocks/DisplayInterfaceBlock.cpp
-        InterfaceBlocks/DisplayInterfaceBlock.h
-        InterfaceBlocks/AnimationInterfaceBlock.cpp
-        InterfaceBlocks/AnimationInterfaceBlock.h
-        Engine/ObjectsManager.cpp
-        Engine/ObjectsManager.h
         Utility/SlotSet.h
 )
 
@@ -64,21 +40,43 @@ target_sources(42run
                         Window/Window_Controls.ixx
                         Window/Window_Window.ixx
                         Components/Components.ixx
+                        Components/Components_Animator.ixx
                         Components/Components_CameraController.ixx
                         Components/Components_ImguiSingleton.ixx
                         Components/Components_MapController.ixx
+                        Components/Components_MeshRenderer.ixx
                         Components/Components_PlayerController.ixx
+                        Components/Components_UserInterface.ixx
+                        Components/Engine_Camera.ixx
                         Engine/Engine.ixx
+                        Engine/Engine_Animation.ixx
+                        Engine/Engine_AnimationSampler.ixx
                         Engine/Engine_Component.ixx
                         Engine/Engine_Engine.ixx
+                        Engine/Engine_Mesh.ixx
+                        Engine/Engine_Object.ixx
+                        Engine/Engine_Transform.ixx
+                        InterfaceBlocks/InterfaceBlocks.ixx
+                        InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
+                        InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
         PRIVATE
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
+                Components/Components_Animator.cpp
                 Components/Components_ImguiSingleton.cpp
                 Components/Components_MapController.cpp
+                Components/Components_MeshRenderer.cpp
                 Components/Components_PlayerController.cpp
-                Engine/Engine_Component.ixx
+                Components/Components_UserInterface.cpp
+                Components/Engine_Camera.cpp
+                Engine/Engine_Animation.cpp
+                Engine/Engine_AnimationSampler.cpp
                 Engine/Engine_Engine.cpp
+                Engine/Engine_Mesh.cpp
+                Engine/Engine_Object.cpp
+                Engine/Engine_Transform.cpp
+                InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.cpp
+                InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.cpp
 )
 
 target_compile_definitions(42run PRIVATE

@@ -2,19 +2,24 @@
 // Created by loumarti on 1/25/25.
 //
 
-#ifndef USERINTERFACE_H
-#define USERINTERFACE_H
+module;
 
-#include <imgui.h>
 #include <cstdint>
 #include <string>
 #include <memory>
 
+#include "imgui.h"
 #include "Utility/VectorMultiMap.h"
 
-class MeshRenderer;
+export module Components:UserInterface;
 
-struct ImguiWindowData
+import Engine;
+
+export class MeshRenderer;
+export class InterfaceBlock;
+export class UserInterface;
+
+export struct ImguiWindowData
 {
     int s_frame_x = 8;
     int s_frame_y = 8;
@@ -22,10 +27,7 @@ struct ImguiWindowData
     int s_frame_height = 132;
 };
 
-class InterfaceBlock;
-class UserInterface;
-
-class InterfaceBlock
+export class InterfaceBlock
 {
 private:
     static constexpr float s_text_offset = 100.0f;
@@ -44,7 +46,7 @@ public:
     }
 };
 
-class UserInterface : public Component
+export class UserInterface : public Component
 {
 protected:
     std::string m_name;
@@ -67,5 +69,3 @@ public:
     auto operator=(const UserInterface& other) -> UserInterface& = delete;
     auto onUpdate(Engine& engine) -> void override;
 };
-
-#endif //USERINTERFACE_H

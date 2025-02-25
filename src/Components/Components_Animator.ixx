@@ -2,15 +2,17 @@
 // Created by Simon Cros on 29/01/2025.
 //
 
-#ifndef ANIMATOR_H
-#define ANIMATOR_H
+module;
 
-#include "UserInterface.h"
-#include "Engine/FrameInfo.h"
-#include "Engine/Mesh.h"
 #include <utility>
+#include "glm/glm.hpp"
+#include "Engine/FrameInfo.h"
 
-class Animator final : public Component
+export module Components:Animator;
+
+import Engine;
+
+export class Animator final : public Component
 {
 public:
     struct AnimatedTransform
@@ -60,5 +62,3 @@ public:
 
     [[nodiscard]] auto currentAnimationIndex() const -> int { return m_currentAnimationIndex; }
 };
-
-#endif //ANIMATOR_H

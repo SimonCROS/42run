@@ -2,21 +2,23 @@
 // Created by Simon Cros on 1/29/25.
 //
 
-#ifndef OBJECT_H
-#define OBJECT_H
+module;
+
 #include <memory>
 #include <unordered_set>
 
-#include "Engine_Component.ixx"
-#include "Transform.h"
 #include "Utility/SlotSet.h"
+#include "glm/glm.hpp"
 
-class Engine;
-class Component;
+export module Engine:Object;
+import :Transform;
+import :Component;
+
+export class Engine;
 
 constexpr SlotSetIndex ObjectNoneIndex = -1;
 
-class Object
+export class Object
 {
     friend class Engine;
     friend class Transform;
@@ -100,5 +102,3 @@ public:
         return m_worldTransform;
     }
 };
-
-#endif //OBJECT_H

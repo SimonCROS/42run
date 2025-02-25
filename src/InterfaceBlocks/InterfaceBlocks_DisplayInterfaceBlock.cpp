@@ -2,8 +2,14 @@
 // Created by Simon Cros on 08/02/2025.
 //
 
-#include "DisplayInterfaceBlock.h"
-#include "Engine/Object.h"
+module;
+
+#include "imgui.h"
+#include "glad/gl.h"
+
+module InterfaceBlocks;
+import Components;
+import Engine;
 
 constexpr const char* displayModes[] = {
     "Fill", "Line", "Point",

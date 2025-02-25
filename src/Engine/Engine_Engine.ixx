@@ -7,7 +7,6 @@ module;
 #include <functional>
 
 #include "FrameInfo.h"
-#include "Object.h"
 #include "glad/gl.h"
 #include "tiny_gltf.h"
 #include "OpenGL/ShaderProgram.h"
@@ -17,6 +16,7 @@ module;
 export module Engine:Engine;
 
 import :Component;
+import :Object;
 import Window;
 
 // TMP
@@ -25,8 +25,8 @@ export using ::TimePoint;
 export using ::DurationType;
 // TMP
 
-class Camera;
-class Mesh;
+export class Camera;
+export class Mesh;
 
 export class Engine
 {

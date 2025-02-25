@@ -2,19 +2,21 @@
 // Created by Simon Cros on 26/01/2025.
 //
 
-#ifndef MODEL_H
-#define MODEL_H
+module;
 
 #include <memory>
 #include <vector>
 
-#include "Engine/Engine.h"
 #include "tiny_gltf.h"
-#include "Animation.h"
 #include "OpenGL/ShaderProgram.h"
 #include "OpenGL/VertexArray.h"
 
-struct AccessorRenderInfo
+export module Engine:Mesh;
+
+import :Animation;
+import :Engine;
+
+export struct AccessorRenderInfo
 {
     GLuint glBuffer{0};
     GLint componentSize{0};
@@ -26,31 +28,31 @@ struct AccessorRenderInfo
     size_t byteOffsetFromBufferView;
 };
 
-struct PrimitiveRenderInfo
+export struct PrimitiveRenderInfo
 {
     VertexArrayFlags vertexArrayFlags{VertexArrayHasNone};
     ShaderFlags shaderFlags{ShaderHasNone};
 };
 
-struct MeshRenderInfo
+export struct MeshRenderInfo
 {
     std::unique_ptr<PrimitiveRenderInfo[]> primitives{nullptr};
 };
 
-struct SkinRenderInfo
+export struct SkinRenderInfo
 {
     GLuint glBuffer{0};
     std::vector<glm::mat4> inverseBindMatrices{};
 };
 
-struct ModelRenderInfo
+export struct ModelRenderInfo
 {
     std::unique_ptr<AccessorRenderInfo[]> accessors{nullptr};
     std::unique_ptr<MeshRenderInfo[]> meshes{nullptr};
     std::unique_ptr<SkinRenderInfo[]> skins{nullptr};
 };
 
-class Mesh
+export class Mesh
 {
 private:
     std::vector<GLuint> m_buffers;
@@ -95,5 +97,3 @@ public:
         return {};
     }
 };
-
-#endif //MODEL_H

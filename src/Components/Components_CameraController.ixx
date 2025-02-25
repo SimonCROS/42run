@@ -4,8 +4,11 @@
 
 module;
 
-#include "Camera.h"
-#include "Engine/Engine_Component.ixx"
+#include <algorithm>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "GLFW/glfw3.h"
 
 export module Components:CameraController;
 

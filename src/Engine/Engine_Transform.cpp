@@ -2,8 +2,12 @@
 // Created by Simon Cros on 1/17/25.
 //
 
-#include "Transform.h"
-#include "Object.h"
+module;
+
+#include "glm/glm.hpp"
+
+module Engine;
+import :Transform;
 
 auto Transform::setTranslation(const glm::vec3& translation) -> void
 {

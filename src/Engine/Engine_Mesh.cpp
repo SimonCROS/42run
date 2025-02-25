@@ -2,12 +2,16 @@
 // Created by Simon Cros on 26/01/2025.
 //
 
+module;
+
 #include <iostream>
 
-#include "Mesh.h"
-
+#include "tiny_gltf.h"
 #include "OpenGL/ShaderProgram.h"
+#include "OpenGL/VertexArray.h"
 #include "Utility/StridedIterator.h"
+
+module Engine;
 
 static auto addBuffer(Engine& engine, const tinygltf::Model& model, const size_t accessorId,
                       std::vector<GLuint>& buffers, ModelRenderInfo& renderInfo) -> GLuint

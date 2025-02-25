@@ -2,10 +2,14 @@
 // Created by Simon Cros on 1/29/25.
 //
 
-#include "MeshRenderer.h"
-#include "Engine/Engine.h"
-#include "Engine/Object.h"
+module;
+
 #include "glm/gtc/type_ptr.hpp"
+#include "tiny_gltf.h"
+#include "OpenGL/VertexArray.h"
+
+module Components;
+import Engine;
 
 static void* bufferOffset(const size_t offset)
 {

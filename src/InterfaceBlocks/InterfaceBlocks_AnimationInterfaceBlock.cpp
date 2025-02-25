@@ -2,9 +2,15 @@
 // Created by Simon Cros on 08/02/2025.
 //
 
-#include "AnimationInterfaceBlock.h"
+module;
 
-#include "Engine/Object.h"
+#include <vector>
+
+#include "imgui.h"
+
+module InterfaceBlocks;
+import Components;
+import Engine;
 
 AnimationInterfaceBlock::AnimationInterfaceBlock(UserInterface& interface)
 {
