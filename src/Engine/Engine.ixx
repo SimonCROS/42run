@@ -11,3 +11,4 @@ export import :Component;
 export import :Engine;
 export import :Mesh;
 export import :Object;
+export import :Transform;

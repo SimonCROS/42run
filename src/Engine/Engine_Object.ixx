@@ -5,6 +5,7 @@
 module;
 
 #include <memory>
+#include <optional>
 #include <unordered_set>
 
 #include "Utility/SlotSet.h"

@@ -4,6 +4,7 @@
 
 module;
 
+#include <optional>
 #include <vector>
 
 #include "glm/glm.hpp"
