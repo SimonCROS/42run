@@ -10,13 +10,13 @@ export module Engine:Camera;
 
 import :Component;
 
-enum ViewMode
+export enum ViewMode
 {
     COLOR,
     TEXTURE
 };
 
-class Camera final : public Component
+export class Camera final : public Component
 {
 private:
     ViewMode m_mode;
