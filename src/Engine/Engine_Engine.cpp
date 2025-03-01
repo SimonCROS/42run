@@ -19,6 +19,12 @@ module;
 module Engine;
 import Window;
 
+static auto onKeyPressed(const Window& window, const int key, const int action, int mode) -> void
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        window.setShouldClose();
+}
+
 auto Engine::Create(Window&& window) -> Engine
 {
     return Engine(std::move(window));
@@ -48,14 +54,9 @@ Engine::Engine(Window&& window) noexcept :
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
-
-    getWindow().setKeyCallback([](const Window& window, const int key, const int action, int mode) -> void
-    {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-            window.setShouldClose();
-    });
-
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    getWindow().setKeyCallback(onKeyPressed);
 }
 
 auto Engine::run() -> void
