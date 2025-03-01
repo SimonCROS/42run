@@ -4,8 +4,8 @@
 
 export module Components;
 
-export import :Animator;
 export import :CameraController;
+export import :Animator;
 export import :ImguiSingleton;
 export import :MapController;
 export import :MeshRenderer;
