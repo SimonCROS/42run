@@ -51,13 +51,8 @@ target_sources(42run
                 main.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
-                OpenGL/OpenGL_VertexBuffer.cpp
-                OpenGL/OpenGL_VertexArray.cpp
-                OpenGL/OpenGL_IndicesBuffer.cpp
-                OpenGL/OpenGL_Shader.cpp
-                OpenGL/OpenGL_ShaderProgramInstance.cpp
                 OpenGL/OpenGL_ShaderProgram.cpp
-                OpenGL/OpenGL_Pipeline.cpp
+                OpenGL/OpenGL_ShaderProgramInstance.cpp
                 Components/Components_Animator.cpp
                 Components/Components_ImguiSingleton.cpp
                 Components/Components_MapController.cpp
