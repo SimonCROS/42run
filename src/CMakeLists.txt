@@ -34,7 +34,6 @@ target_sources(42run
         PUBLIC
                 FILE_SET CXX_MODULES
                 FILES
-                        main.ixx
                         Window/Window.ixx
                         Window/Window_Context.ixx
                         Window/Window_Controls.ixx
@@ -60,6 +59,7 @@ target_sources(42run
                         InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
                         InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
         PRIVATE
+                main.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
                 Components/Components_Animator.cpp

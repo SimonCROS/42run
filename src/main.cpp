@@ -1,14 +1,15 @@
-module;
+//
+// Created by Simon Cros on 3/1/25.
+//
 
 #include <fstream>
+#include <memory>
 #include <iostream>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "42runConfig.h"
 #include "Utility/Expected.h"
-
-export module main;
 
 import Components;
 import Engine;
@@ -229,7 +230,7 @@ auto start() -> Expected<void, std::string>
     return {};
 }
 
-export auto main() -> int
+auto main() -> int
 {
     auto e_result = start();
     if (!e_result)
