@@ -1,13 +1,18 @@
-#ifndef SHADER_H
-#define SHADER_H
+//
+// Created by Simon Cros on 3/1/25.
+//
+
+module;
 
 #include <string_view>
 #include <utility>
-
-#include "glad/gl.h"
 #include <expected>
 
-class Shader
+#include "glad/gl.h"
+
+export module OpenGL:Shader;
+
+export class Shader
 {
 private:
     GLuint m_id;
@@ -44,5 +49,3 @@ public:
 
     [[nodiscard]] auto id() const -> GLuint { return m_id; }
 };
-
-#endif

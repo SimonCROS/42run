@@ -2,11 +2,15 @@
 // Created by simon on 19/01/2025.
 //
 
+module;
+
 #include <iostream>
 
-#include "Debug.h"
+#include "glad/gl.h"
 
-auto glDebugOutput(GLenum source,
+export module OpenGL:Debug;
+
+export auto glDebugOutput(GLenum source,
                    GLenum type,
                    unsigned int id,
                    GLenum severity,

@@ -5,12 +5,12 @@
 module;
 
 #include "glm/gtc/type_ptr.hpp"
+#include "glad/gl.h"
 #include "tiny_gltf.h"
-#include "OpenGL/VertexArray.h"
-#include "OpenGL/ShaderProgram.h"
 
 module Components;
 import Engine;
+import OpenGL;
 
 static void* bufferOffset(const size_t offset)
 {

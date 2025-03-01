@@ -2,14 +2,16 @@
 // Created by Simon Cros on 2/19/25.
 //
 
-#ifndef SLOTSET_H
-#define SLOTSET_H
+module;
+
 #include <deque>
 #include <cstdint>
 #include <queue>
 #include <concepts>
 
-using SlotSetIndex = int32_t;
+export module Utility:SlotSet;
+
+export using SlotSetIndex = int32_t;
 
 // template <class T>
 // concept Indexed = requires(T a)
@@ -18,6 +20,7 @@ using SlotSetIndex = int32_t;
 //     a.index = std::declval<SlotSetIndex>();
 // };
 
+export
 template <class T>
 class SlotSet
 {
@@ -90,47 +93,4 @@ public:
     [[nodiscard]] auto end() const -> ConstIterator { return m_values.end(); }
 
     [[nodiscard]] auto operator[](const Index index) -> Value& { return m_values[m_slots[index]]; }
-
-    // Object:
-    //   int index
-    //   int version
-    //   other data
-    //
-    // SlotMap:
-    //   Object objects[]
-    //   int slots[]
-    //   int freelist[]
-    //   int count
-    //
-    //   Get(id):
-    //     index = indirection[id.index]
-    //     if objects[index].version = id.version:
-    //       return &objects[index]
-    //     else:
-    //       return null
-    //
-    //   CreateObject():
-    //     index = freelist.pop()
-    //
-    //     objects[count].index = id
-    //     objects[count].version += 1
-    //
-    //     indirection[index] = count
-    //
-    //     Object* object = &objects[count].object
-    //     object.initialize()
-    //
-    //     count += 1
-    //
-    //     return object
-    //
-    //   Remove(id):
-    //     index = indirection[id.index]
-    //     if objects[index].version = id.version:
-    //       objects[index].version += 1
-    //       objects[count - 1].version += 1
-    //
-    //       swap(objects[index].data, objects[count - 1].data)
 };
-
-#endif //SLOTSET_H

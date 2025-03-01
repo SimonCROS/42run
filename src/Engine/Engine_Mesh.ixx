@@ -6,15 +6,16 @@ module;
 
 #include <memory>
 #include <vector>
+#include <expected>
 
+#include "glm/glm.hpp"
+#include "glad/gl.h"
 #include "tiny_gltf.h"
-#include "OpenGL/ShaderProgram.h"
-#include "OpenGL/VertexArray.h"
 
 export module Engine:Mesh;
-
 import :Animation;
 import :Engine;
+import OpenGL;
 
 export struct AccessorRenderInfo
 {

@@ -5,11 +5,11 @@
 module;
 
 #include <utility>
+#include <optional>
+#include <vector>
 #include "glm/glm.hpp"
-#include "Engine/FrameInfo.h"
 
 export module Components:Animator;
-
 import Engine;
 
 export class Animator final : public Component

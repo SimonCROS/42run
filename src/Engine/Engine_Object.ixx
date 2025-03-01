@@ -8,12 +8,12 @@ module;
 #include <optional>
 #include <unordered_set>
 
-#include "Utility/SlotSet.h"
 #include "glm/glm.hpp"
 
 export module Engine:Object;
 import :Transform;
 import :Component;
+import Utility;
 
 export class Engine;
 

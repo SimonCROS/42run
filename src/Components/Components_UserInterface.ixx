@@ -9,11 +9,10 @@ module;
 #include <memory>
 
 #include "imgui.h"
-#include "Utility/VectorMultiMap.h"
 
 export module Components:UserInterface;
-
 import Engine;
+import Utility;
 
 export class MeshRenderer;
 export class InterfaceBlock;

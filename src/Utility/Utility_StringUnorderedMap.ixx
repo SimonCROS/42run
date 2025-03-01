@@ -1,11 +1,16 @@
-#ifndef STRING_UNORDERED_MAP
-#define STRING_UNORDERED_MAP
+//
+// Created by Simon Cros on 3/1/25.
+//
+
+module;
 
 #include <string>
 #include <string_view>
 #include <unordered_map>
 
-struct StringHash
+export module Utility:StringUnorderedMap;
+
+export struct StringHash
 {
     using hash_type = std::hash<std::string_view>;
     using is_transparent = void;
@@ -18,9 +23,8 @@ struct StringHash
 /**
  * Allow for searching with a std::string_view in a std::unordered_map<std::string, T>
  */
+export
 template <
     typename Value,
     typename Allocator = std::allocator<std::pair<const std::string, Value>>>
 using StringUnorderedMap = std::unordered_map<std::string, Value, StringHash, std::equal_to<>, Allocator>;
-
-#endif

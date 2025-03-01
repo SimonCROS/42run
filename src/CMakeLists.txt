@@ -1,42 +1,30 @@
 add_executable(42run
         tiny_gltf_impl.cpp
-
-        OpenGL/VertexBuffer.h
-        OpenGL/VertexBuffer.cpp
-        OpenGL/VertexArray.cpp
-        OpenGL/VertexArray.h
-        OpenGL/IndicesBuffer.cpp
-        OpenGL/IndicesBuffer.h
-        OpenGL/Shader.cpp
-        OpenGL/Shader.h
-        OpenGL/ShaderProgramInstance.cpp
-        OpenGL/ShaderProgramInstance.h
-        OpenGL/ShaderProgram.cpp
-        OpenGL/ShaderProgram.h
-        OpenGL/Debug.cpp
-        OpenGL/Debug.h
-        OpenGL/Pipeline.cpp
-        OpenGL/Pipeline.h
-
-        Engine/FrameInfo.h
-        Engine/ObjectsManager.cpp
-        Engine/ObjectsManager.h
-
         Utility/EnumHelpers.h
-        Utility/StridedIterator.h
-        Utility/VectorMultiMap.h
-        Utility/StringUnorderedMap.h
-        Utility/SlotSet.h
 )
 
 target_sources(42run
         PUBLIC
                 FILE_SET CXX_MODULES
                 FILES
+                        Utility/Utility.ixx
+                        Utility/Utility_SlotSet.ixx
+                        Utility/Utility_StridedIterator.ixx
+                        Utility/Utility_StringUnorderedMap.ixx
+                        Utility/Utility_VectorMultiMap.ixx
                         Window/Window.ixx
                         Window/Window_Context.ixx
                         Window/Window_Controls.ixx
                         Window/Window_Window.ixx
+                        OpenGL/OpenGL.ixx
+                        OpenGL/OpenGL_Debug.ixx
+                        OpenGL/OpenGL_IndicesBuffer.ixx
+                        OpenGL/OpenGL_Pipeline.ixx
+                        OpenGL/OpenGL_Shader.ixx
+                        OpenGL/OpenGL_ShaderProgram.ixx
+                        OpenGL/OpenGL_ShaderProgramInstance.ixx
+                        OpenGL/OpenGL_VertexArray.ixx
+                        OpenGL/OpenGL_VertexBuffer.ixx
                         Components/Components.ixx
                         Components/Components_Animator.ixx
                         Components/Components_CameraController.ixx
@@ -51,8 +39,10 @@ target_sources(42run
                         Engine/Engine_AnimationSampler.ixx
                         Engine/Engine_Component.ixx
                         Engine/Engine_Engine.ixx
+                        Engine/Engine_FrameInfo.ixx
                         Engine/Engine_Mesh.ixx
                         Engine/Engine_Object.ixx
+                        Engine/Engine_ObjectsManager.ixx
                         Engine/Engine_Transform.ixx
                         InterfaceBlocks/InterfaceBlocks.ixx
                         InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
@@ -61,6 +51,13 @@ target_sources(42run
                 main.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
+                OpenGL/OpenGL_VertexBuffer.cpp
+                OpenGL/OpenGL_VertexArray.cpp
+                OpenGL/OpenGL_IndicesBuffer.cpp
+                OpenGL/OpenGL_Shader.cpp
+                OpenGL/OpenGL_ShaderProgramInstance.cpp
+                OpenGL/OpenGL_ShaderProgram.cpp
+                OpenGL/OpenGL_Pipeline.cpp
                 Components/Components_Animator.cpp
                 Components/Components_ImguiSingleton.cpp
                 Components/Components_MapController.cpp
@@ -73,6 +70,7 @@ target_sources(42run
                 Engine/Engine_Engine.cpp
                 Engine/Engine_Mesh.cpp
                 Engine/Engine_Object.cpp
+                Engine/Engine_ObjectsManager.cpp
                 Engine/Engine_Transform.cpp
                 InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.cpp
                 InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.cpp

@@ -1,17 +1,21 @@
-#ifndef SHADER_PROGRAM_H
-#define SHADER_PROGRAM_H
+//
+// Created by Simon Cros on 3/1/25.
+//
+
+module;
 
 #include <string>
 #include <unordered_map>
-
-#include "Shader.h"
 #include <expected>
-#include "Utility/StringUnorderedMap.h"
 
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 
-class ShaderProgramInstance
+export module OpenGL:ShaderProgramInstance;
+import :Shader;
+import Utility;
+
+export class ShaderProgramInstance
 {
     GLuint m_id;
     Shader m_vertShader;
@@ -111,5 +115,3 @@ private:
         return false;
     }
 };
-
-#endif

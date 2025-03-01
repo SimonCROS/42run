@@ -2,11 +2,16 @@
 // Created by Simon Cros on 2/6/25.
 //
 
-#ifndef PIPELINE_H
-#define PIPELINE_H
-#include "ShaderProgram.h"
+module;
 
-class Pipeline
+#include <memory>
+
+#include "glad/gl.h"
+
+export module OpenGL:Pipeline;
+import :ShaderProgram;
+
+export class Pipeline
 {
 public:
     [[nodiscard]] static auto Create(const ShaderProgramInstance& vertProgram, const ShaderProgramInstance& fragProgram)
@@ -24,9 +29,5 @@ public:
             glUseProgramStages(id, GL_VERTEX_SHADER_BIT, vertProgram.id());
             glUseProgramStages(id, GL_FRAGMENT_SHADER_BIT, fragProgram.id());
         }
-
-
     }
 };
-
-#endif //PIPELINE_H

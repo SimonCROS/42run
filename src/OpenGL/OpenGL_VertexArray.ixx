@@ -2,15 +2,19 @@
 // Created by Simon Cros on 2/6/25.
 //
 
-#ifndef VAO_H
-#define VAO_H
-#include <unordered_map>
-#include <glad/gl.h>
+module;
 
-#include "Utility/StringUnorderedMap.h"
+#include <glad/gl.h>
+#include <string_view>
+#include <utility>
+
 #include "Utility/EnumHelpers.h"
 
-enum VertexArrayFlags : unsigned char
+export module OpenGL:VertexArray;
+
+import Utility;
+
+export enum VertexArrayFlags : unsigned char
 {
     VertexArrayHasNone = 0,
     VertexArrayHasPosition = 1 << 0,
@@ -23,7 +27,7 @@ enum VertexArrayFlags : unsigned char
 
 MAKE_FLAG_ENUM(VertexArrayFlags)
 
-class VertexArray
+export class VertexArray
 {
 private:
     VertexArrayFlags m_flags{VertexArrayHasNone};
@@ -81,6 +85,3 @@ public:
         return (it != attributeLocations.cend()) ? it->second : -1;
     }
 };
-
-
-#endif //VAO_H

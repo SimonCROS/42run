@@ -1,18 +1,22 @@
-#ifndef SHADER_PROGRAM_VARIANTS_H
-#define SHADER_PROGRAM_VARIANTS_H
+//
+// Created by Simon Cros on 3/1/25.
+//
+
+module;
 
 #include <memory>
 #include <unordered_map>
 #include <string>
 #include <string_view>
-
-#include "ShaderProgramInstance.h"
 #include <expected>
+
 #include "Utility/EnumHelpers.h"
 
-#define MAX_JOINTS 256
+export module OpenGL:ShaderProgram;
+import :ShaderProgramInstance;
+import Utility;
 
-enum ShaderFlags : unsigned short
+export enum ShaderFlags : unsigned short
 {
     ShaderHasNone = 0,
     ShaderHasNormals = 1 << 0,
@@ -28,7 +32,7 @@ enum ShaderFlags : unsigned short
 
 MAKE_FLAG_ENUM(ShaderFlags)
 
-class ShaderProgram
+export class ShaderProgram
 {
 public:
     std::unordered_map<ShaderFlags, std::unique_ptr<ShaderProgramInstance>> programs;
@@ -51,5 +55,3 @@ private:
     static auto getCodeWithFlags(const std::string_view& code, ShaderFlags flags) -> std::string;
     static auto tryGetShaderCode(const std::string& path) -> std::expected<std::string, std::string>;
 };
-
-#endif

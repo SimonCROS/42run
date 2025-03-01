@@ -1,7 +1,14 @@
+//
+// Created by Simon Cros on 3/1/25.
+//
+
+module;
+
 #include <string>
-#include "glad/gl.h"
-#include "Shader.h"
 #include <expected>
+#include "glad/gl.h"
+
+module OpenGL;
 
 auto Shader::Create(const GLenum type, const std::string_view& code) -> std::expected<Shader, std::string>
 {

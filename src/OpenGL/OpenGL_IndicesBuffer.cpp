@@ -2,8 +2,11 @@
 // Created by loumarti on 1/15/25.
 //
 
-#include "IndicesBuffer.h"
+module;
+
 #include "glad/gl.h"
+
+module OpenGL;
 
 IndicesBuffer::IndicesBuffer(): m_rendererID(0)
 {

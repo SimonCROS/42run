@@ -2,8 +2,11 @@
 // Created by loumarti on 1/15/25.
 //
 
-#include "VertexBuffer.h"
+module;
+
 #include "glad/gl.h"
+
+module OpenGL;
 
 VertexBuffer::VertexBuffer(): m_rendererID(0)
 {

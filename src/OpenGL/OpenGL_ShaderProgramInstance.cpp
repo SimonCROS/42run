@@ -1,14 +1,18 @@
+//
+// Created by Simon Cros on 3/1/25.
+//
+
+module;
+
 #include <fstream>
 #include <sstream>
+#include <expected>
 
 #include "glad/gl.h"
-#include "ShaderProgramInstance.h"
-
-#include <iostream>
-
-#include "Shader.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
+
+module OpenGL;
 
 auto ShaderProgramInstance::Create(const std::string_view& vertexCode, const std::string_view& fragCode)
     -> std::expected<ShaderProgramInstance, std::string>

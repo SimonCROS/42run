@@ -2,10 +2,13 @@
 // Created by Simon Cros on 01/02/2025.
 //
 
-#ifndef STRIDEDITERATOR_H
-#define STRIDEDITERATOR_H
+module;
+
 #include <iterator>
 
+export module Utility:StridedIterator;
+
+export
 template <class Iterator>
 class StridedIterator
 {
@@ -82,5 +85,3 @@ public:
     auto operator!=(const StridedIterator& other) const -> bool { return !(*this == other); }
     auto operator<(const StridedIterator& other) const -> bool { return m_it < other.m_it; }
 };
-
-#endif //STRIDEDITERATOR_H

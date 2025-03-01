@@ -5,18 +5,17 @@
 module;
 
 #include <functional>
+#include <expected>
 
-#include "FrameInfo.h"
 #include "glad/gl.h"
 #include "tiny_gltf.h"
-#include "OpenGL/ShaderProgram.h"
-#include "OpenGL/VertexArray.h"
-#include "Utility/SlotSet.h"
 
 export module Engine:Engine;
-
 import :Component;
+import :FrameInfo;
 import :Object;
+import OpenGL;
+import Utility;
 import Window;
 
 // TMP

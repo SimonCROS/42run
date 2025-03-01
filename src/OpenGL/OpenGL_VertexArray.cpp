@@ -2,7 +2,11 @@
 // Created by Simon Cros on 2/6/25.
 //
 
-#include "VertexArray.h"
+module;
+
+#include "glad/gl.h"
+
+module OpenGL;
 
 auto VertexArray::Create(VertexArrayFlags flags) -> VertexArray
 {

@@ -7,13 +7,14 @@ module;
 #include <optional>
 #include <vector>
 
+#include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "OpenGL/ShaderProgram.h"
 
 export module Components:MeshRenderer;
 import :Animator;
 import Engine;
+import OpenGL;
 
 export class MeshRenderer final : public Component
 {

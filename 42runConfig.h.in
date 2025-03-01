@@ -3,3 +3,5 @@
 #define WIDTH 1200
 #define HEIGHT 800
 #define RESOURCE_PATH "./resources/"
+
+#define MAX_JOINTS 256

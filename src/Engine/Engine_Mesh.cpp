@@ -5,13 +5,16 @@
 module;
 
 #include <iostream>
+#include <vector>
 
+#include "42runConfig.h"
 #include "tiny_gltf.h"
-#include "OpenGL/ShaderProgram.h"
-#include "OpenGL/VertexArray.h"
-#include "Utility/StridedIterator.h"
+#include "glad/gl.h"
+#include "glm/glm.hpp"
 
 module Engine;
+import OpenGL;
+import Utility;
 
 static auto addBuffer(Engine& engine, const tinygltf::Model& model, const size_t accessorId,
                       std::vector<GLuint>& buffers, ModelRenderInfo& renderInfo) -> GLuint

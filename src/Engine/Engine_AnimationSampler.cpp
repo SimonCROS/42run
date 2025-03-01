@@ -6,9 +6,8 @@ module;
 
 #include <algorithm>
 
-#include "Utility/StridedIterator.h"
-
 module Engine;
+import Utility;
 
 using difference_type = StridedIterator<float*>::difference_type;
 

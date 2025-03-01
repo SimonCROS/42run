@@ -2,15 +2,16 @@
 // Created by loumarti on 1/15/25.
 //
 
-#ifndef INDICESBUFFER_H
-#define INDICESBUFFER_H
+export module OpenGL:VertexBuffer;
 
-class IndicesBuffer {
+export class VertexBuffer
+{
 private:
     unsigned int m_rendererID;
+
 public:
-    IndicesBuffer();
-    ~IndicesBuffer();
+    VertexBuffer();
+    ~VertexBuffer();
 
     void bind() const;
     void unbind() const;
@@ -18,5 +19,3 @@ public:
 
     [[nodiscard]] unsigned int getID() const { return m_rendererID; }
 };
-
-#endif //INDICESBUFFER_H

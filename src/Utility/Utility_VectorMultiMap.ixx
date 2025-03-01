@@ -2,14 +2,16 @@
 // Created by Simon Cros on 08/02/2025.
 //
 
-#ifndef VECTORMULTIMAP_H
-#define VECTORMULTIMAP_H
+module;
 
 #include <algorithm>
 #include <vector>
 
+export module Utility:VectorMultiMap;
+
 // GCC 15 will add an equivalent, std::flat_multiset (to test and benchmark)
 
+export
 template <typename Key, typename Value>
 class VectorMultiMap
 {
@@ -75,5 +77,3 @@ public:
 private:
     Container m_data{};
 };
-
-#endif //VECTORMULTIMAP_H
