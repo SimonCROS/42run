@@ -7,7 +7,7 @@
 #include <string_view>
 
 #include "ShaderProgramInstance.h"
-#include "Utility/Expected.h"
+#include <expected>
 #include "Utility/EnumHelpers.h"
 
 #define MAX_JOINTS 256
@@ -38,18 +38,18 @@ public:
     ShaderProgram(ShaderProgram&& other) = default; // TODO add destructor, so mark other as destroyed
     ShaderProgram(std::string&& vertCode, std::string&& fragCode);
 
-    static auto Create(const std::string& vertPath, const std::string& fragPath) -> Expected<ShaderProgram, std::string>;
+    static auto Create(const std::string& vertPath, const std::string& fragPath) -> std::expected<ShaderProgram, std::string>;
 
     auto getProgram(ShaderFlags flags) -> ShaderProgramInstance&;
     auto getProgram(ShaderFlags flags) const -> const ShaderProgramInstance&;
-    auto enableVariant(ShaderFlags flags) -> Expected<std::reference_wrapper<ShaderProgramInstance>, std::string>;
+    auto enableVariant(ShaderFlags flags) -> std::expected<std::reference_wrapper<ShaderProgramInstance>, std::string>;
 
 private:
     std::string m_vertCode;
     std::string m_fragCode;
 
     static auto getCodeWithFlags(const std::string_view& code, ShaderFlags flags) -> std::string;
-    static auto tryGetShaderCode(const std::string& path) -> Expected<std::string, std::string>;
+    static auto tryGetShaderCode(const std::string& path) -> std::expected<std::string, std::string>;
 };
 
 #endif

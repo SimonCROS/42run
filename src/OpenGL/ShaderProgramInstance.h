@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "Shader.h"
-#include "Utility/Expected.h"
+#include <expected>
 #include "Utility/StringUnorderedMap.h"
 
 #include "glad/gl.h"
@@ -19,7 +19,7 @@ class ShaderProgramInstance
 
 public:
     static auto Create(const std::string_view& vertexCode, const std::string_view& fragCode)
-        -> Expected<ShaderProgramInstance, std::string>;
+        -> std::expected<ShaderProgramInstance, std::string>;
 
     ShaderProgramInstance() : m_id(0)
     {
@@ -88,7 +88,7 @@ private:
     StringUnorderedMap<glm::vec4> m_vec4s;
     StringUnorderedMap<glm::mat4> m_mat4s;
 
-    static auto linkProgram(GLuint id) -> Expected<void, std::string>;
+    static auto linkProgram(GLuint id) -> std::expected<void, std::string>;
 
     template <typename T>
     static bool storeUniformValue(const std::string_view& name, T value, StringUnorderedMap<T>& map,

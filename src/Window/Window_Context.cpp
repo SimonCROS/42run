@@ -6,19 +6,19 @@ module;
 
 #include <string>
 
-#include "Utility/Expected.h"
+#include <expected>
 #include "GLFW/glfw3.h"
 
 module Window;
 
-auto WindowContext::Create(const int glMajor, const int glMinor) -> Expected<WindowContext, std::string>
+auto WindowContext::Create(const int glMajor, const int glMinor) -> std::expected<WindowContext, std::string>
 {
     if (glfwInit() == GLFW_FALSE)
     {
         const char* description;
         glfwGetError(&description);
 
-        return Unexpected(std::string("Failed to initialize glfw: ") + description);
+        return std::unexpected(std::string("Failed to initialize glfw: ") + description);
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, glMajor);

@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "glad/gl.h"
-#include "../Utility/Expected.h"
+#include <expected>
 
 class Shader
 {
@@ -13,7 +13,7 @@ private:
     GLuint m_id;
 
 public:
-    static auto Create(GLenum type, const std::string_view& code) -> Expected<Shader, std::string>;
+    static auto Create(GLenum type, const std::string_view& code) -> std::expected<Shader, std::string>;
 
     Shader(): m_id(0)
     {

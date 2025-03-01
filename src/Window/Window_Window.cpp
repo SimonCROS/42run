@@ -10,7 +10,7 @@
 //
 // #include "GLFW/glfw3.h"
 // #include "Controls.h"
-// #include "Utility/Expected.h"
+// #include <expected>
 //
 // module Window;
 
@@ -21,11 +21,11 @@ module;
 #include <functional>
 
 #include "GLFW/glfw3.h"
-#include "Utility/Expected.h"
+#include <expected>
 
 module Window;
 
-auto Window::Create(const int width, const int height, const std::string& title) -> Expected<Window, std::string>
+auto Window::Create(const int width, const int height, const std::string& title) -> std::expected<Window, std::string>
 {
     GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (window == nullptr)
@@ -35,14 +35,14 @@ auto Window::Create(const int width, const int height, const std::string& title)
 
         if (code != GLFW_NO_ERROR)
         {
-            return Unexpected("Error while creating the window: " + std::string(description));
+            return std::unexpected("Error while creating the window: " + std::string(description));
         }
-        return Unexpected("Error while creating the window: Unknown error.");
+        return std::unexpected("Error while creating the window: Unknown error.");
     }
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
 
-    return Expected<Window, std::string>(std::in_place,
+    return std::expected<Window, std::string>(std::in_place,
                                          window,
                                          static_cast<uint32_t>(width),
                                          static_cast<uint32_t>(height));

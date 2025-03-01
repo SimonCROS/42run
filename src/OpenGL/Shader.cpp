@@ -1,13 +1,13 @@
 #include <string>
 #include "glad/gl.h"
 #include "Shader.h"
-#include "../Utility/Expected.h"
+#include <expected>
 
-auto Shader::Create(const GLenum type, const std::string_view& code) -> Expected<Shader, std::string>
+auto Shader::Create(const GLenum type, const std::string_view& code) -> std::expected<Shader, std::string>
 {
     const GLuint id = glCreateShader(type);
     if (id == 0)
-        return Unexpected("Failed to create new shader id");
+        return std::unexpected("Failed to create new shader id");
 
     const auto str = code.data();
     const auto length = static_cast<GLint>(code.size());
@@ -22,8 +22,8 @@ auto Shader::Create(const GLenum type, const std::string_view& code) -> Expected
         GLsizei infoLength;
         glGetShaderInfoLog(id, 1024, &infoLength, infoLog);
         glDeleteShader(id);
-        return Unexpected(std::string(infoLog, infoLength));
+        return std::unexpected(std::string(infoLog, infoLength));
     }
 
-    return Expected<Shader, std::string>{std::in_place, id};
+    return std::expected<Shader, std::string>{std::in_place, id};
 }

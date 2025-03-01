@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <glad/gl.h>
 
-#include "../Utility/StringUnorderedMap.h"
+#include "Utility/StringUnorderedMap.h"
 #include "Utility/EnumHelpers.h"
 
 enum VertexArrayFlags : unsigned char

@@ -9,7 +9,7 @@ module;
 #include <utility>
 
 #include "GLFW/glfw3.h"
-#include "Utility/Expected.h"
+#include <expected>
 
 export module Window:Window;
 
@@ -36,7 +36,7 @@ private:
     }
 
 public:
-    [[nodiscard]] static auto Create(int width, int height, const std::string& title) -> Expected<Window, std::string>;
+    [[nodiscard]] static auto Create(int width, int height, const std::string& title) -> std::expected<Window, std::string>;
 
     explicit Window(GLFWwindow* glfwWindow, uint32_t width, uint32_t height) noexcept;
     Window(const Window&) = delete;

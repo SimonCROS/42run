@@ -11,19 +11,19 @@
 #include "glm/gtc/type_ptr.hpp"
 
 auto ShaderProgramInstance::Create(const std::string_view& vertexCode, const std::string_view& fragCode)
-    -> Expected<ShaderProgramInstance, std::string>
+    -> std::expected<ShaderProgramInstance, std::string>
 {
     auto e_vertShader = Shader::Create(GL_VERTEX_SHADER, vertexCode);
     if (!e_vertShader)
-        return Unexpected(std::move(e_vertShader).error());
+        return std::unexpected(std::move(e_vertShader).error());
 
     auto e_fragShader = Shader::Create(GL_FRAGMENT_SHADER, fragCode);
     if (!e_fragShader)
-        return Unexpected(std::move(e_fragShader).error());
+        return std::unexpected(std::move(e_fragShader).error());
 
     const auto id = glCreateProgram();
     if (id == 0)
-        return Unexpected("Failed to create new program id");
+        return std::unexpected("Failed to create new program id");
 
     glAttachShader(id, e_vertShader->id());
     glAttachShader(id, e_fragShader->id());
@@ -31,10 +31,10 @@ auto ShaderProgramInstance::Create(const std::string_view& vertexCode, const std
     if (auto e_linkResult = linkProgram(id); !e_linkResult)
     {
         glDeleteProgram(id);
-        return Unexpected(std::move(e_linkResult).error());
+        return std::unexpected(std::move(e_linkResult).error());
     }
 
-    return Expected<ShaderProgramInstance, std::string>{
+    return std::expected<ShaderProgramInstance, std::string>{
         std::in_place, id, *std::move(e_vertShader), *std::move(e_fragShader)
     };
 }
@@ -121,7 +121,7 @@ void ShaderProgramInstance::setUniformBlock(const std::string_view& name, const 
     }
 }
 
-auto ShaderProgramInstance::linkProgram(const GLuint id) -> Expected<void, std::string>
+auto ShaderProgramInstance::linkProgram(const GLuint id) -> std::expected<void, std::string>
 {
     int success;
 
@@ -133,7 +133,7 @@ auto ShaderProgramInstance::linkProgram(const GLuint id) -> Expected<void, std::
         GLsizei infoLength;
         glGetShaderInfoLog(id, 1024, &infoLength, infoLog);
         glDeleteShader(id);
-        return Unexpected(std::string(infoLog, infoLength));
+        return std::unexpected(std::string(infoLog, infoLength));
     }
 
     return {};

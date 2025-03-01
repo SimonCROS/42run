@@ -8,7 +8,7 @@ module;
 #include <utility>
 
 #include "GLFW/glfw3.h"
-#include "Utility/Expected.h"
+#include <expected>
 
 export module Window:Context;
 
@@ -34,5 +34,5 @@ public:
         }
     }
 
-    [[nodiscard]] static auto Create(int glMajor, int glMinor) -> Expected<WindowContext, std::string>;
+    [[nodiscard]] static auto Create(int glMajor, int glMinor) -> std::expected<WindowContext, std::string>;
 };

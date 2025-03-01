@@ -178,12 +178,12 @@ public:
     [[nodiscard]]
     auto
     makeShaderVariants(const std::string_view& id, const std::string& vertPath, const std::string& fragPath)
-        -> Expected<ShaderProgramVariantsRef, std::string>;
+        -> std::expected<ShaderProgramVariantsRef, std::string>;
 
     [[nodiscard]]
     auto
     loadModel(const std::string_view& id, const std::string& path, bool binary)
-        -> Expected<ModelRef, std::string>;
+        -> std::expected<ModelRef, std::string>;
 
     [[nodiscard]]
     auto

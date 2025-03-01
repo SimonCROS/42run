@@ -11,17 +11,17 @@ ShaderProgram::ShaderProgram(std::string&& vertCode, std::string&& fragCode)
 }
 
 auto ShaderProgram::Create(const std::string& vertPath, const std::string& fragPath)
-    -> Expected<ShaderProgram, std::string>
+    -> std::expected<ShaderProgram, std::string>
 {
     auto e_vertCode = tryGetShaderCode(vertPath);
     if (!e_vertCode)
-        return Unexpected(std::move(e_vertCode).error());
+        return std::unexpected(std::move(e_vertCode).error());
 
     auto e_fragCode = tryGetShaderCode(fragPath);
     if (!e_fragCode)
-        return Unexpected(std::move(e_fragCode).error());
+        return std::unexpected(std::move(e_fragCode).error());
 
-    return Expected<ShaderProgram, std::string>{std::in_place, *std::move(e_vertCode), *std::move(e_fragCode)};
+    return std::expected<ShaderProgram, std::string>{std::in_place, *std::move(e_vertCode), *std::move(e_fragCode)};
 }
 
 auto ShaderProgram::getProgram(const ShaderFlags flags) -> ShaderProgramInstance&
@@ -47,7 +47,7 @@ auto ShaderProgram::getProgram(const ShaderFlags flags) const -> const ShaderPro
 }
 
 auto ShaderProgram::enableVariant(const ShaderFlags flags)
-    -> Expected<std::reference_wrapper<ShaderProgramInstance>, std::string>
+    -> std::expected<std::reference_wrapper<ShaderProgramInstance>, std::string>
 {
     {
         const auto it = programs.find(flags);
@@ -60,12 +60,12 @@ auto ShaderProgram::enableVariant(const ShaderFlags flags)
 
     auto e_program = ShaderProgramInstance::Create(modifiedVertCode, modifiedFragCode);
     if (!e_program)
-        return Unexpected(std::move(e_program).error());
+        return std::unexpected(std::move(e_program).error());
 
     auto [it, inserted] = programs.try_emplace(flags, std::make_unique<ShaderProgramInstance>(*std::move(e_program)));
 
     if (!inserted)
-        return Unexpected("A shader with the same id already exist");
+        return std::unexpected("A shader with the same id already exist");
     return *it->second;
 }
 
@@ -104,7 +104,7 @@ auto ShaderProgram::getCodeWithFlags(const std::string_view& code, const ShaderF
     return copy;
 }
 
-auto ShaderProgram::tryGetShaderCode(const std::string& path) -> Expected<std::string, std::string>
+auto ShaderProgram::tryGetShaderCode(const std::string& path) -> std::expected<std::string, std::string>
 {
     std::ifstream file;
 
@@ -120,7 +120,7 @@ auto ShaderProgram::tryGetShaderCode(const std::string& path) -> Expected<std::s
     }
     catch (std::ifstream::failure& e)
     {
-        return Unexpected("Failed to get shader code at `" + path + "`: " + e.what());
+        return std::unexpected("Failed to get shader code at `" + path + "`: " + e.what());
     }
 }
 

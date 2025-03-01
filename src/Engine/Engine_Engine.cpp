@@ -11,7 +11,7 @@ module;
 #include "glm/glm.hpp"
 #include "tiny_gltf.h"
 #include "GLFW/glfw3.h"
-#include "Utility/Expected.h"
+#include <expected>
 #include "OpenGL/Debug.h"
 #include "OpenGL/VertexArray.h"
 #include "OpenGL/ShaderProgram.h"
@@ -133,11 +133,11 @@ auto Engine::run() -> void
 }
 
 auto Engine::makeShaderVariants(const std::string_view& id, const std::string& vertPath,
-                                const std::string& fragPath) -> Expected<ShaderProgramVariantsRef, std::string>
+                                const std::string& fragPath) -> std::expected<ShaderProgramVariantsRef, std::string>
 {
     auto e_shaderVariants = ShaderProgram::Create(vertPath, fragPath);
     if (!e_shaderVariants)
-        return Unexpected(std::move(e_shaderVariants).error());
+        return std::unexpected(std::move(e_shaderVariants).error());
 
     // C++ 26 will avoid new key allocation if key already exist (remove explicit std::string constructor call).
     // In this function, unnecessary string allocation is not really a problem since we should not try to add two shaders with the same id
@@ -145,12 +145,12 @@ auto Engine::makeShaderVariants(const std::string_view& id, const std::string& v
                                                 std::make_unique<ShaderProgram>(*std::move(e_shaderVariants)));
 
     if (!inserted)
-        return Unexpected("A shader with the same id already exist");
+        return std::unexpected("A shader with the same id already exist");
     return *it->second;
 }
 
 auto Engine::loadModel(const std::string_view& id, const std::string& path,
-                       const bool binary) -> Expected<ModelRef, std::string>
+                       const bool binary) -> std::expected<ModelRef, std::string>
 {
     std::string err;
     std::string warn;
@@ -161,7 +161,7 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
                           : m_loader.LoadASCIIFromFile(&rawModel, &err, &warn, path);
 
     if (!loadResult)
-        return Unexpected(std::move(err));
+        return std::unexpected(std::move(err));
 
     if (!warn.empty())
         std::cout << "[WARN] " << warn << std::endl;
@@ -192,7 +192,7 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
     auto [it, inserted] = m_models.try_emplace(std::string(id), std::make_unique<Mesh>(std::move(model)));
 
     if (!inserted)
-        return Unexpected("A model with the same id already exist");
+        return std::unexpected("A model with the same id already exist");
 
     return *it->second;
 }

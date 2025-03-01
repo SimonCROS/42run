@@ -9,24 +9,24 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "42runConfig.h"
-#include "Utility/Expected.h"
+#include <expected>
 
 import Components;
 import Engine;
 import InterfaceBlocks;
 import Window;
 
-auto start() -> Expected<void, std::string>
+auto start() -> std::expected<void, std::string>
 {
     std::cout << "42run " << FTRUN_VERSION_MAJOR << "." << FTRUN_VERSION_MINOR << std::endl;
 
     auto e_window_context = WindowContext::Create(4, 1);
     if (!e_window_context)
-        return Unexpected("Failed to create window context: " + std::move(e_window_context).error());
+        return std::unexpected("Failed to create window context: " + std::move(e_window_context).error());
 
     auto e_window = Window::Create(WIDTH, HEIGHT, "42run");
     if (!e_window)
-        return Unexpected("Failed to create window: " + std::move(e_window).error());
+        return std::unexpected("Failed to create window: " + std::move(e_window).error());
 
     auto engine = Engine::Create(*std::move(e_window));
 
@@ -34,7 +34,7 @@ auto start() -> Expected<void, std::string>
                                               RESOURCE_PATH"shaders/default.vert",
                                               RESOURCE_PATH"shaders/default.frag");
     if (!e_shader)
-        return Unexpected(std::move(e_shader).error());
+        return std::unexpected(std::move(e_shader).error());
 
     {
         // Imgui singleton
@@ -48,11 +48,11 @@ auto start() -> Expected<void, std::string>
 
     auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
     if (!e_deskMesh)
-        return Unexpected("Failed to load model: " + std::move(e_deskMesh).error());
+        return std::unexpected("Failed to load model: " + std::move(e_deskMesh).error());
 
     auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
     if (!e_ancientMesh)
-        return Unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
+        return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
 
     {
         auto& map = engine.instantiate();
