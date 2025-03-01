@@ -7,6 +7,7 @@ module;
 #include "glm/gtc/type_ptr.hpp"
 #include "tiny_gltf.h"
 #include "OpenGL/VertexArray.h"
+#include "OpenGL/ShaderProgram.h"
 
 module Components;
 import Engine;

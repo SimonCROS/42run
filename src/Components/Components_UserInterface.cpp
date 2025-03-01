@@ -5,6 +5,7 @@
 module;
 
 #include <string_view>
+#include <cstdint>
 
 #include "imgui_impl_opengl3.h"
 

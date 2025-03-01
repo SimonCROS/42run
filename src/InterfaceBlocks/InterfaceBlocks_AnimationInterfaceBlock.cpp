@@ -5,6 +5,7 @@
 module;
 
 #include <vector>
+#include <cstdint>
 
 #include "imgui.h"
 
