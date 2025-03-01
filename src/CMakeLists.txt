@@ -67,8 +67,6 @@ target_sources(42run
                 Engine/Engine_Object.cpp
                 Engine/Engine_ObjectsManager.cpp
                 Engine/Engine_Transform.cpp
-                InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.cpp
-                InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.cpp
 )
 
 target_compile_definitions(42run PRIVATE

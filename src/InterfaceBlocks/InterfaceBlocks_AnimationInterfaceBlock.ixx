@@ -7,6 +7,8 @@ module;
 #include <vector>
 #include <cstdint>
 
+#include "imgui.h"
+
 export module InterfaceBlocks:AnimationInterfaceBlock;
 
 import Components;
@@ -15,12 +17,30 @@ import Engine;
 export class AnimationInterfaceBlock : public InterfaceBlock
 {
 private:
-    Animator *m_animator;
+    Animator* m_animator;
 
-    std::vector<const char *> m_animationsNames;
+    std::vector<const char*> m_animationsNames;
 
 public:
-    explicit AnimationInterfaceBlock(UserInterface& interface);
+    explicit AnimationInterfaceBlock(UserInterface& interface)
+    {
+        m_animator = &interface.object().getComponent<Animator>()->get();
 
-    auto onDrawUI(uint16_t blockId, Engine& engine, UserInterface& interface) -> void override;
+        m_animationsNames.reserve(m_animator->mesh().model().animations.size() + 1);
+        m_animationsNames.push_back("-");
+        for (const auto& animation : m_animator->mesh().model().animations)
+            m_animationsNames.push_back(animation.name.c_str());
+    }
+
+    auto onDrawUI(uint16_t blockId, Engine& engine, UserInterface& interface) -> void override
+    {
+        // Add 1 because index -1 is 0 for imgui
+        int selectedIndex = m_animator->currentAnimationIndex() + 1;
+
+        ImGui::Text("Select animation");
+
+        if (ImGui::Combo("##animation", &selectedIndex, m_animationsNames.data(),
+                         static_cast<int>(m_animationsNames.size())))
+            m_animator->setAnimation(selectedIndex - 1);
+    }
 };
