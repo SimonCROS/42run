@@ -135,8 +135,7 @@ auto ShaderProgramInstance::linkProgram(const GLuint id) -> std::expected<void, 
     {
         char infoLog[1024];
         GLsizei infoLength;
-        glGetShaderInfoLog(id, 1024, &infoLength, infoLog);
-        glDeleteShader(id);
+        glGetProgramInfoLog(id, 1024, &infoLength, infoLog);
         return std::unexpected(std::string(infoLog, infoLength));
     }
 

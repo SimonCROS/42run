@@ -21,11 +21,15 @@ export enum VertexArrayFlags : unsigned char
     VertexArrayHasNormals = 1 << 1,
     VertexArrayHasColor0 = 1 << 2,
     VertexArrayHasTexCoord0 = 1 << 3,
-    VertexArrayHasTangents = 1 << 4,
-    VertexArrayHasSkin = 1 << 4,
+    VertexArrayHasTexCoord1 = 1 << 4,
+    VertexArrayHasTangents = 1 << 5,
+    VertexArrayHasSkin = 1 << 6,
 };
 
-MAKE_FLAG_ENUM(VertexArrayFlags)
+export
+{
+    MAKE_FLAG_ENUM(VertexArrayFlags)
+}
 
 export class VertexArray
 {
@@ -38,9 +42,10 @@ private:
         {"NORMAL", 1},
         {"COLOR_0", 2},
         {"TEXCOORD_0", 3},
-        {"TANGENT", 4},
-        {"JOINTS_0", 5},
-        {"WEIGHTS_0", 6},
+        {"TEXCOORD_1", 4},
+        {"TANGENT", 5},
+        {"JOINTS_0", 6},
+        {"WEIGHTS_0", 7},
     };
 
 public:
@@ -59,12 +64,14 @@ public:
             glEnableVertexAttribArray(2);
         if (flags & VertexArrayHasTexCoord0)
             glEnableVertexAttribArray(3);
-        if (flags & VertexArrayHasTangents)
+        if (flags & VertexArrayHasTexCoord1)
             glEnableVertexAttribArray(4);
+        if (flags & VertexArrayHasTangents)
+            glEnableVertexAttribArray(5);
         if (flags & VertexArrayHasSkin)
         {
-            glEnableVertexAttribArray(5);
             glEnableVertexAttribArray(6);
+            glEnableVertexAttribArray(7);
         }
 
         return {flags, id};

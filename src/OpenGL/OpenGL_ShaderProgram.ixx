@@ -28,9 +28,14 @@ export enum ShaderFlags : unsigned short
     ShaderHasVec3Colors = 1 << 6,
     ShaderHasVec4Colors = 1 << 7,
     ShaderHasSkin = 1 << 8,
+    ShaderHasTexCoord0 = 1 << 9,
+    ShaderHasTexCoord1 = 1 << 10,
 };
 
-MAKE_FLAG_ENUM(ShaderFlags)
+export
+{
+    MAKE_FLAG_ENUM(ShaderFlags)
+}
 
 export class ShaderProgram
 {
@@ -42,7 +47,8 @@ public:
     ShaderProgram(ShaderProgram&& other) = default; // TODO add destructor, so mark other as destroyed
     ShaderProgram(std::string&& vertCode, std::string&& fragCode);
 
-    static auto Create(const std::string& vertPath, const std::string& fragPath) -> std::expected<ShaderProgram, std::string>;
+    static auto Create(const std::string& vertPath,
+                       const std::string& fragPath) -> std::expected<ShaderProgram, std::string>;
 
     auto getProgram(ShaderFlags flags) -> ShaderProgramInstance&;
     auto getProgram(ShaderFlags flags) const -> const ShaderProgramInstance&;

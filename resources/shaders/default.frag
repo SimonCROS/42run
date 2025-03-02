@@ -11,26 +11,35 @@ layout (location = 1) in vec3 v_Normal;
 #endif
 #endif
 #if defined HAS_VEC3_COLORS
-layout (location = 2) in vec3 v_color0;
+layout (location = 4) in vec3 v_color0;
 #elif defined HAS_VEC4_COLORS
-layout (location = 2) in vec4 v_color0;
+layout (location = 4) in vec4 v_color0;
 #endif
-layout (location = 4) in vec2 v_TexCoord;
+#if defined HAS_TEXCOORD_1
+layout (location = 5) in vec2 v_texCoords[2];
+#elif defined HAS_TEXCOORD_0
+layout (location = 5) in vec2 v_texCoords[1];
+#endif
 
 layout (location = 0) out vec4 FragColor;
 
 #ifdef HAS_BASECOLORMAP
 uniform sampler2D u_baseColorTexture;
+uniform uint u_baseColorTexCoordIndex;
 #endif
 #ifdef HAS_METALROUGHNESSMAP
 uniform sampler2D u_metallicRoughnessMap;
+uniform uint u_metallicRoughnessTexCoordIndex;
 #endif
 #ifdef HAS_NORMALMAP
 uniform sampler2D u_normalMap;
+uniform uint u_normalTexCoordIndex;
 #endif
 #ifdef HAS_EMISSIVEMAP
 uniform sampler2D u_emissiveMap;
+uniform uint u_emissiveTexCoordIndex;
 #endif
+
 uniform vec4 u_baseColorFactor;
 uniform float u_metallicFactor;
 uniform float u_roughnessFactor;
@@ -64,8 +73,17 @@ vec3 getNormal()
     vec3 D = dFdx(v_FragPos);
     vec3 E = dFdy(v_FragPos);
     // derivations of the texture coordinate
-    vec2 F = dFdx(v_TexCoord); // TODO if multiple texcoords, take normal texture coords
-    vec2 G = dFdy(v_TexCoord);
+
+#ifdef HAS_TEXCOORD_0
+    vec2 firstTexCoord = v_texCoords[0];
+    vec2 F = dFdx(firstTexCoord);
+    vec2 G = dFdy(firstTexCoord);
+#else
+    vec2 implicitTexCoords = v_FragPos.xy;
+    vec2 F = dFdx(implicitTexCoords);
+    vec2 G = dFdy(implicitTexCoords);
+#endif
+
     // tangent vector and binormal vector
     vec3 T = G.t * D - F.t * E;
     vec3 U = F.s * E - G.s * D;
@@ -82,7 +100,7 @@ vec3 getNormal()
 #endif
 
 #ifdef HAS_NORMALMAP
-    vec3 n = texture(u_normalMap, v_TexCoord).rgb;
+    vec3 n = texture(u_normalMap, v_texCoords[u_normalTexCoordIndex]).rgb;
     n = normalize(n * 2.0 - 1.0); // make it [-1, 1]
     n *= vec3(u_normalScale, u_normalScale, 1.0);
     n *= tbn;
@@ -186,7 +204,7 @@ void main()
     // The albedo may be defined from a base texture or a flat color
     vec4 baseColor = u_baseColorFactor;
 #ifdef HAS_BASECOLORMAP
-    baseColor *= texture(u_baseColorTexture, v_TexCoord);
+    baseColor *= texture(u_baseColorTexture, v_texCoords[u_baseColorTexCoordIndex]);
 #endif
 #if defined HAS_VEC3_COLORS
     baseColor *= vec4(v_color0, 1.0f);
@@ -202,7 +220,7 @@ void main()
 #ifdef HAS_METALROUGHNESSMAP
     // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
     // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-    vec4 mrSample = texture(u_metallicRoughnessMap, v_TexCoord); // TODO multiple texcoord possible
+    vec4 mrSample = texture(u_metallicRoughnessMap, v_texCoords[u_metallicRoughnessTexCoordIndex]);
     roughness = mrSample.g * roughness;
     metallic = mrSample.b * metallic;
 #endif
@@ -225,7 +243,7 @@ void main()
 
     // Emissive
 #ifdef HAS_EMISSIVEMAP
-    vec3 emissive = texture(u_emissiveMap, v_TexCoord).rgb;
+    vec3 emissive = texture(u_emissiveMap, v_texCoords[u_emissiveTexCoordIndex]).rgb;
 #else
     vec3 emissive = baseColor.rgb;
 #endif

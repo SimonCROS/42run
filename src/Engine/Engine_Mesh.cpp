@@ -211,7 +211,16 @@ auto Mesh::Create(Engine& engine, tinygltf::Model&& model) -> Mesh
                 }
 
                 if (attributeName == "TEXCOORD_0")
+                {
                     vertexArrayFlags |= VertexArrayHasTexCoord0;
+                    shaderFlags |= ShaderHasTexCoord0;
+                }
+
+                if (attributeName == "TEXCOORD_1")
+                {
+                    vertexArrayFlags |= VertexArrayHasTexCoord1;
+                    shaderFlags |= ShaderHasTexCoord1;
+                }
 
                 if (attributeName == "JOINTS_0")
                 {

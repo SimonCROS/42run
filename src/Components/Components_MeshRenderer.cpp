@@ -4,6 +4,8 @@
 
 module;
 
+#include <iostream>
+
 #include "glm/gtc/type_ptr.hpp"
 #include "glad/gl.h"
 #include "tiny_gltf.h"
@@ -64,24 +66,28 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
             {
                 engine.bindTexture(0, m_mesh.texture(material.pbrMetallicRoughness.baseColorTexture.index));
                 program.setInt("u_baseColorTexture", 0);
+                program.setUint("u_baseColorTexCoordIndex", material.pbrMetallicRoughness.baseColorTexture.texCoord);
             }
 
             if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
             {
                 engine.bindTexture(1, m_mesh.texture(material.pbrMetallicRoughness.metallicRoughnessTexture.index));
                 program.setInt("u_metallicRoughnessMap", 1);
+                program.setUint("u_metallicRoughnessTexCoordIndex", material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord);
             }
 
             if (material.normalTexture.index >= 0)
             {
                 engine.bindTexture(2, m_mesh.texture(material.normalTexture.index));
                 program.setInt("u_normalMap", 2);
+                program.setUint("u_normalTexCoordIndex", material.normalTexture.texCoord);
             }
 
             if (material.emissiveTexture.index >= 0)
             {
                 engine.bindTexture(3, m_mesh.texture(material.emissiveTexture.index));
                 program.setInt("u_emissiveMap", 3);
+                program.setUint("u_emissiveTexCoordIndex", material.emissiveTexture.texCoord);
             }
 
             program.setVec4("u_baseColorFactor", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));

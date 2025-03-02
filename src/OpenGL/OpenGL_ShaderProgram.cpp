@@ -103,6 +103,10 @@ auto ShaderProgram::getCodeWithFlags(const std::string_view& code, const ShaderF
         defines += "#define HAS_VEC4_COLORS\n";
     if (flags & ShaderHasSkin)
         defines += "#define HAS_SKIN\n";
+    if (flags & ShaderHasTexCoord0)
+        defines += "#define HAS_TEXCOORD_0\n";
+    if (flags & ShaderHasTexCoord1)
+        defines += "#define HAS_TEXCOORD_1\n";
 
     auto copy = std::string(code);
     if (defines.empty())

@@ -36,9 +36,9 @@ auto start() -> std::expected<void, std::string>
     if (!e_shader)
         return std::unexpected(std::move(e_shader).error());
 
-    // auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
-    // if (!e_floorMesh)
-    //     return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
+    auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
+    if (!e_floorMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
 
     auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
     if (!e_deskMesh)
