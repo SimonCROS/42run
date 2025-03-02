@@ -44,3 +44,9 @@ auto Transform::scale(const glm::vec3& scale) -> void
     m_scale *= scale;
     m_object.markDirty();
 }
+
+auto Transform::scale(const float scale) -> void
+{
+    m_scale *= scale;
+    m_object.markDirty();
+}

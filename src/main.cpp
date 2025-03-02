@@ -54,6 +54,7 @@ auto start() -> std::expected<void, std::string>
     {
         // Ancient
         auto& object = engine.instantiate();
+        object.transform().scale(0.65f);
         auto& animator = object.addComponent<Animator>(*e_ancientMesh);
         auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
         object.addComponent<PlayerController>();
@@ -64,8 +65,8 @@ auto start() -> std::expected<void, std::string>
     {
         // Camera
         auto& object = engine.instantiate();
-        object.transform().setTranslation({0, 5, -5});
-        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-20.0f), glm::radians(180.0f), 0)));
+        object.transform().setTranslation({0, 3, -3.5});
+        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-15.0f), glm::radians(180.0f), 0)));
 
         const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
         engine.setCamera(camera);

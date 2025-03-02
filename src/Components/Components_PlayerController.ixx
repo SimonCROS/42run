@@ -13,7 +13,7 @@ import Engine;
 export class PlayerController final : public Component
 {
 public:
-    static constexpr float LaneSize = 2;
+    static constexpr float LaneSize = 1.2;
 
 private:
     enum Move

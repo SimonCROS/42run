@@ -36,6 +36,7 @@ public:
     [[nodiscard]] auto scale() const -> glm::vec3 { return m_scale; }
     auto setScale(const glm::vec3& scale) -> void;
     auto scale(const glm::vec3& scale) -> void;
+    auto scale(float scale) -> void;
 
     [[nodiscard]] auto trs() const -> glm::mat4
     {
