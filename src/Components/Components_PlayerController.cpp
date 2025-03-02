@@ -6,6 +6,7 @@ module;
 
 #include <cmath>
 #include <algorithm>
+
 #include "GLFW/glfw3.h"
 
 module Components;
@@ -31,7 +32,7 @@ auto PlayerController::processInput(const Engine& engine) -> void
     const bool rightPressed = controls.isPressed(GLFW_KEY_D) || controls.isPressed(GLFW_KEY_RIGHT);
 
     Move move = MoveNone;
-    if (leftPressed != rightPressed)
+    if (leftPressed || rightPressed)
     {
         if (leftPressed && leftPressed != m_isLeftPressed)
             move = MoveLeft;
