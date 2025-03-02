@@ -6,6 +6,7 @@
 /src/**/*.h linguist-language=C++
 
 /resources/screenshots/*.gif filter=lfs diff=lfs merge=lfs -text
+/resources/screenshots/*.glb filter=lfs diff=lfs merge=lfs -text
 /resources/screenshots/*.png filter=lfs diff=lfs merge=lfs -text
 /resources/screenshots/*.jpg filter=lfs diff=lfs merge=lfs -text
 /resources/screenshots/*.jpeg filter=lfs diff=lfs merge=lfs -text
