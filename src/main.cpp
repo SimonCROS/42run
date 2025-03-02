@@ -36,12 +36,6 @@ auto start() -> std::expected<void, std::string>
     if (!e_shader)
         return std::unexpected(std::move(e_shader).error());
 
-    {
-        // Imgui singleton
-        auto& object = engine.instantiate();
-        object.addComponent<ImguiSingleton>(engine.getWindow());
-    }
-
     // auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
     // if (!e_floorMesh)
     //     return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
@@ -65,12 +59,6 @@ auto start() -> std::expected<void, std::string>
         object.addComponent<PlayerController>();
         meshRenderer.setAnimator(animator);
         animator.setAnimation(0);
-        constexpr auto windowData = ImguiWindowData{
-            .s_frame_x = WIDTH - 8 - 230, .s_frame_y = 8, .s_frame_width = 230, .s_frame_height = 200
-        };
-        auto& interface = object.addComponent<UserInterface>("Ancient", windowData);
-        interface.addBlock<DisplayInterfaceBlock>(10);
-        interface.addBlock<AnimationInterfaceBlock>(100);
     }
 
     {
