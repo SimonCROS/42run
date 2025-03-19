@@ -157,42 +157,62 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 calcPBRDirectionalLight(vec3 N, vec3 V, vec3 L, vec3 albedo, float metallic, float roughness, vec3 lightColor)
-{
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
-    vec3 F0 = vec3(0.04);
-    F0 = mix(F0, albedo, metallic);
+vec3 calcPBRDirectionalLight(
+    vec3 N,             // Normal (world space)
+    vec3 V,             // View direction (normalized, world space)
+    vec3 L,             // Light direction (normalized, world space, points TO light)
+    vec3 albedo,        // Base color (non-metal: diffuse, metal: reflective tint)
+    float metallic,     // 0 = dielectric, 1 = metal
+    float roughness,    // 0 = smooth, 1 = rough
+    vec3 lightColor     // Light radiance (RGB color * intensity)
+) {
+    // Clamp roughness to prevent division issues
+    roughness = clamp(roughness, 0.05, 1.0);
 
-    // Light Direction and Radiance
+    // Half vector
     vec3 H = normalize(V + L);
-    vec3 radiance = lightColor;            // No attenuation for directional light
 
-    // Cook-Torrance BRDF
-    float NDF = distributionGGX(N, H, roughness);
-    float G   = geometrySmith(N, V, L, roughness);
-    vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+    // Fresnel reflectance at normal incidence
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
-    vec3 numerator    = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // Avoid division by zero
-    vec3 specular = numerator / denominator;
+    // ----- Cook-Torrance BRDF -----
 
-    // kS is equal to Fresnel
-    vec3 kS = F;
-    // for energy conservation, the diffuse and specular light can't
-    // be above 1.0 (unless the surface emits light); to preserve this
-    // relationship the diffuse component (kD) should equal 1.0 - kS.
-    vec3 kD = vec3(1.0) - kS;
-    // multiply kD by the inverse metalness such that only non-metals
-    // have diffuse lighting, or a linear blend if partly metal (pure metals
-    // have no diffuse light).
-    kD *= 1.0 - metallic;
+    // Normal Distribution Function (GGX)
+    float a      = roughness * roughness;
+    float a2     = a * a;
+    float NdotH  = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
 
-    // scale light by NdotL
+    float denomNDF = (NdotH2 * (a2 - 1.0) + 1.0);
+    float D = a2 / (PI * denomNDF * denomNDF);
+
+    // Geometry function (Smith, Schlick-GGX)
+    float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
 
-    // add to outgoing radiance Lo
-    return (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+    float k = (roughness + 1.0);
+    k = (k * k) / 8.0;
+
+    float G_V = NdotV / (NdotV * (1.0 - k) + k);
+    float G_L = NdotL / (NdotL * (1.0 - k) + k);
+    float G = G_V * G_L;
+
+    // Fresnel term (Schlick approximation)
+    float HdotV = max(dot(H, V), 0.0);
+    vec3 F = F0 + (1.0 - F0) * pow(1.0 - HdotV, 5.0);
+
+    // Final specular term
+    vec3 specular = (D * G * F) / max(4.0 * NdotL * NdotV, 0.001);
+
+    // Diffuse term (Lambert) — no diffuse for metals
+    vec3 kS = F;
+    vec3 kD = (1.0 - kS) * (1.0 - metallic);
+    vec3 diffuse = kD * albedo / PI;
+
+    // Final light contribution
+    vec3 result = (diffuse + specular) * lightColor * NdotL;
+
+    return result;
 }
 
 void main()

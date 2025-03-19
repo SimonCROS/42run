@@ -72,8 +72,8 @@ auto MapController::onUpdate(Engine& engine) -> void
 
     if (!m_movingSegments.empty())
     {
-        // for (auto segment : m_movingSegments)
-        //     segment.get().transform().translate(glm::vec3{0, 0, -speed * deltaTime});
+        for (auto segment : m_movingSegments)
+            segment.get().transform().translate(glm::vec3{0, 0, -speed * deltaTime});
 
         auto& front = m_movingSegments.front().get();
         if (front.transform().translation().z < -TMPSegmentSize)
