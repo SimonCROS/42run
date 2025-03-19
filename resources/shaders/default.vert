@@ -91,7 +91,7 @@ void main()
     // re-orthogonalize T with respect to N (Gram-Schmidt process)
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
-    mat3 TBN = transpose(mat3(T, B, N));
+    mat3 TBN = mat3(T, B, N);
     v_TBN = TBN;
 //    v_TangentLightPos = TBN * u_lightPos;
 //    v_TangentViewPos  = TBN * u_viewPos;

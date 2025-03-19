@@ -12,6 +12,7 @@ set(CMAKE_CXX_MODULE_STD ON)
 
 configure_file(42runConfig.h.in 42runConfig.h)
 
+# Dummy target for CLion
 add_library(unused_std_target STATIC)
 target_sources(unused_std_target
         PRIVATE

@@ -61,49 +61,51 @@ const float c_Gamma = 2.2;
 const float c_GammaInverse = 1 / c_Gamma;
 const uint c_Shininess = 5;
 
+mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
+{
+    // get edge vectors of the pixel triangle
+    vec3 dp1 = dFdx(p);
+    vec3 dp2 = dFdy(p);
+    vec2 duv1 = dFdx(uv);
+    vec2 duv2 = dFdy(uv);
+
+    // solve the linear system
+    vec3 dp2perp = cross(dp2, N);
+    vec3 dp1perp = cross(N, dp1);
+    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+
+    // construct a scale-invariant frame
+    float invmax = inversesqrt(max(dot(T,T), dot(B,B)));
+    return mat3(T * invmax, B * invmax, N);
+}
+
 // Find the normal for this fragment, pulling either from a predefined normal map
 // or from the interpolated mesh normal and tangent attributes.
 vec3 getNormal()
 {
     // Retrieve the tangent space matrix
-#ifndef HAS_TANGENTS
-    // Equation explained here https://stackoverflow.com/a/5257471/11448549
-
-    // derivations of the fragment position
-    vec3 D = dFdx(v_FragPos);
-    vec3 E = dFdy(v_FragPos);
-    // derivations of the texture coordinate
-
-#ifdef HAS_TEXCOORD_0
-    vec2 firstTexCoord = v_texCoords[0];
-    vec2 F = dFdx(firstTexCoord);
-    vec2 G = dFdy(firstTexCoord);
-#else
-    vec2 implicitTexCoords = v_FragPos.xy;
-    vec2 F = dFdx(implicitTexCoords);
-    vec2 G = dFdy(implicitTexCoords);
-#endif
-
-    // tangent vector and binormal vector
-    vec3 T = G.t * D - F.t * E;
-    vec3 U = F.s * E - G.s * D;
-
-#ifdef HAS_NORMALS
-    vec3 N = normalize(v_Normal);
-#else
-    vec3 N = cross(D, E);
-#endif
-
-    mat3 tbn = mat3(T, U, N);
-#else // HAS_TANGENTS
+#ifdef HAS_TANGENTS
     mat3 tbn = v_TBN;
+#else
+#ifdef HAS_TEXCOORD_0
+    vec2 uv = v_texCoords[0];
+#else
+    vec2 uv = v_FragPos.xy;
+#endif
+#ifdef HAS_NORMALS
+    vec3 N = v_Normal;
+#else
+    vec3 N = normalize(cross(dFdx(v_FragPos), dFdy(v_FragPos)));
+#endif
+    mat3 tbn = cotangent_frame(N, v_FragPos, uv);
 #endif
 
 #ifdef HAS_NORMALMAP
     vec3 n = texture(u_normalMap, v_texCoords[u_normalTexCoordIndex]).rgb;
-    n = normalize(n * 2.0 - 1.0); // make it [-1, 1]
+    n = n * 2.0 - 1.0; // make it [-1, 1]
+    n = normalize(tbn * n);
     n *= vec3(u_normalScale, u_normalScale, 1.0);
-    n *= tbn;
 #else
     // The tbn matrix is linearly interpolated, so we need to re-normalize
     vec3 n = normalize(tbn[2].xyz);
