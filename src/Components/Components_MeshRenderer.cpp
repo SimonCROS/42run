@@ -4,13 +4,12 @@
 
 module;
 
-#include <iostream>
-
 #include "glm/gtc/type_ptr.hpp"
 #include "glad/gl.h"
 #include "tiny_gltf.h"
 
 module Components;
+import std;
 import Engine;
 import OpenGL;
 

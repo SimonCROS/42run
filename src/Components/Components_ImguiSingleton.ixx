@@ -2,10 +2,8 @@
 // Created by loumarti on 2/8/25.
 //
 
-module;
-
 export module Components:ImguiSingleton;
-
+import std;
 import Window;
 import Engine;
 

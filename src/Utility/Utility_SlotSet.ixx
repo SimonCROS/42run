@@ -2,14 +2,8 @@
 // Created by Simon Cros on 2/19/25.
 //
 
-module;
-
-#include <deque>
-#include <cstdint>
-#include <queue>
-#include <concepts>
-
 export module Utility:SlotSet;
+import std.compat;
 
 export using SlotSetIndex = int32_t;
 

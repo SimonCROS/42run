@@ -2,11 +2,8 @@
 // Created by Simon Cros on 31/01/2025.
 //
 
-module;
-
-#include <chrono>
-
 export module Engine:FrameInfo;
+import std.compat;
 
 export using ClockType = std::chrono::steady_clock;
 export using TimePoint = ClockType::time_point;

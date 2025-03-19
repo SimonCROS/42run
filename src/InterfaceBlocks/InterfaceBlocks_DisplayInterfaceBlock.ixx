@@ -4,11 +4,11 @@
 
 module;
 
-#include <cstdint>
 #include "imgui.h"
 #include "glad/gl.h"
 
 export module InterfaceBlocks:DisplayInterfaceBlock;
+import std;
 import Components;
 import Engine;
 

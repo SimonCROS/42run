@@ -2,13 +2,8 @@
 // Created by Simon Cros on 2/20/25.
 //
 
-module;
-
-#include <chrono>
-#include <queue>
-#include <deque>
-
 export module Components:MapController;
+import std;
 import Engine;
 
 export class MapController final : public Component

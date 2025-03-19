@@ -4,14 +4,11 @@
 
 module;
 
-#include <iostream>
-#include <ostream>
-#include <cassert>
-
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
 module Components;
+import std;
 import Engine;
 import Window;
 

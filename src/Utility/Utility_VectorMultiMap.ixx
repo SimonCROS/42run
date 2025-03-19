@@ -2,12 +2,8 @@
 // Created by Simon Cros on 08/02/2025.
 //
 
-module;
-
-#include <algorithm>
-#include <vector>
-
 export module Utility:VectorMultiMap;
+import std;
 
 // GCC 15 will add an equivalent, std::flat_multiset (to test and benchmark)
 

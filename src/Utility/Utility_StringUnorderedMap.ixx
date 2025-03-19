@@ -2,13 +2,8 @@
 // Created by Simon Cros on 3/1/25.
 //
 
-module;
-
-#include <string>
-#include <string_view>
-#include <unordered_map>
-
 export module Utility:StringUnorderedMap;
+import std;
 
 export struct StringHash
 {

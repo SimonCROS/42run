@@ -2,11 +2,8 @@
 // Created by Simon Cros on 22/01/2025.
 //
 
-module;
-
-#include <algorithm>
-
 module Engine;
+import std.compat;
 import Utility;
 
 using difference_type = StridedIterator<float*>::difference_type;

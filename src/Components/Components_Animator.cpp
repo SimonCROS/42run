@@ -4,11 +4,10 @@
 
 module;
 
-#include <algorithm>
-
 #include "tiny_gltf.h"
 
 module Components;
+import std;
 import Engine;
 
 Animator::Animator(Object& object, const Mesh& mesh): Component(object), m_mesh(mesh)

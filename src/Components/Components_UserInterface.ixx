@@ -4,13 +4,10 @@
 
 module;
 
-#include <cstdint>
-#include <string>
-#include <memory>
-
 #include "imgui.h"
 
 export module Components:UserInterface;
+import std;
 import Engine;
 import Utility;
 

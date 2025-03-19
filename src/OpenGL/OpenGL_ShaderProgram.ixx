@@ -4,15 +4,10 @@
 
 module;
 
-#include <memory>
-#include <unordered_map>
-#include <string>
-#include <string_view>
-#include <expected>
-
 #include "Utility/EnumHelpers.h"
 
 export module OpenGL:ShaderProgram;
+import std;
 import :ShaderProgramInstance;
 import Utility;
 

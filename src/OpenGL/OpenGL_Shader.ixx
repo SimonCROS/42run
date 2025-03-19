@@ -4,14 +4,10 @@
 
 module;
 
-#include <string>
-#include <string_view>
-#include <utility>
-#include <expected>
-
 #include "glad/gl.h"
 
 export module OpenGL:Shader;
+import std;
 
 export class Shader
 {

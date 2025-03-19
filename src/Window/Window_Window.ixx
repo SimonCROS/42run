@@ -4,14 +4,10 @@
 
 module;
 
-#include <string>
-#include <functional>
-#include <utility>
-
 #include "GLFW/glfw3.h"
-#include <expected>
 
 export module Window:Window;
+import std;
 
 import :Controls;
 

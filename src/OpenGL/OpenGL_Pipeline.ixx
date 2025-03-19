@@ -4,11 +4,10 @@
 
 module;
 
-#include <memory>
-
 #include "glad/gl.h"
 
 export module OpenGL:Pipeline;
+import std;
 import :ShaderProgram;
 
 export class Pipeline

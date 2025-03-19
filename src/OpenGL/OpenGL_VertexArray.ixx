@@ -4,14 +4,11 @@
 
 module;
 
-#include <glad/gl.h>
-#include <string_view>
-#include <utility>
-
+#include "glad/gl.h"
 #include "Utility/EnumHelpers.h"
 
 export module OpenGL:VertexArray;
-
+import std;
 import Utility;
 
 export enum VertexArrayFlags : unsigned char

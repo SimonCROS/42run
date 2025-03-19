@@ -4,14 +4,11 @@
 
 module;
 
-#include <fstream>
-#include <sstream>
-#include <expected>
-
 #include "42runConfig.h"
 #include "tiny_gltf.h"
 
 module OpenGL;
+import std;
 
 ShaderProgram::ShaderProgram(std::string&& vertCode, std::string&& fragCode)
     : m_vertCode(std::move(vertCode)), m_fragCode(std::move(fragCode))

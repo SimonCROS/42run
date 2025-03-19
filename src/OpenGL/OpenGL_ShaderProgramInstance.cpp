@@ -4,15 +4,12 @@
 
 module;
 
-#include <fstream>
-#include <sstream>
-#include <expected>
-
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
 module OpenGL;
+import std;
 
 auto ShaderProgramInstance::Create(const std::string_view& vertexCode, const std::string_view& fragCode)
     -> std::expected<ShaderProgramInstance, std::string>

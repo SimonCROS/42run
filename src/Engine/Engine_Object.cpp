@@ -4,10 +4,10 @@
 
 module;
 
-#include <cassert>
 #include "glm/glm.hpp"
 
 module Engine;
+import std;
 
 auto Object::willUpdate(Engine& engine) -> void
 {

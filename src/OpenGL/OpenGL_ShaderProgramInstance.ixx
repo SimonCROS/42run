@@ -4,14 +4,11 @@
 
 module;
 
-#include <string>
-#include <unordered_map>
-#include <expected>
-
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 
 export module OpenGL:ShaderProgramInstance;
+import std;
 import :Shader;
 import Utility;
 

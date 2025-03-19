@@ -2,15 +2,11 @@
 // Created by Simon Cros on 3/1/25.
 //
 
-#include <fstream>
-#include <memory>
-#include <iostream>
-
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "42runConfig.h"
-#include <expected>
 
+import std;
 import Components;
 import Engine;
 import InterfaceBlocks;

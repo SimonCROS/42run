@@ -4,12 +4,10 @@
 
 module;
 
-#include <string>
-
-#include <expected>
 #include "GLFW/glfw3.h"
 
 module Window;
+import std;
 
 auto WindowContext::Create(const int glMajor, const int glMinor) -> std::expected<WindowContext, std::string>
 {

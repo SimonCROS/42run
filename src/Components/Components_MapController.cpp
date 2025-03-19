@@ -4,14 +4,11 @@
 
 module;
 
-#include <chrono>
-#include <queue>
-#include <deque>
-
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 
 module Components;
+import std;
 import :MeshRenderer;
 import Engine;
 

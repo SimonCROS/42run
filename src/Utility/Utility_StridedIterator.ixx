@@ -2,11 +2,8 @@
 // Created by Simon Cros on 01/02/2025.
 //
 
-module;
-
-#include <iterator>
-
 export module Utility:StridedIterator;
+import std;
 
 export
 template <class Iterator>

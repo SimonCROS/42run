@@ -4,13 +4,10 @@
 
 module;
 
-#include <vector>
-#include <cstdint>
-
 #include "imgui.h"
 
 export module InterfaceBlocks:AnimationInterfaceBlock;
-
+import std;
 import Components;
 import Engine;
 
