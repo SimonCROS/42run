@@ -5,6 +5,7 @@
 export module OpenGL;
 
 export import :Debug;
+export import :Cubemap;
 export import :IndicesBuffer;
 export import :Pipeline;
 export import :Shader;

@@ -11,6 +11,7 @@ import Components;
 import Engine;
 import InterfaceBlocks;
 import Window;
+import OpenGL;
 
 auto start() -> std::expected<void, std::string>
 {
@@ -32,45 +33,73 @@ auto start() -> std::expected<void, std::string>
     if (!e_shader)
         return std::unexpected(std::move(e_shader).error());
 
-    auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
-    if (!e_floorMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
-
-    auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
-    if (!e_deskMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_deskMesh).error());
-
-    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
-    if (!e_ancientMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
-
-    auto& map = engine.instantiate();
-    map.addComponent<MapController>();
+    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
+    if (!e_spheresMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
 
     {
-        // Ancient
         auto& object = engine.instantiate();
-        object.transform().scale(0.65f);
-        auto& animator = object.addComponent<Animator>(*e_ancientMesh);
-        auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
-        object.addComponent<PlayerController>();
-        meshRenderer.setAnimator(animator);
-        animator.setAnimation(0);
+        object.addComponent<MeshRenderer>(*e_spheresMesh, *e_shader);
     }
+
+    const std::vector<std::string> faces
+    {
+        RESOURCE_PATH"textures/skybox/right.jpg",
+        RESOURCE_PATH"textures/skybox/left.jpg",
+        RESOURCE_PATH"textures/skybox/top.jpg",
+        RESOURCE_PATH"textures/skybox/bottom.jpg",
+        RESOURCE_PATH"textures/skybox/front.jpg",
+        RESOURCE_PATH"textures/skybox/back.jpg",
+    };
+    auto cubemapTexture = Cubemap::Create(faces);
 
     {
         // Camera
         auto& object = engine.instantiate();
-        object.transform().setTranslation({0, 3, -3.5});
-        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-15.0f), glm::radians(180.0f), 0)));
+        object.transform().setTranslation({14.5, 15, -6.6});
+        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-45.0f), glm::radians(115.0f), 0)));
 
         const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
         engine.setCamera(camera);
     }
 
-    engine.run();
+    // auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
+    // if (!e_floorMesh)
+    //     return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
+    //
+    // auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
+    // if (!e_deskMesh)
+    //     return std::unexpected("Failed to load model: " + std::move(e_deskMesh).error());
+    //
+    // auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
+    // if (!e_ancientMesh)
+    //     return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
 
-    return {};
+    // auto& map = engine.instantiate();
+    // map.addComponent<MapController>();
+    //
+    // {
+    //     // Ancient
+    //     auto& object = engine.instantiate();
+    //     object.transform().scale(0.65f);
+    //     auto& animator = object.addComponent<Animator>(*e_ancientMesh);
+    //     auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
+    //     object.addComponent<PlayerController>();
+    //     meshRenderer.setAnimator(animator);
+    //     animator.setAnimation(0);
+    // }
+    //
+    // {
+    //     // Camera
+    //     auto& object = engine.instantiate();
+    //     object.transform().setTranslation({0, 3, -3.5});
+    //     object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-15.0f), glm::radians(180.0f), 0)));
+    //
+    //     const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
+    //     engine.setCamera(camera);
+    // }
+
+    return engine.run();
 }
 
 auto main() -> int

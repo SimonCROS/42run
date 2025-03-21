@@ -256,10 +256,16 @@ void main()
     vec3 result = ambient * baseColor.rgb;
     // --- IN LOOP
     DirectionalLight sunLight;
-    sunLight.direction = vec3(4, -6, 8);
+    sunLight.direction = vec3(4, -6, -8);
     sunLight.color = vec3(10.0, 9.8, 9.0);
 
     vec3 lightContribution = calcPBRDirectionalLight(normal, viewDir, normalize(-sunLight.direction), baseColor.rgb, metallic, roughness, sunLight.color);
+    FragColor = vec4(lightContribution, 1.0f);
+    result += lightContribution;
+
+    sunLight.direction = vec3(0, -6, 0);
+    sunLight.color = vec3(5.0, 4.9, 4.5);
+    lightContribution = calcPBRDirectionalLight(normal, viewDir, normalize(-sunLight.direction), baseColor.rgb, metallic, roughness, sunLight.color);
     result += lightContribution;
     // --- NOT IN LOOP
 
@@ -271,6 +277,26 @@ void main()
 #endif
     emissive *= u_emissiveFactor;
     result += emissive;
+
+//    {
+//        // Base reflectivity for non-metals (typical dielectric value)
+//        float baseReflectivity = 0.04;
+//
+//        // Interpolate between non-metal and full metal reflectivity
+//        float F0 = mix(baseReflectivity, 1.0, metallic);
+//
+//        // Approximate Fresnel-Schlick as a function of roughness
+//        float fresnel = F0 + (1.0 - F0) * pow(1.0 - roughness, 5.0);
+//
+//        // Adjust reflectance based on roughness (rougher surfaces reflect less)
+//        float roughnessEffect = 1.0 - roughness;
+//
+//        // Combine factors
+//        float reflectance = fresnel * roughnessEffect;
+//
+//        // Ensure the result is in the [0, 1] range
+//        result = vec3(clamp(reflectance, 0.0, 1.0), 0, 0);
+//    }
 
     result = pow(result, vec3(c_GammaInverse));
     result = mix(result, vec3(u_fogColor), fogFactor);

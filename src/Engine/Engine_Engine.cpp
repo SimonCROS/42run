@@ -54,9 +54,12 @@ Engine::Engine(Window&& window) noexcept :
     getWindow().setKeyCallback(onKeyPressed);
 }
 
-auto Engine::run() -> void
+auto Engine::run() -> std::expected<void, std::string>
 {
-    assert(m_camera != nullptr && "Camera is null");
+    if (m_camera == nullptr)
+    {
+        return std::unexpected("You must define a camera.");
+    }
 
     if (m_doubleSided)
         glDisable(GL_CULL_FACE);
@@ -125,6 +128,8 @@ auto Engine::run() -> void
         m_currentFrameInfo.deltaTime = newTime - previousTime;
         previousTime = newTime;
     }
+
+    return {};
 }
 
 auto Engine::makeShaderVariants(const std::string_view& id, const std::string& vertPath,

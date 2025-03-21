@@ -78,7 +78,7 @@ public:
     [[nodiscard]] auto isDoubleSided() const noexcept -> bool { return m_doubleSided; }
     [[nodiscard]] auto polygonMode() const noexcept -> GLenum { return m_polygonMode; }
 
-    auto run() -> void;
+    auto run() -> std::expected<void, std::string>;
 
     auto setDoubleSided(const bool value) -> void
     {
