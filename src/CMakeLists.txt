@@ -1,7 +1,6 @@
 add_executable(42run
         tiny_gltf_impl.cpp
         Utility/EnumHelpers.h
-        OpenGL/Cubemap.ixx
 )
 
 target_sources(42run
