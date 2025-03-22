@@ -5,9 +5,10 @@
 module;
 
 #include "glm/glm.hpp"
+#include "glm/ext.hpp"
 
 export module Components:Animator;
-import std;
+import std.compat;
 import Engine;
 
 export class Animator final : public Component

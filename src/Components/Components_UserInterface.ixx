@@ -7,7 +7,7 @@ module;
 #include "imgui.h"
 
 export module Components:UserInterface;
-import std;
+import std.compat;
 import Engine;
 import Utility;
 
