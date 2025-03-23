@@ -69,6 +69,7 @@ auto Engine::run() -> std::expected<void, std::string>
         glEnable(GL_BLEND);
     else
         glDisable(GL_BLEND);
+    glDepthMask(m_depthMaskEnabled ? GL_TRUE : GL_FALSE);
 
     glPolygonMode(GL_FRONT_AND_BACK, m_polygonMode);
 

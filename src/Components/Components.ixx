@@ -10,4 +10,5 @@ export import :ImguiSingleton;
 export import :MapController;
 export import :MeshRenderer;
 export import :PlayerController;
+export import :SkyboxRenderer;
 export import :UserInterface;

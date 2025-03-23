@@ -57,7 +57,13 @@ auto start() -> std::expected<void, std::string>
         RESOURCE_PATH"textures/skybox/front.jpg",
         RESOURCE_PATH"textures/skybox/back.jpg",
     };
+
     auto cubemapTexture = Cubemap::Create(faces);
+    {
+        auto& object = engine.instantiate();
+        auto e_variant = e_skyboxShader->get().enableVariant(ShaderHasNone);
+        object.addComponent<SkyboxRenderer>(engine, cubemapTexture, *e_variant);
+    }
 
     {
         // Camera

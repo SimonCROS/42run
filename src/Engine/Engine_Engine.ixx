@@ -53,6 +53,7 @@ private:
 
     bool m_doubleSided{false};
     bool m_blendEnabled{false};
+    bool m_depthMaskEnabled{true};
     GLenum m_polygonMode{GL_FILL};
     GLuint m_currentShaderProgram{0};
     GLuint m_currentTextures[MaxTextures]{};
@@ -101,6 +102,15 @@ public:
                 glEnable(GL_BLEND);
             else
                 glDisable(GL_BLEND);
+        }
+    }
+
+    auto setDepthMaskEnabled(const bool value) -> void
+    {
+        if (m_depthMaskEnabled != value)
+        {
+            m_depthMaskEnabled = value;
+            glDepthMask(value ? GL_TRUE : GL_FALSE);
         }
     }
 
@@ -163,6 +173,24 @@ public:
             }
 
             glBindTexture(GL_TEXTURE_2D, texture);
+            m_currentTextures[bindingIndex] = texture;
+        }
+    }
+
+    auto bindCubemap(const GLuint bindingIndex, const GLuint& texture) -> void
+    {
+        assert(bindingIndex < MaxTextures);
+        if (m_currentTextures[bindingIndex] != texture)
+        {
+            const GLenum target = GL_TEXTURE0 + bindingIndex;
+
+            if (m_currentBoundTextureTarget != target)
+            {
+                glActiveTexture(target);
+                m_currentBoundTextureTarget = target;
+            }
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
             m_currentTextures[bindingIndex] = texture;
         }
     }

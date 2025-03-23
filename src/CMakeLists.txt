@@ -34,6 +34,7 @@ target_sources(42run
                         Components/Components_MeshRenderer.ixx
                         Components/Components_PlayerController.ixx
                         Components/Components_UserInterface.ixx
+                        Components/SkyboxRenderer.ixx
                         Components/Engine_Camera.ixx
                         Engine/Engine.ixx
                         Engine/Engine_Animation.ixx
@@ -52,6 +53,7 @@ target_sources(42run
                 main.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
+                OpenGL/Cubemap.cpp
                 OpenGL/OpenGL_ShaderProgram.cpp
                 OpenGL/OpenGL_ShaderProgramInstance.cpp
                 Components/Components_Animator.cpp
