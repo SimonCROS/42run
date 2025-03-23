@@ -33,6 +33,12 @@ auto start() -> std::expected<void, std::string>
     if (!e_shader)
         return std::unexpected(std::move(e_shader).error());
 
+    auto e_skyboxShader = engine.makeShaderVariants("skybox",
+                                              RESOURCE_PATH"shaders/skybox.vert",
+                                              RESOURCE_PATH"shaders/skybox.frag");
+    if (!e_skyboxShader)
+        return std::unexpected(std::move(e_skyboxShader).error());
+
     auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());

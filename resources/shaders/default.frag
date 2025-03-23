@@ -45,6 +45,7 @@ uniform float u_metallicFactor;
 uniform float u_roughnessFactor;
 uniform float u_normalScale;
 uniform vec3 u_emissiveFactor;
+uniform samplerCube u_cubemap;
 
 uniform vec3 u_cameraPosition;
 uniform vec3 u_sunDirection;
