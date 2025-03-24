@@ -13,16 +13,16 @@ import InterfaceBlocks;
 import Window;
 import OpenGL;
 
-class Rotator : public Component
-{
-    public:
-    Rotator(Object& object) : Component(object) {  }
-
-    auto onUpdate(Engine& engine) -> void override
-    {
-        object().transform().rotate(glm::quat(glm::vec3(0.0f, glm::radians(1.0f), 0.0f)));
-    }
-};
+// class Rotator : public Component
+// {
+// public:
+//     explicit Rotator(Object& object) : Component(object) {  }
+//
+//     auto onUpdate(Engine& engine) -> void override
+//     {
+//         object().transform().rotate(glm::quat(glm::vec3(0.0f, glm::radians(1.0f), 0.0f)));
+//     }
+// };
 
 auto start() -> std::expected<void, std::string>
 {
@@ -54,11 +54,6 @@ auto start() -> std::expected<void, std::string>
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
 
-    {
-        auto& object = engine.instantiate();
-        object.addComponent<MeshRenderer>(*e_spheresMesh, *e_shader);
-    }
-
     const std::vector<std::string> faces
     {
         RESOURCE_PATH"textures/skybox/right.jpg",
@@ -77,6 +72,11 @@ auto start() -> std::expected<void, std::string>
     }
 
     {
+        auto& object = engine.instantiate();
+        object.addComponent<MeshRenderer>(*e_spheresMesh, *e_shader, cubemapTexture);
+    }
+
+    {
         // Camera
         auto& object = engine.instantiate();
         object.transform().setTranslation({14.5, 15, -6.6});
@@ -84,7 +84,7 @@ auto start() -> std::expected<void, std::string>
 
         const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
         engine.setCamera(camera);
-        object.addComponent<Rotator>();
+        // object.addComponent<Rotator>();
     }
 
     // auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);

@@ -54,6 +54,9 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
 
         program.setMat4("u_transform", transform);
 
+        engine.bindCubemap(0, m_reflectionCubemap.textureId());
+        program.setInt("m_cubemap", 0);
+
         if (primitive.material >= 0)
         {
             const auto& material = m_mesh.model().materials[primitive.material];
@@ -63,29 +66,29 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
 
             if (material.pbrMetallicRoughness.baseColorTexture.index >= 0)
             {
-                engine.bindTexture(0, m_mesh.texture(material.pbrMetallicRoughness.baseColorTexture.index));
-                program.setInt("u_baseColorTexture", 0);
+                engine.bindTexture(1, m_mesh.texture(material.pbrMetallicRoughness.baseColorTexture.index));
+                program.setInt("u_baseColorTexture", 1);
                 program.setUint("u_baseColorTexCoordIndex", material.pbrMetallicRoughness.baseColorTexture.texCoord);
             }
 
             if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
             {
-                engine.bindTexture(1, m_mesh.texture(material.pbrMetallicRoughness.metallicRoughnessTexture.index));
-                program.setInt("u_metallicRoughnessMap", 1);
+                engine.bindTexture(2, m_mesh.texture(material.pbrMetallicRoughness.metallicRoughnessTexture.index));
+                program.setInt("u_metallicRoughnessMap", 2);
                 program.setUint("u_metallicRoughnessTexCoordIndex", material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord);
             }
 
             if (material.normalTexture.index >= 0)
             {
-                engine.bindTexture(2, m_mesh.texture(material.normalTexture.index));
-                program.setInt("u_normalMap", 2);
+                engine.bindTexture(3, m_mesh.texture(material.normalTexture.index));
+                program.setInt("u_normalMap", 3);
                 program.setUint("u_normalTexCoordIndex", material.normalTexture.texCoord);
             }
 
             if (material.emissiveTexture.index >= 0)
             {
-                engine.bindTexture(3, m_mesh.texture(material.emissiveTexture.index));
-                program.setInt("u_emissiveMap", 3);
+                engine.bindTexture(4, m_mesh.texture(material.emissiveTexture.index));
+                program.setInt("u_emissiveMap", 4);
                 program.setUint("u_emissiveTexCoordIndex", material.emissiveTexture.texCoord);
             }
 
