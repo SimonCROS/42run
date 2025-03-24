@@ -13,6 +13,17 @@ import InterfaceBlocks;
 import Window;
 import OpenGL;
 
+class Rotator : public Component
+{
+    public:
+    Rotator(Object& object) : Component(object) {  }
+
+    auto onUpdate(Engine& engine) -> void override
+    {
+        object().transform().rotate(glm::quat(glm::vec3(0.0f, glm::radians(1.0f), 0.0f)));
+    }
+};
+
 auto start() -> std::expected<void, std::string>
 {
     std::cout << "42run " << FTRUN_VERSION_MAJOR << "." << FTRUN_VERSION_MINOR << std::endl;
@@ -73,6 +84,7 @@ auto start() -> std::expected<void, std::string>
 
         const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
         engine.setCamera(camera);
+        object.addComponent<Rotator>();
     }
 
     // auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);

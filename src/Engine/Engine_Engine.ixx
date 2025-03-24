@@ -215,6 +215,7 @@ public:
     instantiate()
         -> Object&;
 
+    [[nodiscard]] auto getCamera() const noexcept -> const Camera* { return m_camera; }
     auto setCamera(const Camera& camera) -> void { m_camera = &camera; }
 
     auto objects() -> SlotSet<Object>& { return m_objects; }

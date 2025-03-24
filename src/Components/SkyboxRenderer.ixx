@@ -4,6 +4,7 @@
 
 module;
 #include "glad/gl.h"
+#include "glm/glm.hpp"
 
 export module Components:SkyboxRenderer;
 import std;
@@ -65,15 +66,20 @@ private:
 
     void renderSkybox(Engine& engine)
     {
+        const auto pvMat = engine.getCamera()->projectionMatrix() * glm::mat4(glm::mat3(engine.getCamera()->computeViewMatrix()));
+
+        glDepthFunc(GL_LEQUAL);
         engine.bindCubemap(0, m_cubemap.textureId());
         engine.setDepthMaskEnabled(false);
         engine.setDoubleSided(true);
 
         engine.useProgram(m_shaderProgram);
+        m_shaderProgram.setMat4("u_projectionView", pvMat);
         engine.bindVertexArray(m_vao);
         engine.bindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         engine.setDepthMaskEnabled(true);
+        glDepthFunc(GL_LESS);
     }
 
 public:
