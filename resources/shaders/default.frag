@@ -298,7 +298,7 @@ void main()
         // Ensure the result is in the [0, 1] range
         vec3 I = normalize(v_FragPos - u_cameraPosition);
         vec3 R = reflect(I, normalize(v_Normal));
-        result += vec4(texture(u_cubemap, R).rgb, 1.0);
+        result += vec3(texture(u_cubemap, R).rgb);
     }
 
     result = pow(result, vec3(c_GammaInverse));
