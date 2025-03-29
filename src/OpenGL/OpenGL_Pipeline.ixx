@@ -8,7 +8,7 @@ module;
 
 export module OpenGL:Pipeline;
 import std;
-import :ShaderProgram;
+import :ShaderProgramInstance;
 
 export class Pipeline
 {

@@ -7,7 +7,7 @@ module;
 #include "imgui.h"
 
 export module InterfaceBlocks:AnimationInterfaceBlock;
-import std;
+import std.compat;
 import Components;
 import Engine;
 

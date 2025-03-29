@@ -7,7 +7,7 @@ module;
 #include "imgui_impl_opengl3.h"
 
 module Components;
-import std;
+import std.compat;
 import Engine;
 
 UserInterface::UserInterface(Object& object, const std::string_view& name, const ImguiWindowData& windowData)
