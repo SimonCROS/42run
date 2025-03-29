@@ -44,24 +44,35 @@ auto start() -> std::expected<void, std::string>
     if (!e_shader)
         return std::unexpected(std::move(e_shader).error());
 
+    auto e_hdrShader = engine.makeShaderVariants("hdr",
+                                              RESOURCE_PATH"shaders/hdr.vert",
+                                              RESOURCE_PATH"shaders/hdr.frag");
+    if (!e_hdrShader)
+        return std::unexpected(std::move(e_hdrShader).error());
+    {
+        auto e_return = e_hdrShader->get().enableVariant(ShaderHasNone);
+        if (!e_return)
+            return std::unexpected(std::move(e_return).error());
+    }
+
     auto e_skyboxShader = engine.makeShaderVariants("skybox",
                                               RESOURCE_PATH"shaders/skybox.vert",
                                               RESOURCE_PATH"shaders/skybox.frag");
     if (!e_skyboxShader)
         return std::unexpected(std::move(e_skyboxShader).error());
 
-    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
+    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres_smooth.glb", true);
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
 
     const std::vector<std::string> faces
     {
-        RESOURCE_PATH"textures/skybox/right.jpg",
-        RESOURCE_PATH"textures/skybox/left.jpg",
-        RESOURCE_PATH"textures/skybox/top.jpg",
-        RESOURCE_PATH"textures/skybox/bottom.jpg",
-        RESOURCE_PATH"textures/skybox/front.jpg",
-        RESOURCE_PATH"textures/skybox/back.jpg",
+        RESOURCE_PATH"textures/skybox/posx.jpg",
+        RESOURCE_PATH"textures/skybox/negx.jpg",
+        RESOURCE_PATH"textures/skybox/posy.jpg",
+        RESOURCE_PATH"textures/skybox/negy.jpg",
+        RESOURCE_PATH"textures/skybox/posz.jpg",
+        RESOURCE_PATH"textures/skybox/negz.jpg",
     };
 
     auto cubemapTexture = Cubemap::Create(faces);

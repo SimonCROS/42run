@@ -15,13 +15,13 @@ layout (location = 4) in vec3 v_color0;
 #elif defined HAS_VEC4_COLORS
 layout (location = 4) in vec4 v_color0;
 #endif
-#if defined HAS_TEXCOORD_1
+#if defined HAS_TEXCOORDS_1
 layout (location = 5) in vec2 v_texCoords[2];
-#elif defined HAS_TEXCOORD_0
+#elif defined HAS_TEXCOORDS_0
 layout (location = 5) in vec2 v_texCoords[1];
 #endif
 
-layout (location = 0) out vec4 FragColor;
+layout (location = 0) out vec4 f_color;
 
 #ifdef HAS_BASECOLORMAP
 uniform sampler2D u_baseColorTexture;
@@ -58,8 +58,6 @@ struct DirectionalLight {
 
 const float c_MinRoughness = 0.04;
 const float c_MinMetallic = 0.04;
-const float c_Gamma = 2.2;
-const float c_GammaInverse = 1 / c_Gamma;
 const uint c_Shininess = 5;
 
 mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
@@ -89,7 +87,7 @@ vec3 getNormal()
 #ifdef HAS_TANGENTS
     mat3 tbn = v_TBN;
 #else
-#ifdef HAS_TEXCOORD_0
+#ifdef HAS_TEXCOORDS_0
     vec2 uv = v_texCoords[0];
 #else
     vec2 uv = v_FragPos.xy;
@@ -261,7 +259,6 @@ void main()
     sunLight.color = vec3(10.0, 9.8, 9.0);
 
     vec3 lightContribution = calcPBRDirectionalLight(normal, viewDir, normalize(-sunLight.direction), baseColor.rgb, metallic, roughness, sunLight.color);
-    FragColor = vec4(lightContribution, 1.0f);
     result += lightContribution;
 
     sunLight.direction = vec3(0, -6, 0);
@@ -279,7 +276,7 @@ void main()
     emissive *= u_emissiveFactor;
     result += emissive;
 
-    {
+    /*{
         // Base reflectivity for non-metals (typical dielectric value)
         float baseReflectivity = 0.04;
 
@@ -299,10 +296,13 @@ void main()
         vec3 I = normalize(v_FragPos - u_cameraPosition);
         vec3 R = reflect(I, normalize(v_Normal));
         result += vec3(texture(u_cubemap, R).rgb);
-    }
+    }*/
 
-    result = pow(result, vec3(c_GammaInverse));
     result = mix(result, vec3(u_fogColor), fogFactor);
+    /*if (result.r > 1 || result.g > 1 || result.b > 1) {
+        f_color = vec4(1,0,0,1);
+        return;
+    }*/
 
-    FragColor = vec4(result, baseColor.a);
+    f_color = vec4(result, baseColor.a);
 }
