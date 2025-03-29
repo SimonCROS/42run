@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.28)
-
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "0e5b6991-d74f-4b3d-a41c-cf096e0b2508")
+#set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
+
+cmake_minimum_required(VERSION 3.28)
 
 include(FetchContent)
 
@@ -19,6 +20,14 @@ configure_file(42runConfig.h.in 42runConfig.h)
 #        FILE_SET CXX_MODULES
 #        BASE_DIRS /opt/homebrew/Cellar/llvm/19.1.7_1/share/libc++/v1
 #        FILES /opt/homebrew/Cellar/llvm/19.1.7_1/share/libc++/v1/std.cppm /opt/homebrew/Cellar/llvm/19.1.7_1/share/libc++/v1/std.compat.cppm)
+
+# Dummy target for CLion
+add_library(unused_std_target STATIC)
+target_sources(unused_std_target
+        PRIVATE
+        FILE_SET CXX_MODULES
+        BASE_DIRS /home/scros/compilers/llvmorg-20.1.1/share/libc++/v1
+        FILES /home/scros/compilers/llvmorg-20.1.1/share/libc++/v1/std.cppm /home/scros/compilers/llvmorg-20.1.1/share/libc++/v1/std.compat.cppm)
 
 set(EXTERNAL_LIBRARIES_DIR ${CMAKE_SOURCE_DIR}/lib)
 include(${CMAKE_SOURCE_DIR}/cmake/SetupExternalLibraries.cmake)
