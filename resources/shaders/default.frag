@@ -15,9 +15,9 @@ layout (location = 4) in vec3 v_color0;
 #elif defined HAS_VEC4_COLORS
 layout (location = 4) in vec4 v_color0;
 #endif
-#if defined HAS_TEXCOORDS_1
+#if defined HAS_TEXCOORD_1
 layout (location = 5) in vec2 v_texCoords[2];
-#elif defined HAS_TEXCOORDS_0
+#elif defined HAS_TEXCOORD_0
 layout (location = 5) in vec2 v_texCoords[1];
 #endif
 
@@ -87,7 +87,7 @@ vec3 getNormal()
 #ifdef HAS_TANGENTS
     mat3 tbn = v_TBN;
 #else
-#ifdef HAS_TEXCOORDS_0
+#ifdef HAS_TEXCOORD_0
     vec2 uv = v_texCoords[0];
 #else
     vec2 uv = v_FragPos.xy;

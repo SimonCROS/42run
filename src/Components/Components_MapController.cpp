@@ -11,8 +11,9 @@ module Components;
 import std;
 import :MeshRenderer;
 import Engine;
+import OpenGL;
 
-static auto instantiatePlaneTwoTables(Engine& engine) -> Object&
+static auto instantiatePlaneTwoTables(Engine& engine, Cubemap& cubemapTexture) -> Object&
 {
     auto& shaderProgram = engine.getShaderProgram("default")->get();
     auto& floorMesh = engine.getModel("floor")->get();
@@ -21,31 +22,31 @@ static auto instantiatePlaneTwoTables(Engine& engine) -> Object&
     // Floor
     auto& object = engine.instantiate();
     object.transform().setTranslation({0, 0, 5});
-    // object.addComponent<MeshRenderer>(floorMesh, shaderProgram);
-    //
-    // {
-    //     // Desk
-    //     auto& subObject = engine.instantiate();
-    //     subObject.transform().scale(0.004f);
-    //     subObject.transform().setTranslation({-2, 0, 5});
-    //     subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-    //     subObject.addComponent<MeshRenderer>(deskMesh, shaderProgram);
-    //     subObject.setParent(object);
-    // }
-    //
-    // {
-    //     // Desk
-    //     auto& subObject = engine.instantiate();
-    //     subObject.transform().scale(0.004f);
-    //     subObject.transform().setTranslation({2, 0, 2});
-    //     subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-    //     subObject.addComponent<MeshRenderer>(deskMesh, shaderProgram);
-    //     subObject.setParent(object);
-    // }
+    object.addComponent<MeshRenderer>(floorMesh, shaderProgram, cubemapTexture);
+
+    {
+        // Desk
+        auto& subObject = engine.instantiate();
+        subObject.transform().scale(0.004f);
+        subObject.transform().setTranslation({-2, 0, 5});
+        subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+        subObject.addComponent<MeshRenderer>(deskMesh, shaderProgram, cubemapTexture);
+        subObject.setParent(object);
+    }
+
+    {
+        // Desk
+        auto& subObject = engine.instantiate();
+        subObject.transform().scale(0.004f);
+        subObject.transform().setTranslation({2, 0, 2});
+        subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
+        subObject.addComponent<MeshRenderer>(deskMesh, shaderProgram, cubemapTexture);
+        subObject.setParent(object);
+    }
     return object;
 }
 
-MapController::MapController(Object& object): Component(object)
+MapController::MapController(Object& object, Cubemap& cubemapTexture): Component(object), m_cubemapTexture(cubemapTexture)
 {
 }
 
@@ -55,7 +56,7 @@ auto MapController::onUpdate(Engine& engine) -> void
     {
         for (int i = 0; i < 8; ++i)
         {
-            auto& segment = instantiatePlaneTwoTables(engine);
+            auto& segment = instantiatePlaneTwoTables(engine, m_cubemapTexture);
             segment.setActive(false);
             m_segmentsPool.push(segment);
         }

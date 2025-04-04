@@ -9,10 +9,10 @@ layout (location = 2) in vec3 a_color0;
 #elif defined HAS_VEC4_COLORS
 layout (location = 2) in vec4 a_color0;
 #endif
-#ifdef HAS_TEXCOORDS_0
+#ifdef HAS_TEXCOORD_0
 layout (location = 3) in vec2 a_texCoords0;
 #endif
-#ifdef HAS_TEXCOORDS_1
+#ifdef HAS_TEXCOORD_1
 layout (location = 4) in vec2 a_texCoords1;
 #endif
 #ifdef HAS_TANGENTS
@@ -36,9 +36,9 @@ layout (location = 4) out vec3 v_color0;
 #elif defined HAS_VEC4_COLORS
 layout (location = 4) out vec4 v_color0;
 #endif
-#if defined HAS_TEXCOORDS_1
+#if defined HAS_TEXCOORD_1
 layout (location = 5) out vec2 v_texCoords[2];
-#elif defined HAS_TEXCOORDS_0
+#elif defined HAS_TEXCOORD_0
 layout (location = 5) out vec2 v_texCoords[1];
 #endif
 
@@ -101,10 +101,10 @@ void main()
 #endif
 #endif
 
-#ifdef HAS_TEXCOORDS_0
+#ifdef HAS_TEXCOORD_0
     v_texCoords[0] = a_texCoords0;
 #endif
-#ifdef HAS_TEXCOORDS_1
+#ifdef HAS_TEXCOORD_1
     v_texCoords[1] = a_texCoords1;
 #endif
 }

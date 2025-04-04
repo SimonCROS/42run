@@ -5,6 +5,7 @@
 export module Components:MapController;
 import std;
 import Engine;
+import OpenGL;
 
 export class MapController final : public Component
 {
@@ -19,6 +20,8 @@ private:
     std::queue<std::reference_wrapper<Object>> m_segmentsPool;
     std::deque<std::reference_wrapper<Object>> m_movingSegments;
 
+    Cubemap& m_cubemapTexture;
+
     DurationType m_startTime{}; // TODO set in something like onStart
 
     static constexpr auto easeOutQuad(const float x) -> float
@@ -27,7 +30,7 @@ private:
     }
 
 public:
-    explicit MapController(Object& object);
+    explicit MapController(Object& object, Cubemap& cubemapTexture);
 
     auto onUpdate(Engine& engine) -> void override;
 };

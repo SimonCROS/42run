@@ -109,16 +109,16 @@ auto start() -> std::expected<void, std::string>
     // auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
     // if (!e_ancientMesh)
     //     return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
-
+    //
     // auto& map = engine.instantiate();
-    // map.addComponent<MapController>();
+    // map.addComponent<MapController>(cubemapTexture);
     //
     // {
     //     // Ancient
     //     auto& object = engine.instantiate();
     //     object.transform().scale(0.65f);
     //     auto& animator = object.addComponent<Animator>(*e_ancientMesh);
-    //     auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader);
+    //     auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, *e_shader, cubemapTexture);
     //     object.addComponent<PlayerController>();
     //     meshRenderer.setAnimator(animator);
     //     animator.setAnimation(0);

@@ -9,7 +9,7 @@ module;
 #include "glm/gtc/type_ptr.hpp"
 
 module OpenGL;
-import std;
+import std.compat;
 
 auto ShaderProgramInstance::Create(const std::string_view& vertexCode, const std::string_view& fragCode)
     -> std::expected<ShaderProgramInstance, std::string>

@@ -1,56 +1,58 @@
-add_executable(42run
-        tiny_gltf_impl.cpp
-        Utility/EnumHelpers.h
-)
+add_executable(42run)
 
 target_sources(42run
         PUBLIC
-                FILE_SET CXX_MODULES
-                FILES
-                        Utility/Utility.ixx
-                        Utility/Utility_SlotSet.ixx
-                        Utility/Utility_StridedIterator.ixx
-                        Utility/Utility_StringUnorderedMap.ixx
-                        Utility/Utility_VectorMultiMap.ixx
-                        Window/Window.ixx
-                        Window/Window_Context.ixx
-                        Window/Window_Controls.ixx
-                        Window/Window_Window.ixx
-                        OpenGL/OpenGL.ixx
-                        OpenGL/OpenGL_Debug.ixx
-                        OpenGL/Cubemap.ixx
-                        OpenGL/OpenGL_IndicesBuffer.ixx
-                        OpenGL/OpenGL_Pipeline.ixx
-                        OpenGL/OpenGL_Shader.ixx
-                        OpenGL/OpenGL_ShaderProgram.ixx
-                        OpenGL/OpenGL_ShaderProgramInstance.ixx
-                        OpenGL/OpenGL_VertexArray.ixx
-                        OpenGL/OpenGL_VertexBuffer.ixx
-                        Components/Components.ixx
-                        Components/Components_Animator.ixx
-                        Components/Components_CameraController.ixx
-                        Components/Components_ImguiSingleton.ixx
-                        Components/Components_MapController.ixx
-                        Components/Components_MeshRenderer.ixx
-                        Components/Components_PlayerController.ixx
-                        Components/Components_UserInterface.ixx
-                        Components/SkyboxRenderer.ixx
-                        Components/Engine_Camera.ixx
-                        Engine/Engine.ixx
-                        Engine/Engine_Animation.ixx
-                        Engine/Engine_AnimationSampler.ixx
-                        Engine/Engine_Component.ixx
-                        Engine/Engine_Engine.ixx
-                        Engine/Engine_FrameInfo.ixx
-                        Engine/Engine_Mesh.ixx
-                        Engine/Engine_Object.ixx
-                        Engine/Engine_ObjectsManager.ixx
-                        Engine/Engine_Transform.ixx
-                        InterfaceBlocks/InterfaceBlocks.ixx
-                        InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
-                        InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
+                Utility/EnumHelpers.h
+        PUBLIC
+        FILE_SET CXX_MODULES
+        FILES
+                Utility/Utility.ixx
+                Utility/Utility_SlotSet.ixx
+                Utility/Utility_StridedIterator.ixx
+                Utility/Utility_StringUnorderedMap.ixx
+                Utility/Utility_VectorMultiMap.ixx
+                Window/Window.ixx
+                Window/Window_Context.ixx
+                Window/Window_Controls.ixx
+                Window/Window_Window.ixx
+                OpenGL/OpenGL.ixx
+                OpenGL/OpenGL_Debug.ixx
+                OpenGL/Cubemap.ixx
+                OpenGL/OpenGL_IndicesBuffer.ixx
+                OpenGL/OpenGL_Pipeline.ixx
+                OpenGL/OpenGL_Shader.ixx
+                OpenGL/OpenGL_ShaderProgram.ixx
+                OpenGL/OpenGL_ShaderProgramInstance.ixx
+                OpenGL/OpenGL_VertexArray.ixx
+                OpenGL/OpenGL_VertexBuffer.ixx
+                OpenGL/Program/Pipeline.ixx
+                OpenGL/Program/RenderPass.ixx
+                Components/Components.ixx
+                Components/Components_Animator.ixx
+                Components/Components_CameraController.ixx
+                Components/Components_ImguiSingleton.ixx
+                Components/Components_MapController.ixx
+                Components/Components_MeshRenderer.ixx
+                Components/Components_PlayerController.ixx
+                Components/Components_UserInterface.ixx
+                Components/SkyboxRenderer.ixx
+                Components/Engine_Camera.ixx
+                Engine/Engine.ixx
+                Engine/Engine_Animation.ixx
+                Engine/Engine_AnimationSampler.ixx
+                Engine/Engine_Component.ixx
+                Engine/Engine_Engine.ixx
+                Engine/Engine_FrameInfo.ixx
+                Engine/Engine_Mesh.ixx
+                Engine/Engine_Object.ixx
+                Engine/Engine_ObjectsManager.ixx
+                Engine/Engine_Transform.ixx
+                InterfaceBlocks/InterfaceBlocks.ixx
+                InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
+                InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
         PRIVATE
                 main.cpp
+                tiny_gltf_impl.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
                 OpenGL/Cubemap.cpp
