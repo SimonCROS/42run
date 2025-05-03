@@ -27,6 +27,7 @@ target_sources(42run
                 OpenGL/OpenGL_VertexBuffer.ixx
                 OpenGL/Program/Pipeline.ixx
                 OpenGL/Program/RenderPass.ixx
+                OpenGL/Texture2D.ixx
                 Components/Components.ixx
                 Components/Components_Animator.ixx
                 Components/Components_CameraController.ixx
@@ -50,6 +51,15 @@ target_sources(42run
                 InterfaceBlocks/InterfaceBlocks.ixx
                 InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
                 InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
+                Image.ixx
+                OpenGL2/glToString.ixx
+                OpenGL2/StateCache.ixx
+                OpenGL2/Texture2D2.ixx
+                OpenGL2/Texture2D2_Builder.ixx
+                OpenGL2/Cubemap2.ixx
+                OpenGL2/Cubemap2_Builder.ixx
+                OpenGL2/Buffer.ixx
+                OpenGL2/Buffer_Builder.ixx
         PRIVATE
                 main.cpp
                 tiny_gltf_impl.cpp
@@ -58,6 +68,7 @@ target_sources(42run
                 OpenGL/Cubemap.cpp
                 OpenGL/OpenGL_ShaderProgram.cpp
                 OpenGL/OpenGL_ShaderProgramInstance.cpp
+                OpenGL/Texture2D.cpp
                 Components/Components_Animator.cpp
                 Components/Components_ImguiSingleton.cpp
                 Components/Components_MapController.cpp
@@ -72,6 +83,9 @@ target_sources(42run
                 Engine/Engine_Object.cpp
                 Engine/Engine_ObjectsManager.cpp
                 Engine/Engine_Transform.cpp
+                OpenGL2/Texture2D2.cpp
+                OpenGL2/Cubemap2.cpp
+                OpenGL2/Buffer.cpp
 )
 
 target_compile_definitions(42run PRIVATE
@@ -80,6 +94,10 @@ target_compile_definitions(42run PRIVATE
         TINYGLTF_NO_STB_IMAGE_WRITE
         TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
         TINYGLTF_USE_CPP14
+        STBI_ONLY_JPEG
+        STBI_ONLY_PNG
+        STBI_ONLY_TGA
+        STBI_ONLY_HDR
 )
 
 target_link_libraries(42run PRIVATE

@@ -118,16 +118,31 @@ auto Engine::run() -> std::expected<void, std::string>
                  static_cast<GLsizei>(m_window.height()), 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     // create depth buffer (renderbuffer)
     unsigned int rboDepth;
-    glGenRenderbuffers(1, &rboDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, static_cast<GLsizei>(m_window.width()),
-                          static_cast<GLsizei>(m_window.height()));
+    glGenTextures(1, &rboDepth);
+    glBindTexture(GL_TEXTURE_2D, rboDepth);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_DEPTH_COMPONENT,   // format interne
+        static_cast<GLsizei>(m_window.width()),
+        static_cast<GLsizei>(m_window.height()),
+        0,
+        GL_DEPTH_COMPONENT,   // format
+        GL_FLOAT,             // type (GL_UNSIGNED_BYTE ou GL_FLOAT selon besoin)
+        NULL
+    );
+
     // attach buffers
     glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rboDepth, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -160,6 +175,8 @@ auto Engine::run() -> std::expected<void, std::string>
             }
         }
 
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -177,6 +194,8 @@ auto Engine::run() -> std::expected<void, std::string>
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
         auto& program = getShaderProgram("hdr").value().get().getProgram(ShaderHasNone);
         useProgram(program);
         bindTexture(0, colorBuffer);

@@ -16,10 +16,10 @@ void main()
     vec3 hdrColor = texture(u_hdrBuffer, v_texCoords).rgb;
     vec3 result;
 
-    if(u_hdr)
+    if (u_hdr)
         result = vec3(1.0) - exp(-hdrColor * u_exposure);
     else
-        result = pow(result, vec3(c_gammaInverse));
+        result = pow(hdrColor, vec3(c_gammaInverse));
 
     result = pow(result, vec3(c_gammaInverse));
     f_color = vec4(result, 1.0);
