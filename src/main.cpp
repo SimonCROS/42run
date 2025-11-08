@@ -5,6 +5,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "42runConfig.h"
+#include <cstdlib>
 
 import std;
 import Components;

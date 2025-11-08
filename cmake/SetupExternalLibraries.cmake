@@ -2,6 +2,8 @@
 # Configuration
 # ---------------------------------------------------------------------------------
 
+set(EXTERNAL_LIBRARIES_DIR ${CMAKE_SOURCE_DIR}/lib)
+
 set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "" FORCE)
@@ -33,7 +35,7 @@ endif()
 FetchContent_Declare(
         glfw
         GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG dc46d3f8129712e42856c20e99a604a3b08ad581 #refs/tags/3.3.10
+        GIT_TAG 7b6aead9fb88b3623e3b3725ebb42670cbe4c579 #refs/tags/3.4
         FIND_PACKAGE_ARGS 3.3 NAMES glfw3
         EXCLUDE_FROM_ALL
 )
@@ -45,7 +47,7 @@ FetchContent_MakeAvailable(glfw)
 FetchContent_Declare(
         tinygltf
         GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
-        GIT_TAG a5e653e46cca64bbc0ecee7ede007347a94c39b0 #refs/tags/2.9.5
+        GIT_TAG 81bd50c1062fdb956e878efa2a9234b2b9ec91ec #refs/tags/v2.9.7
         FIND_PACKAGE_ARGS 2.9.5 NAMES tinygltf
         EXCLUDE_FROM_ALL
 )
@@ -57,7 +59,7 @@ FetchContent_MakeAvailable(tinygltf)
 FetchContent_Declare(
         glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG 0af55ccecd98d4e5a8d1fad7de25ba429d60e863 #refs/tags/1.0.1
+        GIT_TAG a532f5b1cf27d6a3c099437e6959cf7e398a0a67 #refs/tags/1.0.2
         FIND_PACKAGE_ARGS 1.0.1 NAMES glm
         EXCLUDE_FROM_ALL
 )
