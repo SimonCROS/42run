@@ -15,6 +15,40 @@ import :Engine;
 import OpenGL;
 
 export using AccessorIndex = int;
+export using MaterialIndex = int;
+export using TextureIndex = int;
+
+struct TextureInfo
+{
+    TextureIndex index;
+    int texCoord;
+};
+
+struct NormalTextureInfo
+{
+    TextureIndex index;
+    int texCoord;
+    float scale;
+};
+
+struct Material
+{
+    struct PBR
+    {
+        TextureInfo baseColorTexture;
+        glm::vec4 baseColorFactor;
+        TextureInfo metallicRoughnessTexture;
+        float metallicFactor;
+        float roughnessFactor;
+    };
+
+    PBR pbr;
+    NormalTextureInfo normalTexture;
+    TextureInfo emissiveTexture;
+    glm::vec3 emissiveFactor;
+    bool doubleSided;
+    bool blend; // based on alphaMode, it's a boolean because MASK is not supported
+};
 
 export struct AccessorRenderInfo
 {
@@ -87,19 +121,18 @@ private:
     std::vector<GLuint> m_buffers;
     std::vector<GLuint> m_textures;
     std::vector<Animation> m_animations; // TODO use a pointer to ensure location never change and faster access
+    std::vector<Material> m_materials;
     ModelRenderInfo m_renderInfo;
 
-    tinygltf::Model m_model;
-
 public:
-    static auto Create(Engine & engine, tinygltf::Model && model) -> Model;
+    static auto Create(Engine & engine, const tinygltf::Model & model) -> Model;
 
     Model(std::vector<GLuint> && buffers, std::vector<GLuint> && textures, std::vector<Animation> && animations,
-          ModelRenderInfo && renderInfo, tinygltf::Model && model) : m_buffers(std::move(buffers)),
-                                                                     m_textures(std::move(textures)),
-                                                                     m_animations(std::move(animations)),
-                                                                     m_renderInfo(std::move(renderInfo)),
-                                                                     m_model(std::move(model))
+          std::vector<Material> && materials, ModelRenderInfo && renderInfo) : m_buffers(std::move(buffers)),
+                                                                               m_textures(std::move(textures)),
+                                                                               m_animations(std::move(animations)),
+                                                                               m_materials(std::move(materials)),
+                                                                               m_renderInfo(std::move(renderInfo))
     {}
 
     [[nodiscard]] auto buffer(const size_t index) const -> GLuint { return m_buffers[index]; }
@@ -107,6 +140,8 @@ public:
     [[nodiscard]] auto texture(const size_t index) const -> GLuint { return m_textures[index]; }
 
     [[nodiscard]] auto animations() const -> const std::vector<Animation> & { return m_animations; }
+
+    [[nodiscard]] auto materials() const -> const std::vector<Material> & { return m_materials; }
 
     [[nodiscard]] auto renderInfo() const -> const ModelRenderInfo & { return m_renderInfo; }
 

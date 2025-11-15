@@ -56,24 +56,24 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
         if (primitiveRenderInfo.material >= 0)
         {
-            const auto & material = m_mesh.model().materials[primitiveRenderInfo.material];
+            const auto & material = m_mesh.materials()[primitiveRenderInfo.material];
 
             engine.setDoubleSided(material.doubleSided);
-            engine.setBlendEnabled(material.alphaMode == "BLEND");
+            engine.setBlendEnabled(material.blend);
 
-            if (material.pbrMetallicRoughness.baseColorTexture.index >= 0)
+            if (material.pbr.baseColorTexture.index >= 0)
             {
-                engine.bindTexture(1, m_mesh.texture(material.pbrMetallicRoughness.baseColorTexture.index));
+                engine.bindTexture(1, m_mesh.texture(material.pbr.baseColorTexture.index));
                 program.setInt("u_baseColorTexture", 1);
-                program.setUint("u_baseColorTexCoordIndex", material.pbrMetallicRoughness.baseColorTexture.texCoord);
+                program.setUint("u_baseColorTexCoordIndex", material.pbr.baseColorTexture.texCoord);
             }
 
-            if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
+            if (material.pbr.metallicRoughnessTexture.index >= 0)
             {
-                engine.bindTexture(2, m_mesh.texture(material.pbrMetallicRoughness.metallicRoughnessTexture.index));
+                engine.bindTexture(2, m_mesh.texture(material.pbr.metallicRoughnessTexture.index));
                 program.setInt("u_metallicRoughnessMap", 2);
                 program.setUint("u_metallicRoughnessTexCoordIndex",
-                                material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord);
+                                material.pbr.metallicRoughnessTexture.texCoord);
             }
 
             if (material.normalTexture.index >= 0)
@@ -90,14 +90,16 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
                 program.setUint("u_emissiveTexCoordIndex", material.emissiveTexture.texCoord);
             }
 
-            program.setVec4("u_baseColorFactor", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
-            program.setFloat("u_metallicFactor", static_cast<float>(material.pbrMetallicRoughness.metallicFactor));
-            program.setFloat("u_roughnessFactor", static_cast<float>(material.pbrMetallicRoughness.roughnessFactor));
-            program.setFloat("u_normalScale", static_cast<float>(material.normalTexture.scale));
-            program.setVec3("u_emissiveFactor", glm::make_vec3(material.emissiveFactor.data()));
-        } else
+            program.setVec4("u_baseColorFactor", material.pbr.baseColorFactor);
+            program.setFloat("u_metallicFactor", material.pbr.metallicFactor);
+            program.setFloat("u_roughnessFactor", material.pbr.roughnessFactor);
+            program.setFloat("u_normalScale", material.normalTexture.scale);
+            program.setVec3("u_emissiveFactor", material.emissiveFactor);
+        }
+        else
         {
             engine.setDoubleSided(false);
+            engine.setBlendEnabled(false);
             program.setVec4("u_baseColorFactor", glm::vec4(1));
             program.setFloat("u_metallicFactor", 1);
             program.setFloat("u_roughnessFactor", 1);
@@ -111,7 +113,8 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
         engine.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, accessorRenderInfo.glBuffer);
 
-        glDrawElements(primitiveRenderInfo.mode, static_cast<GLsizei>(accessorRenderInfo.count), accessorRenderInfo.componentType,
+        glDrawElements(primitiveRenderInfo.mode, static_cast<GLsizei>(accessorRenderInfo.count),
+                       accessorRenderInfo.componentType,
                        bufferOffset(accessorRenderInfo.byteOffsetFromBufferView));
     }
 }
@@ -137,7 +140,8 @@ auto MeshRenderer::calculateGlobalTransformsRecursive(const int nodeIndex, glm::
                                node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
                                node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
                                node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]);
-    } else
+    }
+    else
     {
         const auto & tr = m_animator.has_value()
                               ? m_animator->get().nodeTransform(nodeIndex)
@@ -184,7 +188,8 @@ auto MeshRenderer::calculateJointMatrices(const int skinIndex, const glm::mat4 &
         for (int i = 0; i < gltfJoints.size(); ++i)
             jointMatrices[i] = globalInverseTransform * m_nodes[gltfJoints[i]].globalTransform * m_mesh.renderInfo().
                                skins[skinIndex].inverseBindMatrices[i];
-    } else
+    }
+    else
     {
         for (int i = 0; i < gltfJoints.size(); ++i)
             jointMatrices[i] = globalInverseTransform * m_nodes[gltfJoints[i]].globalTransform;

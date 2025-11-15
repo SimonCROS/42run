@@ -8,6 +8,7 @@ module;
 #include "tiny_gltf.h"
 #include "glad/gl.h"
 #include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 module Engine;
 import std;
@@ -107,11 +108,12 @@ static auto loadTexture(const tinygltf::Model & model, const int & textureId, st
     textures[textureId] = glTexture;
 }
 
-auto Model::Create(Engine & engine, tinygltf::Model && model) -> Model
+auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
 {
     std::vector<GLuint> buffers;
     std::vector<GLuint> textures;
     std::vector<Animation> animations;
+    std::vector<Material> materials;
     ModelRenderInfo renderInfo;
 
     if (!model.accessors.empty())
@@ -296,5 +298,28 @@ auto Model::Create(Engine & engine, tinygltf::Model && model) -> Model
         animations.emplace_back(Animation::Create(model, animation));
     }
 
-    return {std::move(buffers), std::move(textures), std::move(animations), std::move(renderInfo), std::move(model)};
+    materials.resize(model.materials.size());
+    for (int i = 0; i < model.materials.size(); ++i)
+    {
+        auto & gltfMaterial = model.materials[i];
+        auto & material = materials[i];
+
+        material.pbr.baseColorTexture.index = gltfMaterial.pbrMetallicRoughness.baseColorTexture.index;
+        material.pbr.baseColorTexture.texCoord = gltfMaterial.pbrMetallicRoughness.baseColorTexture.texCoord;
+        material.pbr.baseColorFactor = glm::make_vec4(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
+        material.pbr.metallicRoughnessTexture.index = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index;
+        material.pbr.metallicRoughnessTexture.texCoord = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
+        material.pbr.metallicFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.metallicFactor);
+        material.pbr.roughnessFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.roughnessFactor);
+        material.normalTexture.index = gltfMaterial.normalTexture.index;
+        material.normalTexture.texCoord = gltfMaterial.normalTexture.texCoord;
+        material.normalTexture.scale = static_cast<float>(gltfMaterial.normalTexture.scale);
+        material.emissiveTexture.index = gltfMaterial.emissiveTexture.index;
+        material.emissiveTexture.texCoord = gltfMaterial.emissiveTexture.texCoord;
+        material.emissiveFactor = glm::make_vec3(gltfMaterial.emissiveFactor.data());
+        material.doubleSided = gltfMaterial.doubleSided;
+        material.blend = gltfMaterial.alphaMode == "BLEND";
+    }
+
+    return {std::move(buffers), std::move(textures), std::move(animations), std::move(materials), std::move(renderInfo)};
 }
