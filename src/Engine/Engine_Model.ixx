@@ -50,7 +50,7 @@ export struct ModelRenderInfo
     std::unique_ptr<SkinRenderInfo[]> skins{nullptr};
 };
 
-export class Mesh
+export class Model
 {
 private:
     std::vector<GLuint> m_buffers;
@@ -61,9 +61,9 @@ private:
     tinygltf::Model m_model;
 
 public:
-    static auto Create(Engine& engine, tinygltf::Model&& model) -> Mesh;
+    static auto Create(Engine& engine, tinygltf::Model&& model) -> Model;
 
-    Mesh(std::vector<GLuint>&& buffers, std::vector<GLuint>&& textures, std::vector<Animation>&& animations,
+    Model(std::vector<GLuint>&& buffers, std::vector<GLuint>&& textures, std::vector<Animation>&& animations,
          ModelRenderInfo&& renderInfo, tinygltf::Model&& model) :
         m_buffers(std::move(buffers)), m_textures(std::move(textures)), m_animations(std::move(animations)),
         m_renderInfo(std::move(renderInfo)), m_model(std::move(model))

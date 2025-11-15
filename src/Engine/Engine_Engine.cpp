@@ -251,7 +251,7 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
     if (!warn.empty())
         std::cout << "[WARN] " << warn << std::endl;
 
-    auto model = Mesh::Create(*this, std::move(rawModel));
+    auto model = Model::Create(*this, std::move(rawModel));
 
     const auto& modelRenderInfo = model.renderInfo();
     for (size_t i = 0; i < model.model().meshes.size(); i++)
@@ -274,7 +274,7 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
 
     // C++ 26 will avoid new key allocation if key already exist (remove explicit std::string constructor call).
     // In this function, unnecessary string allocation is not really a problem since we should not try to add two shaders with the same id
-    auto [it, inserted] = m_models.try_emplace(std::string(id), std::make_unique<Mesh>(std::move(model)));
+    auto [it, inserted] = m_models.try_emplace(std::string(id), std::make_unique<Model>(std::move(model)));
 
     if (!inserted)
         return std::unexpected("A model with the same id already exist");

@@ -107,7 +107,7 @@ static auto loadTexture(const tinygltf::Model& model, const int& textureId, std:
     textures[textureId] = glTexture;
 }
 
-auto Mesh::Create(Engine& engine, tinygltf::Model&& model) -> Mesh
+auto Model::Create(Engine& engine, tinygltf::Model&& model) -> Model
 {
     std::vector<GLuint> buffers;
     std::vector<GLuint> textures;

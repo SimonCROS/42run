@@ -48,7 +48,7 @@ target_sources(42run
                 Engine/Engine_Component.ixx
                 Engine/Engine_Engine.ixx
                 Engine/Engine_FrameInfo.ixx
-                Engine/Engine_Mesh.ixx
+                Engine/Engine_Model.ixx
                 Engine/Engine_Object.ixx
                 Engine/Engine_ObjectsManager.ixx
                 Engine/Engine_Transform.ixx
@@ -83,7 +83,7 @@ target_sources(42run
                 Engine/Engine_Animation.cpp
                 Engine/Engine_AnimationSampler.cpp
                 Engine/Engine_Engine.cpp
-                Engine/Engine_Mesh.cpp
+                Engine/Engine_Model.cpp
                 Engine/Engine_Object.cpp
                 Engine/Engine_ObjectsManager.cpp
                 Engine/Engine_Transform.cpp

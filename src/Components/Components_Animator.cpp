@@ -10,7 +10,7 @@ module Components;
 import std;
 import Engine;
 
-Animator::Animator(Object& object, const Mesh& mesh): Component(object), m_mesh(mesh)
+Animator::Animator(Object& object, const Model& mesh): Component(object), m_mesh(mesh)
 {
     m_nodeTransforms.resize(mesh.model().nodes.size());
 }

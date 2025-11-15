@@ -26,13 +26,13 @@ private:
     int m_currentAnimationIndex{-1};
     DurationType m_timeSinceAnimationStart{DurationType::zero()};
 
-    const Mesh& m_mesh;
+    const Model& m_mesh;
 
     std::vector<AnimatedTransform> m_nodeTransforms;
 
 public:
     explicit
-    Animator(Object& object, const Mesh& mesh);
+    Animator(Object& object, const Model& mesh);
 
     auto onUpdate(Engine& engine) -> void override;
 
@@ -49,7 +49,7 @@ public:
         return m_nodeTransforms[node];
     }
 
-    [[nodiscard]] auto mesh() const -> const Mesh&
+    [[nodiscard]] auto mesh() const -> const Model&
     {
         return m_mesh;
     }

@@ -27,7 +27,7 @@ private:
         std::vector<glm::mat4> jointMatrices;
     };
 
-    const Mesh& m_mesh;
+    const Model& m_mesh;
     bool m_displayed{true};
     GLenum m_polygonMode{GL_FILL};
     std::optional<std::reference_wrapper<const Animator>> m_animator;
@@ -43,7 +43,7 @@ private:
     auto calculateJointMatrices(int skin, const glm::mat4& transform) -> void;
 
 public:
-    explicit MeshRenderer(Object& object, const Mesh& model, ShaderProgram& program, Cubemap& reflectionCubemap) :
+    explicit MeshRenderer(Object& object, const Model& model, ShaderProgram& program, Cubemap& reflectionCubemap) :
         Component(object), m_mesh(model), m_program(program), m_reflectionCubemap(reflectionCubemap)
     {
         m_nodes.resize(m_mesh.model().nodes.size());
@@ -58,7 +58,7 @@ public:
             throw std::runtime_error("Failed to prepare shader programs: " + e_prepareResult.error());
     }
 
-    [[nodiscard]] auto mesh() const -> const Mesh& { return m_mesh; }
+    [[nodiscard]] auto mesh() const -> const Model& { return m_mesh; }
 
     auto setAnimator(const Animator& animator) -> void { m_animator = animator; }
     auto unsetAnimator() -> void { m_animator = std::nullopt; }

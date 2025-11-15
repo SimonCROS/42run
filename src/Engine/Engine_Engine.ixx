@@ -23,16 +23,16 @@ export using ::DurationType;
 // TMP
 
 export class Camera;
-export class Mesh;
+export class Model;
 
 export class Engine
 {
 public:
-    using ModelRef = std::reference_wrapper<Mesh>;
+    using ModelRef = std::reference_wrapper<Model>;
     using ObjectRef = std::reference_wrapper<Object>;
     using ShaderProgramVariantsRef = std::reference_wrapper<ShaderProgram>;
 
-    using ModelPtr = std::unique_ptr<Mesh>;
+    using ModelPtr = std::unique_ptr<Model>;
     using ShaderProgramPtr = std::unique_ptr<ShaderProgram>;
 
     static constexpr size_t MaxTextures = 8;
@@ -228,7 +228,7 @@ public:
         return *it->second;
     }
 
-    auto getModel(const std::string_view& id) const -> std::optional<std::reference_wrapper<Mesh>>
+    auto getModel(const std::string_view& id) const -> std::optional<std::reference_wrapper<Model>>
     {
         const auto it = m_models.find(id);
         if (it == m_models.end())
