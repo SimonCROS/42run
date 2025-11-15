@@ -7,4 +7,3 @@ export module Utility;
 export import Utility.SlotSet;
 export import Utility.StridedIterator;
 export import Utility.StringUnorderedMap;
-export import Utility.VectorMultiMap;
