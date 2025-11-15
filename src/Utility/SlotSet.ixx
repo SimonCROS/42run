@@ -2,7 +2,7 @@
 // Created by Simon Cros on 2/19/25.
 //
 
-export module Utility:SlotSet;
+export module Utility.SlotSet;
 import std.compat;
 
 export using SlotSetIndex = int32_t;
@@ -15,7 +15,7 @@ export using SlotSetIndex = int32_t;
 // };
 
 export
-template <class T>
+template<class T>
 class SlotSet
 {
 public:
@@ -37,9 +37,9 @@ private:
 public:
     SlotSet() = default;
 
-    template <class... Args>
+    template<class... Args>
         requires std::constructible_from<Value, Args...>
-    auto emplace(Args&&... args) -> Value&
+    auto emplace(Args &&... args) -> Value &
     {
         Index valueIndex = m_values.size();
         Index index;
@@ -55,7 +55,7 @@ public:
             m_slots[index] = valueIndex;
         }
 
-        auto& ref = m_values.emplace_back(std::forward<Args>(args)...);
+        auto & ref = m_values.emplace_back(std::forward<Args>(args)...);
         ref.index = index;
         return ref;
     }
@@ -69,7 +69,7 @@ public:
         m_slots[index] = 0;
         if (valueIndex != lastValueIndex)
         {
-            auto& other = m_values[lastValueIndex];
+            auto & other = m_values[lastValueIndex];
             m_slots[other.index] = valueIndex;
             other.index = valueIndex;
 
@@ -86,5 +86,5 @@ public:
     [[nodiscard]] auto begin() const -> ConstIterator { return m_values.begin(); }
     [[nodiscard]] auto end() const -> ConstIterator { return m_values.end(); }
 
-    [[nodiscard]] auto operator[](const Index index) -> Value& { return m_values[m_slots[index]]; }
+    [[nodiscard]] auto operator[](const Index index) -> Value & { return m_values[m_slots[index]]; }
 };

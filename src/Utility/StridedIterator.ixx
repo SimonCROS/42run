@@ -2,11 +2,11 @@
 // Created by Simon Cros on 01/02/2025.
 //
 
-export module Utility:StridedIterator;
+export module Utility.StridedIterator;
 import std;
 
 export
-template <class Iterator>
+template<class Iterator>
 class StridedIterator
 {
 public:
@@ -21,13 +21,11 @@ private:
     difference_type m_stride;
 
 public:
-    StridedIterator(Iterator it, difference_type stride) : m_it(it), m_stride(stride)
-    {
-    }
+    StridedIterator(Iterator it, difference_type stride) : m_it(it), m_stride(stride) {}
 
     auto operator*() const -> reference { return *m_it; }
 
-    auto operator++() -> StridedIterator&
+    auto operator++() -> StridedIterator &
     {
         m_it += m_stride;
         return *this;
@@ -40,7 +38,7 @@ public:
         return tmp;
     }
 
-    auto operator--() -> StridedIterator&
+    auto operator--() -> StridedIterator &
     {
         m_it -= m_stride;
         return *this;
@@ -53,7 +51,7 @@ public:
         return tmp;
     }
 
-    auto operator+=(difference_type n) -> StridedIterator&
+    auto operator+=(difference_type n) -> StridedIterator &
     {
         m_it += n * m_stride;
         return *this;
@@ -65,7 +63,7 @@ public:
         return tmp += n;
     }
 
-    auto operator-=(difference_type n) -> StridedIterator&
+    auto operator-=(difference_type n) -> StridedIterator &
     {
         m_it -= n * m_stride;
         return *this;
@@ -77,8 +75,8 @@ public:
         return tmp -= n;
     }
 
-    auto operator-(const StridedIterator& other) const -> difference_type { return (m_it - other.m_it) / m_stride; }
-    auto operator==(const StridedIterator& other) const -> bool { return m_it == other.m_it; }
-    auto operator!=(const StridedIterator& other) const -> bool { return !(*this == other); }
-    auto operator<(const StridedIterator& other) const -> bool { return m_it < other.m_it; }
+    auto operator-(const StridedIterator & other) const -> difference_type { return (m_it - other.m_it) / m_stride; }
+    auto operator==(const StridedIterator & other) const -> bool { return m_it == other.m_it; }
+    auto operator!=(const StridedIterator & other) const -> bool { return !(*this == other); }
+    auto operator<(const StridedIterator & other) const -> bool { return m_it < other.m_it; }
 };
