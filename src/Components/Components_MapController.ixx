@@ -6,6 +6,7 @@ export module Components:MapController;
 import std;
 import Engine;
 import OpenGL;
+import Time;
 
 export class MapController final : public Component
 {

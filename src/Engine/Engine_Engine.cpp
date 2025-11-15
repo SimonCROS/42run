@@ -14,19 +14,18 @@ import std;
 import OpenGL;
 import Window;
 
-static auto onKeyPressed(const Window& window, const int key, const int action, int mode) -> void
+static auto onKeyPressed(const Window & window, const int key, const int action, int mode) -> void
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         window.setShouldClose();
 }
 
-auto Engine::Create(Window&& window) -> Engine
+auto Engine::Create(Window && window) -> Engine
 {
     return Engine(std::move(window));
 }
 
-Engine::Engine(Window&& window) noexcept :
-    m_window(std::move(window))
+Engine::Engine(Window && window) noexcept : m_window(std::move(window))
 {
     m_window.setAsCurrentContext();
     const int version = gladLoadGL(glfwGetProcAddress);
@@ -56,16 +55,17 @@ Engine::Engine(Window&& window) noexcept :
 
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
+
 void renderQuad()
 {
     if (quadVAO == 0)
     {
         float quadVertices[] = {
             // positions        // texture Coords
-            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
             -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
         };
         // setup plane VAO
         glGenVertexArrays(1, &quadVAO);
@@ -74,9 +74,9 @@ void renderQuad()
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
     }
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -130,12 +130,12 @@ auto Engine::run() -> std::expected<void, std::string>
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
-        GL_DEPTH_COMPONENT,   // format interne
+        GL_DEPTH_COMPONENT, // format interne
         static_cast<GLsizei>(m_window.width()),
         static_cast<GLsizei>(m_window.height()),
         0,
-        GL_DEPTH_COMPONENT,   // format
-        GL_FLOAT,             // type (GL_UNSIGNED_BYTE ou GL_FLOAT selon besoin)
+        GL_DEPTH_COMPONENT, // format
+        GL_FLOAT, // type (GL_UNSIGNED_BYTE ou GL_FLOAT selon besoin)
         NULL
     );
 
@@ -150,22 +150,22 @@ auto Engine::run() -> std::expected<void, std::string>
     auto previousTime = m_start;
     while (m_window.update())
     {
-        for (auto& object : m_objects)
+        for (auto & object: m_objects)
         {
             if (object.isActive())
                 object.willUpdate(*this);
         }
 
-        for (auto& object : m_objects)
+        for (auto & object: m_objects)
         {
             if (object.isActive())
                 object.update(*this);
         }
 
         const auto pvMat = m_camera->projectionMatrix() * m_camera->computeViewMatrix();
-        for (auto& [id, shader] : m_shaders)
+        for (auto & [id, shader]: m_shaders)
         {
-            for (auto& [flags, variant] : shader->programs)
+            for (auto & [flags, variant]: shader->programs)
             {
                 useProgram(*variant.get());
                 variant.get()->setVec3("u_cameraPosition", m_camera->object().transform().translation());
@@ -180,13 +180,13 @@ auto Engine::run() -> std::expected<void, std::string>
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (auto& object : m_objects)
+        for (auto & object: m_objects)
         {
             if (object.isActive())
                 object.render(*this);
         }
 
-        for (auto& object : m_objects)
+        for (auto & object: m_objects)
         {
             if (object.isActive())
                 object.postRender(*this);
@@ -196,7 +196,7 @@ auto Engine::run() -> std::expected<void, std::string>
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
-        auto& program = getShaderProgram("hdr").value().get().getProgram(ShaderHasNone);
+        auto & program = getShaderProgram("hdr").value().get().getProgram(ShaderHasNone);
         useProgram(program);
         bindTexture(0, colorBuffer);
         program.setBool("u_hdr", true);
@@ -217,8 +217,8 @@ auto Engine::run() -> std::expected<void, std::string>
     return {};
 }
 
-auto Engine::makeShaderVariants(const std::string_view& id, const std::string& vertPath,
-                                const std::string& fragPath) -> std::expected<ShaderProgramVariantsRef, std::string>
+auto Engine::makeShaderVariants(const std::string_view & id, const std::string & vertPath,
+                                const std::string & fragPath) -> std::expected<ShaderProgramVariantsRef, std::string>
 {
     auto e_shaderVariants = ShaderProgram::Create(vertPath, fragPath);
     if (!e_shaderVariants)
@@ -234,7 +234,7 @@ auto Engine::makeShaderVariants(const std::string_view& id, const std::string& v
     return *it->second;
 }
 
-auto Engine::loadModel(const std::string_view& id, const std::string& path,
+auto Engine::loadModel(const std::string_view & id, const std::string & path,
                        const bool binary) -> std::expected<ModelRef, std::string>
 {
     std::string err;
@@ -253,15 +253,14 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
 
     auto model = Model::Create(*this, std::move(rawModel));
 
-    const auto& modelRenderInfo = model.renderInfo();
-    for (size_t i = 0; i < model.model().meshes.size(); i++)
+    const auto & modelRenderInfo = model.renderInfo();
+    for (size_t i = 0; i < modelRenderInfo.meshesCount; i++)
     {
-        const auto& mesh = model.model().meshes[i];
-        const auto& meshRenderInfo = modelRenderInfo.meshes[i];
+        const auto & meshRenderInfo = modelRenderInfo.meshes[i];
 
-        for (size_t j = 0; j < mesh.primitives.size(); j++)
+        for (size_t j = 0; j < meshRenderInfo.primitivesCount; j++)
         {
-            const auto& primitiveRenderInfo = meshRenderInfo.primitives[j];
+            const auto & primitiveRenderInfo = meshRenderInfo.primitives[j];
             if (!m_vertexArrays.contains(primitiveRenderInfo.vertexArrayFlags))
             {
                 m_vertexArrays.emplace(std::piecewise_construct,
@@ -282,7 +281,7 @@ auto Engine::loadModel(const std::string_view& id, const std::string& path,
     return *it->second;
 }
 
-auto Engine::instantiate() -> Object&
+auto Engine::instantiate() -> Object &
 {
     return m_objects.emplace(*this);
 }

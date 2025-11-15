@@ -46,11 +46,11 @@ public:
     explicit MeshRenderer(Object& object, const Model& model, ShaderProgram& program, Cubemap& reflectionCubemap) :
         Component(object), m_mesh(model), m_program(program), m_reflectionCubemap(reflectionCubemap)
     {
-        m_nodes.resize(m_mesh.model().nodes.size());
-        m_skins.resize(m_mesh.model().skins.size());
+        //m_nodes.resize(m_mesh.model().nodes.size());
+        m_skins.resize(m_mesh.renderInfo().skinsCount);
 
-        for (int i = 0; i < m_skins.size(); ++i)
-            m_skins[i].jointMatrices.resize(m_mesh.model().skins[i].joints.size());
+        // for (int i = 0; i < m_skins.size(); ++i)
+        //     m_skins[i].jointMatrices.resize(m_mesh.model().skins[i].joints.size());
 
         // maybe make Create static function
         auto e_prepareResult = m_mesh.prepareShaderPrograms(program);

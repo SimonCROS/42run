@@ -10,6 +10,8 @@ module;
 export module Components:Animator;
 import std.compat;
 import Engine;
+import Engine.Animation;
+import Time;
 
 export class Animator final : public Component
 {
@@ -26,15 +28,15 @@ private:
     int m_currentAnimationIndex{-1};
     DurationType m_timeSinceAnimationStart{DurationType::zero()};
 
-    const Model& m_mesh;
+    const Model & m_mesh;
 
     std::vector<AnimatedTransform> m_nodeTransforms;
 
 public:
     explicit
-    Animator(Object& object, const Model& mesh);
+    Animator(Object & object, const Model & mesh);
 
-    auto onUpdate(Engine& engine) -> void override;
+    auto onUpdate(Engine & engine) -> void override;
 
     auto setAnimation(const int index) -> void
     {
@@ -44,17 +46,17 @@ public:
         m_animationChanged = true;
     }
 
-    [[nodiscard]] auto nodeTransform(const int node) const -> const AnimatedTransform&
+    [[nodiscard]] auto nodeTransform(const int node) const -> const AnimatedTransform &
     {
         return m_nodeTransforms[node];
     }
 
-    [[nodiscard]] auto mesh() const -> const Model&
+    [[nodiscard]] auto mesh() const -> const Model &
     {
         return m_mesh;
     }
 
-    [[nodiscard]] auto animations() const -> const std::vector<Animation>&
+    [[nodiscard]] auto animations() const -> const std::vector<Animation> &
     {
         return m_mesh.animations();
     }

@@ -10,9 +10,11 @@ module;
 
 export module Engine:Mesh;
 import std;
-import :Animation;
+import Engine.Animation;
 import :Engine;
 import OpenGL;
+
+export using AccessorIndex = int;
 
 export struct AccessorRenderInfo
 {
@@ -20,20 +22,46 @@ export struct AccessorRenderInfo
     GLint componentSize{0};
     GLint componentCount{0};
     GLsizei byteStride{0};
-    int bufferView{};
     size_t count;
     size_t byteOffsetFromBuffer;
     size_t byteOffsetFromBufferView;
+    int bufferView{};
+    int componentType{-1};
+    bool normalized{false};
+};
+
+export enum class PrimitiveAttributeType
+{
+    Position,
+    Normal,
+    Tangent,
+    Color0,
+    TexCoord0,
+    TexCoord1,
+    Joints0,
+    Weights0,
+    Invalid,
+};
+
+export struct PrimitiveAttribute
+{
+    PrimitiveAttributeType type;
+    AccessorIndex accessor;
 };
 
 export struct PrimitiveRenderInfo
 {
+    std::vector<PrimitiveAttribute> attributes;
+    int material{-1};
+    int mode{-1};
+    AccessorIndex indices{-1};
     VertexArrayFlags vertexArrayFlags{VertexArrayHasNone};
     ShaderFlags shaderFlags{ShaderHasNone};
 };
 
 export struct MeshRenderInfo
 {
+    size_t primitivesCount{0};
     std::unique_ptr<PrimitiveRenderInfo[]> primitives{nullptr};
 };
 
@@ -45,6 +73,9 @@ export struct SkinRenderInfo
 
 export struct ModelRenderInfo
 {
+    size_t accessorsCount{0};
+    size_t meshesCount{0};
+    size_t skinsCount{0};
     std::unique_ptr<AccessorRenderInfo[]> accessors{nullptr};
     std::unique_ptr<MeshRenderInfo[]> meshes{nullptr};
     std::unique_ptr<SkinRenderInfo[]> skins{nullptr};
@@ -61,26 +92,25 @@ private:
     tinygltf::Model m_model;
 
 public:
-    static auto Create(Engine& engine, tinygltf::Model&& model) -> Model;
+    static auto Create(Engine & engine, tinygltf::Model && model) -> Model;
 
-    Model(std::vector<GLuint>&& buffers, std::vector<GLuint>&& textures, std::vector<Animation>&& animations,
-         ModelRenderInfo&& renderInfo, tinygltf::Model&& model) :
-        m_buffers(std::move(buffers)), m_textures(std::move(textures)), m_animations(std::move(animations)),
-        m_renderInfo(std::move(renderInfo)), m_model(std::move(model))
-    {
-    }
-
-    [[nodiscard]] auto model() const -> const tinygltf::Model& { return m_model; }
+    Model(std::vector<GLuint> && buffers, std::vector<GLuint> && textures, std::vector<Animation> && animations,
+          ModelRenderInfo && renderInfo, tinygltf::Model && model) : m_buffers(std::move(buffers)),
+                                                                     m_textures(std::move(textures)),
+                                                                     m_animations(std::move(animations)),
+                                                                     m_renderInfo(std::move(renderInfo)),
+                                                                     m_model(std::move(model))
+    {}
 
     [[nodiscard]] auto buffer(const size_t index) const -> GLuint { return m_buffers[index]; }
 
     [[nodiscard]] auto texture(const size_t index) const -> GLuint { return m_textures[index]; }
 
-    [[nodiscard]] auto animations() const -> const std::vector<Animation>& { return m_animations; }
+    [[nodiscard]] auto animations() const -> const std::vector<Animation> & { return m_animations; }
 
-    [[nodiscard]] auto renderInfo() const -> const ModelRenderInfo& { return m_renderInfo; }
+    [[nodiscard]] auto renderInfo() const -> const ModelRenderInfo & { return m_renderInfo; }
 
-    [[nodiscard]] auto prepareShaderPrograms(ShaderProgram& builder) const -> std::expected<void, std::string>
+    [[nodiscard]] auto prepareShaderPrograms(ShaderProgram & builder) const -> std::expected<void, std::string>
     {
         for (int i = 0; i < m_model.meshes.size(); ++i)
         {

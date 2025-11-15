@@ -9,23 +9,23 @@ module;
 #include "glm/detail/type_quat.hpp"
 #include "glm/ext.hpp"
 
-export module Engine:AnimationSampler;
+export module Engine.AnimationSampler;
 
-class AnimationSampler
+export class AnimationSampler
 {
 public:
     struct InputBuffer
     {
         size_t size;
         size_t attributeStride;
-        const GLfloat* data;
+        const GLfloat *data;
     };
 
     struct OutputBuffer
     {
         size_t size;
         size_t byteStride;
-        const GLubyte* data;
+        const GLubyte *data;
     };
 
 private:
@@ -43,13 +43,13 @@ private:
     [[nodiscard]] auto getInput(float time) const -> InputResult;
 
     template<class T>
-    [[nodiscard]] auto getOutputPtr(const size_t index) const -> const T*
+    [[nodiscard]] auto getOutputPtr(const size_t index) const -> const T *
     {
-        return reinterpret_cast<const T*>(m_output.data + index * m_output.byteStride);
+        return reinterpret_cast<const T *>(m_output.data + index * m_output.byteStride);
     }
 
 public:
-    AnimationSampler(const InputBuffer& input, const OutputBuffer& output);
+    AnimationSampler(const InputBuffer &input, const OutputBuffer &output);
 
     [[nodiscard]] auto duration() const -> float { return m_duration; }
 

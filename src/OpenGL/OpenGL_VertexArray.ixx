@@ -34,17 +34,6 @@ private:
     VertexArrayFlags m_flags{VertexArrayHasNone};
     GLuint m_id{0};
 
-    static inline const StringUnorderedMap<int> attributeLocations{
-        {"POSITION", 0},
-        {"NORMAL", 1},
-        {"COLOR_0", 2},
-        {"TEXCOORD_0", 3},
-        {"TEXCOORD_1", 4},
-        {"TANGENT", 5},
-        {"JOINTS_0", 6},
-        {"WEIGHTS_0", 7},
-    };
-
 public:
     static auto Create(VertexArrayFlags flags) -> VertexArray
     {
@@ -106,10 +95,4 @@ public:
     }
 
     [[nodiscard]] auto id() const -> GLuint { return m_id; }
-
-    [[nodiscard]] static auto getAttributeLocation(const std::string_view& attribute) -> GLint
-    {
-        const auto it = attributeLocations.find(attribute);
-        return (it != attributeLocations.cend()) ? it->second : -1;
-    }
 };

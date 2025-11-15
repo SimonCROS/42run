@@ -42,12 +42,13 @@ target_sources(42run
                 Components/Components_UserInterface.ixx
                 Components/SkyboxRenderer.ixx
                 Components/Engine_Camera.ixx
+                Engine/AnimationChannel.ixx
+                Engine/AnimationSampler.ixx
                 Engine/Engine.ixx
-                Engine/Engine_Animation.ixx
-                Engine/Engine_AnimationSampler.ixx
+                Engine/Animation.ixx
                 Engine/Engine_Component.ixx
                 Engine/Engine_Engine.ixx
-                Engine/Engine_FrameInfo.ixx
+                Engine/FrameInfo.ixx
                 Engine/Engine_Model.ixx
                 Engine/Engine_Object.ixx
                 Engine/Engine_ObjectsManager.ixx
@@ -64,6 +65,7 @@ target_sources(42run
                 OpenGL2/Cubemap2_Builder.ixx
                 OpenGL2/Buffer.ixx
                 OpenGL2/Buffer_Builder.ixx
+                Time.ixx
         PRIVATE
                 main.cpp
                 tiny_gltf_impl.cpp
@@ -80,8 +82,8 @@ target_sources(42run
                 Components/Components_PlayerController.cpp
                 Components/Components_UserInterface.cpp
                 Components/Engine_Camera.cpp
-                Engine/Engine_Animation.cpp
-                Engine/Engine_AnimationSampler.cpp
+                Engine/Animation.cpp
+                Engine/AnimationSampler.cpp
                 Engine/Engine_Engine.cpp
                 Engine/Engine_Model.cpp
                 Engine/Engine_Object.cpp

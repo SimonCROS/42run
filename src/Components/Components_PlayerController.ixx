@@ -5,6 +5,7 @@
 export module Components:PlayerController;
 import std;
 import Engine;
+import Time;
 
 export class PlayerController final : public Component
 {

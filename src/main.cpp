@@ -5,6 +5,8 @@
 #include "glad/gl.h"
 #include <cstdlib>
 
+#include "42runConfig.h"
+
 import std;
 import Components;
 import Engine;
@@ -43,7 +45,7 @@ auto start() -> std::expected<void, std::string>
 
     auto texture = OpenGL::Texture2D2(nullptr);
     {
-        auto e_image = OpenGL::Image::create(RESOURCE_PATH"textures/skybox/posx.jpg");
+        auto e_image = OpenGL::Image::create(RESOURCE_PATH"textures/skybox/back.jpg");
         if (!e_image) return std::expected<void, std::string>(std::unexpect, std::move(e_image).error());
 
         auto e_texture = OpenGL::Texture2D2::builder(stateCache.get())

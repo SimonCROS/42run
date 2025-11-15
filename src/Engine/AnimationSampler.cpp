@@ -2,7 +2,7 @@
 // Created by Simon Cros on 22/01/2025.
 //
 
-module Engine;
+module Engine.AnimationSampler;
 import std.compat;
 import Utility;
 

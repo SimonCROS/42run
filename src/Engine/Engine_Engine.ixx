@@ -10,17 +10,12 @@ module;
 export module Engine:Engine;
 import std;
 import :Component;
-import :FrameInfo;
 import :Object;
 import OpenGL;
 import Utility;
 import Window;
-
-// TMP
-export using ::ClockType;
-export using ::TimePoint;
-export using ::DurationType;
-// TMP
+import Engine.FrameInfo;
+import Time;
 
 export class Camera;
 export class Model;
@@ -62,15 +57,15 @@ private:
     GLuint m_currentBoundArrayBuffer{0};
     GLuint m_currentBoundArrayElementBuffer{0};
 
-    const Camera* m_camera{nullptr};
+    const Camera * m_camera{nullptr};
 
 public:
-    static auto Create(Window&& window) -> Engine;
+    static auto Create(Window && window) -> Engine;
 
-    explicit Engine(Window&& window) noexcept;
+    explicit Engine(Window && window) noexcept;
 
-    [[nodiscard]] auto getWindow() noexcept -> Window& { return m_window; }
-    [[nodiscard]] auto getWindow() const noexcept -> const Window& { return m_window; }
+    [[nodiscard]] auto getWindow() noexcept -> Window & { return m_window; }
+    [[nodiscard]] auto getWindow() const noexcept -> const Window & { return m_window; }
 
     [[nodiscard]] auto frameInfo() const noexcept -> FrameInfo { return m_currentFrameInfo; }
 
@@ -123,7 +118,7 @@ public:
         }
     }
 
-    auto useProgram(const ShaderProgramInstance& program) -> void
+    auto useProgram(const ShaderProgramInstance & program) -> void
     {
         if (m_currentShaderProgram != program.id())
         {
@@ -132,7 +127,7 @@ public:
         }
     }
 
-    auto bindVertexArray(const VertexArray& vertexArray) -> void
+    auto bindVertexArray(const VertexArray & vertexArray) -> void
     {
         if (m_currentBoundVertexArray != vertexArray.id())
         {
@@ -147,19 +142,17 @@ public:
         {
             glBindBuffer(GL_ARRAY_BUFFER, id);
             m_currentBoundArrayBuffer = id;
-        }
-        else if (target == GL_ELEMENT_ARRAY_BUFFER && m_currentBoundArrayElementBuffer != id)
+        } else if (target == GL_ELEMENT_ARRAY_BUFFER && m_currentBoundArrayElementBuffer != id)
         {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
             m_currentBoundArrayElementBuffer = id;
-        }
-        else
+        } else
         {
             glBindBuffer(target, id);
         }
     }
 
-    auto bindTexture(const GLuint bindingIndex, const GLuint& texture) -> void
+    auto bindTexture(const GLuint bindingIndex, const GLuint & texture) -> void
     {
         assert(bindingIndex < MaxTextures);
         if (m_currentTextures[bindingIndex] != texture)
@@ -177,7 +170,7 @@ public:
         }
     }
 
-    auto bindCubemap(const GLuint bindingIndex, const GLuint& texture) -> void
+    auto bindCubemap(const GLuint bindingIndex, const GLuint & texture) -> void
     {
         assert(bindingIndex < MaxTextures);
         if (m_currentTextures[bindingIndex] != texture)
@@ -195,32 +188,32 @@ public:
         }
     }
 
-    auto getVertexArray(const VertexArrayFlags flags) -> VertexArray&
+    auto getVertexArray(const VertexArrayFlags flags) -> VertexArray &
     {
         return m_vertexArrays[flags];
     }
 
     [[nodiscard]]
     auto
-    makeShaderVariants(const std::string_view& id, const std::string& vertPath, const std::string& fragPath)
+    makeShaderVariants(const std::string_view & id, const std::string & vertPath, const std::string & fragPath)
         -> std::expected<ShaderProgramVariantsRef, std::string>;
 
     [[nodiscard]]
     auto
-    loadModel(const std::string_view& id, const std::string& path, bool binary)
+    loadModel(const std::string_view & id, const std::string & path, bool binary)
         -> std::expected<ModelRef, std::string>;
 
     [[nodiscard]]
     auto
     instantiate()
-        -> Object&;
+        -> Object &;
 
-    [[nodiscard]] auto getCamera() const noexcept -> const Camera* { return m_camera; }
-    auto setCamera(const Camera& camera) -> void { m_camera = &camera; }
+    [[nodiscard]] auto getCamera() const noexcept -> const Camera * { return m_camera; }
+    auto setCamera(const Camera & camera) -> void { m_camera = &camera; }
 
-    auto objects() -> SlotSet<Object>& { return m_objects; }
+    auto objects() -> SlotSet<Object> & { return m_objects; }
 
-    auto getShaderProgram(const std::string_view& id) const -> std::optional<std::reference_wrapper<ShaderProgram>>
+    auto getShaderProgram(const std::string_view & id) const -> std::optional<std::reference_wrapper<ShaderProgram> >
     {
         const auto it = m_shaders.find(id);
         if (it == m_shaders.end())
@@ -228,7 +221,7 @@ public:
         return *it->second;
     }
 
-    auto getModel(const std::string_view& id) const -> std::optional<std::reference_wrapper<Model>>
+    auto getModel(const std::string_view & id) const -> std::optional<std::reference_wrapper<Model> >
     {
         const auto it = m_models.find(id);
         if (it == m_models.end())
