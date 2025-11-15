@@ -1,5 +1,9 @@
 add_executable(42run)
 
+target_compile_features(42run PUBLIC
+        cxx_std_23
+)
+
 target_sources(42run
         PUBLIC
                 Utility/EnumHelpers.h

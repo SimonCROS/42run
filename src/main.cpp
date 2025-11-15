@@ -2,10 +2,8 @@
 // Created by Simon Cros on 3/1/25.
 //
 
-#include "glm/glm.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "42runConfig.h"
 #include "glad/gl.h"
+#include <cstdlib>
 
 import std;
 import Components;
