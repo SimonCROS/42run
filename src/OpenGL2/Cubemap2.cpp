@@ -9,6 +9,7 @@ module;
 
 module OpenGL.Cubemap2;
 import OpenGL;
+import Engine;
 
 namespace OpenGL
 {
@@ -44,7 +45,7 @@ namespace OpenGL
         return std::expected<Cubemap2, std::string>{std::in_place, m_stateCache, id, m_size};
     }
 
-    auto Cubemap2::fromEquirectangular(const Texture2D2& equirectangular,
+    auto Cubemap2::fromEquirectangular(Engine& engine, const Texture2D2& equirectangular,
                                        ShaderProgramInstance& equirectToCubeShader) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
@@ -78,6 +79,7 @@ namespace OpenGL
                                    0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderCube();
+            Mesh::Create()
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

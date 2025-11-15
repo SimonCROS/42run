@@ -114,152 +114,160 @@ auto Mesh::Create(Engine& engine, tinygltf::Model&& model) -> Mesh
     std::vector<Animation> animations;
     ModelRenderInfo renderInfo;
 
-    renderInfo.accessors = std::make_unique<AccessorRenderInfo[]>(model.accessors.size());
-    for (size_t i = 0; i < model.accessors.size(); i++)
-    {
-        const auto& accessor = model.accessors[i];
-        const auto& bufferView = model.bufferViews[accessor.bufferView];
+    if (!model.accessors.empty()) {
+        renderInfo.accessors = std::make_unique<AccessorRenderInfo[]>(model.accessors.size());
+        for (size_t i = 0; i < model.accessors.size(); i++)
+        {
+            const auto& accessor = model.accessors[i];
+            const auto& bufferView = model.bufferViews[accessor.bufferView];
 
-        auto& accessorRenderInfo = renderInfo.accessors[i];
-        accessorRenderInfo.componentSize = tinygltf::GetComponentSizeInBytes(accessor.componentType);
-        accessorRenderInfo.componentCount = tinygltf::GetNumComponentsInType(accessor.type);
-        accessorRenderInfo.byteStride = accessor.ByteStride(bufferView);
-        accessorRenderInfo.count = accessor.count;
-        accessorRenderInfo.bufferView = accessor.bufferView;
-        accessorRenderInfo.byteOffsetFromBuffer = accessor.byteOffset + bufferView.byteOffset;
-        accessorRenderInfo.byteOffsetFromBufferView = accessor.byteOffset;
+            auto& accessorRenderInfo = renderInfo.accessors[i];
+            accessorRenderInfo.componentSize = tinygltf::GetComponentSizeInBytes(accessor.componentType);
+            accessorRenderInfo.componentCount = tinygltf::GetNumComponentsInType(accessor.type);
+            accessorRenderInfo.byteStride = accessor.ByteStride(bufferView);
+            accessorRenderInfo.count = accessor.count;
+            accessorRenderInfo.bufferView = accessor.bufferView;
+            accessorRenderInfo.byteOffsetFromBuffer = accessor.byteOffset + bufferView.byteOffset;
+            accessorRenderInfo.byteOffsetFromBufferView = accessor.byteOffset;
+        }
     }
 
-    renderInfo.skins = std::make_unique<SkinRenderInfo[]>(model.skins.size());
-    for (size_t i = 0; i < model.skins.size(); i++)
-    {
-        const auto& skin = model.skins[i];
-
-        if (skin.inverseBindMatrices > -1)
+    if (!model.skins.empty()) {
+        renderInfo.skins = std::make_unique<SkinRenderInfo[]>(model.skins.size());
+        for (size_t i = 0; i < model.skins.size(); i++)
         {
-            const auto& accessor = renderInfo.accessors[skin.inverseBindMatrices];
-            const auto& bufferView = model.bufferViews[accessor.bufferView];
-            const auto& buffer = model.buffers[bufferView.buffer];
-            const auto attributeStride = accessor.byteStride / sizeof(glm::mat4);
+            const auto& skin = model.skins[i];
 
-            StridedIterator it{
-                reinterpret_cast<const glm::mat4*>(buffer.data.data() + accessor.byteOffsetFromBuffer),
-                static_cast<StridedIterator<const glm::mat4*>::difference_type>(attributeStride),
-            };
-            renderInfo.skins[i].inverseBindMatrices = std::vector<glm::mat4>{
-                it, it + static_cast<long>(accessor.count)
-            };
+            if (skin.inverseBindMatrices > -1)
+            {
+                const auto& accessor = renderInfo.accessors[skin.inverseBindMatrices];
+                const auto& bufferView = model.bufferViews[accessor.bufferView];
+                const auto& buffer = model.buffers[bufferView.buffer];
+                const auto attributeStride = accessor.byteStride / sizeof(glm::mat4);
+
+                StridedIterator it{
+                    reinterpret_cast<const glm::mat4*>(buffer.data.data() + accessor.byteOffsetFromBuffer),
+                    static_cast<StridedIterator<const glm::mat4*>::difference_type>(attributeStride),
+                };
+                renderInfo.skins[i].inverseBindMatrices = std::vector<glm::mat4>{
+                    it, it + static_cast<long>(accessor.count)
+                };
+            }
+
+            glGenBuffers(1, &renderInfo.skins[i].glBuffer);
+            engine.bindBuffer(GL_UNIFORM_BUFFER, renderInfo.skins[i].glBuffer);
+            assert(skin.joints.size() <= MAX_JOINTS && "Too many joints");
+            glBufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(skin.joints.size() * sizeof(glm::mat4)), nullptr,
+                         GL_DYNAMIC_DRAW);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
-
-        glGenBuffers(1, &renderInfo.skins[i].glBuffer);
-        engine.bindBuffer(GL_UNIFORM_BUFFER, renderInfo.skins[i].glBuffer);
-        assert(skin.joints.size() <= MAX_JOINTS && "Too many joints");
-        glBufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(skin.joints.size() * sizeof(glm::mat4)), nullptr,
-                     GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
     buffers.resize(model.bufferViews.size(), 0);
     textures.resize(model.textures.size(), 0);
-    renderInfo.meshes = std::make_unique<MeshRenderInfo[]>(model.meshes.size());
-    for (size_t i = 0; i < model.meshes.size(); i++)
-    {
-        const auto& mesh = model.meshes[i];
-        auto& meshRenderInfo = renderInfo.meshes[i];
 
-        renderInfo.meshes[i].primitives = std::make_unique<PrimitiveRenderInfo[]>(mesh.primitives.size());
-
-        for (size_t j = 0; j < mesh.primitives.size(); j++)
+    if (!model.meshes.empty()) {
+        renderInfo.meshes = std::make_unique<MeshRenderInfo[]>(model.meshes.size());
+        for (size_t i = 0; i < model.meshes.size(); i++)
         {
-            const auto& primitive = mesh.primitives[j];
-            auto& primitiveRenderInfo = meshRenderInfo.primitives[j];
+            const auto& mesh = model.meshes[i];
+            auto& meshRenderInfo = renderInfo.meshes[i];
 
-            VertexArrayFlags vertexArrayFlags = VertexArrayHasNone;
-            ShaderFlags shaderFlags = ShaderHasNone;
+            renderInfo.meshes[i].primitives = std::make_unique<PrimitiveRenderInfo[]>(mesh.primitives.size());
 
-            if (primitive.indices >= 0)
-                addBuffer(engine, model, primitive.indices, buffers, renderInfo);
-
-            for (const auto& [attributeName, accessorId] : primitive.attributes)
+            for (size_t j = 0; j < mesh.primitives.size(); j++)
             {
-                addBuffer(engine, model, accessorId, buffers, renderInfo);
+                const auto& primitive = mesh.primitives[j];
+                auto& primitiveRenderInfo = meshRenderInfo.primitives[j];
 
-                if (attributeName == "POSITION")
-                    vertexArrayFlags |= VertexArrayHasPosition;
+                VertexArrayFlags vertexArrayFlags = VertexArrayHasNone;
+                ShaderFlags shaderFlags = ShaderHasNone;
 
-                if (attributeName == "NORMAL")
+                if (primitive.indices >= 0)
+                    addBuffer(engine, model, primitive.indices, buffers, renderInfo);
+
+                for (const auto& [attributeName, accessorId] : primitive.attributes)
                 {
-                    vertexArrayFlags |= VertexArrayHasNormals;
-                    shaderFlags |= ShaderHasNormals;
+                    addBuffer(engine, model, accessorId, buffers, renderInfo);
+
+                    if (attributeName == "POSITION")
+                        vertexArrayFlags |= VertexArrayHasPosition;
+
+                    if (attributeName == "NORMAL")
+                    {
+                        vertexArrayFlags |= VertexArrayHasNormals;
+                        shaderFlags |= ShaderHasNormals;
+                    }
+
+                    if (attributeName == "TANGENT")
+                    {
+                        vertexArrayFlags |= VertexArrayHasTangents;
+                        shaderFlags |= ShaderHasTangents;
+                    }
+
+                    if (attributeName == "COLOR_0")
+                    {
+                        vertexArrayFlags |= VertexArrayHasColor0;
+                        if (model.accessors[accessorId].type == TINYGLTF_TYPE_VEC3)
+                            shaderFlags |= ShaderHasVec3Colors;
+                        else if (model.accessors[accessorId].type == TINYGLTF_TYPE_VEC4)
+                            shaderFlags |= ShaderHasVec4Colors;
+                    }
+
+                    if (attributeName == "TEXCOORD_0")
+                    {
+                        vertexArrayFlags |= VertexArrayHasTexCoord0;
+                        shaderFlags |= ShaderHasTexCoord0;
+                    }
+
+                    if (attributeName == "TEXCOORD_1")
+                    {
+                        vertexArrayFlags |= VertexArrayHasTexCoord1;
+                        shaderFlags |= ShaderHasTexCoord1;
+                    }
+
+                    if (attributeName == "JOINTS_0")
+                    {
+                        vertexArrayFlags |= VertexArrayHasSkin;
+                        shaderFlags |= ShaderHasSkin;
+                    }
                 }
 
-                if (attributeName == "TANGENT")
+                if (primitive.material >= 0)
                 {
-                    vertexArrayFlags |= VertexArrayHasTangents;
-                    shaderFlags |= ShaderHasTangents;
+                    const auto& material = model.materials[primitive.material];
+                    if (material.pbrMetallicRoughness.baseColorTexture.index >= 0)
+                    {
+                        loadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures, GL_SRGB_ALPHA);
+                        shaderFlags |= ShaderHasBaseColorMap;
+                    }
+                    if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
+                    {
+                        loadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures, GL_RGB);
+                        shaderFlags |= ShaderHasMetalRoughnessMap;
+                    }
+                    if (material.normalTexture.index >= 0)
+                    {
+                        loadTexture(model, material.normalTexture.index, textures, GL_RGB);
+                        shaderFlags |= ShaderHasNormalMap;
+                    }
+                    if (material.emissiveTexture.index >= 0)
+                    {
+                        loadTexture(model, material.emissiveTexture.index, textures, GL_SRGB);
+                        shaderFlags |= ShaderHasEmissiveMap;
+                    }
                 }
 
-                if (attributeName == "COLOR_0")
-                {
-                    vertexArrayFlags |= VertexArrayHasColor0;
-                    if (model.accessors[accessorId].type == TINYGLTF_TYPE_VEC3)
-                        shaderFlags |= ShaderHasVec3Colors;
-                    else if (model.accessors[accessorId].type == TINYGLTF_TYPE_VEC4)
-                        shaderFlags |= ShaderHasVec4Colors;
-                }
-
-                if (attributeName == "TEXCOORD_0")
-                {
-                    vertexArrayFlags |= VertexArrayHasTexCoord0;
-                    shaderFlags |= ShaderHasTexCoord0;
-                }
-
-                if (attributeName == "TEXCOORD_1")
-                {
-                    vertexArrayFlags |= VertexArrayHasTexCoord1;
-                    shaderFlags |= ShaderHasTexCoord1;
-                }
-
-                if (attributeName == "JOINTS_0")
-                {
-                    vertexArrayFlags |= VertexArrayHasSkin;
-                    shaderFlags |= ShaderHasSkin;
-                }
+                primitiveRenderInfo.vertexArrayFlags = vertexArrayFlags;
+                primitiveRenderInfo.shaderFlags = shaderFlags;
             }
-
-            if (primitive.material >= 0)
-            {
-                const auto& material = model.materials[primitive.material];
-                if (material.pbrMetallicRoughness.baseColorTexture.index >= 0)
-                {
-                    loadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures, GL_SRGB_ALPHA);
-                    shaderFlags |= ShaderHasBaseColorMap;
-                }
-                if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
-                {
-                    loadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures, GL_RGB);
-                    shaderFlags |= ShaderHasMetalRoughnessMap;
-                }
-                if (material.normalTexture.index >= 0)
-                {
-                    loadTexture(model, material.normalTexture.index, textures, GL_RGB);
-                    shaderFlags |= ShaderHasNormalMap;
-                }
-                if (material.emissiveTexture.index >= 0)
-                {
-                    loadTexture(model, material.emissiveTexture.index, textures, GL_SRGB);
-                    shaderFlags |= ShaderHasEmissiveMap;
-                }
-            }
-
-            primitiveRenderInfo.vertexArrayFlags = vertexArrayFlags;
-            primitiveRenderInfo.shaderFlags = shaderFlags;
         }
     }
 
     animations.reserve(model.animations.size());
-    for (const auto& animation : model.animations)
+    for (const auto& animation : model.animations) {
         animations.emplace_back(Animation::Create(model, animation));
+    }
 
     return {std::move(buffers), std::move(textures), std::move(animations), std::move(renderInfo), std::move(model)};
 }
