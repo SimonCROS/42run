@@ -215,6 +215,7 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                 };
             }
 
+            skinRenderInfo.skeleton = skin.skeleton;
             skinRenderInfo.joints = skin.joints;
 
             glGenBuffers(1, &skinRenderInfo.glBuffer);
