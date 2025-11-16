@@ -184,10 +184,14 @@ void MeshRenderer::onRender(Engine & engine)
 
     const auto globalTransform = object().worldTransform();
 
-    for (const auto nodeIndex: m_mesh.model().scenes[m_mesh.model().defaultScene].nodes)
-        calculateGlobalTransformsRecursive(nodeIndex, globalTransform);
+    const auto & renderInfo = m_mesh.renderInfo();
 
-    for (int skinIndex = 0; skinIndex < m_mesh.renderInfo().skinsCount; ++skinIndex)
+    for (int i = 0; i < renderInfo.rootNodesCount; ++i)
+    {
+        calculateGlobalTransformsRecursive(renderInfo.rootNodes[i], globalTransform);
+    }
+
+    for (int skinIndex = 0; skinIndex < renderInfo.skinsCount; ++skinIndex)
     {
         calculateJointMatrices(skinIndex, globalTransform);
 
@@ -210,6 +214,8 @@ void MeshRenderer::onRender(Engine & engine)
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
-    for (const auto nodeIndex: m_mesh.model().scenes[m_mesh.model().defaultScene].nodes)
-        renderNodeRecursive(engine, nodeIndex);
+    for (int i = 0; i < renderInfo.rootNodesCount; ++i)
+    {
+        renderNodeRecursive(engine, renderInfo.rootNodes[i]);
+    }
 }
