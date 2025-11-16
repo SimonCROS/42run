@@ -116,10 +116,61 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
     std::vector<Material> materials;
     ModelRenderInfo renderInfo;
 
+    if (!model.nodes.empty())
+    {
+        renderInfo.nodesCount = model.nodes.size();
+        renderInfo.nodes = std::make_unique<NodeRenderInfo[]>(renderInfo.nodesCount);
+        for (size_t i = 0; i < renderInfo.nodesCount; ++i)
+        {
+            const auto & node = model.nodes[i];
+
+            auto & nodeRenderInfo = renderInfo.nodes[i];
+
+            nodeRenderInfo.skin = node.skin;
+            nodeRenderInfo.mesh = node.mesh;
+            nodeRenderInfo.childrenCount = node.children.size();
+            nodeRenderInfo.children = std::make_unique<NodeIndex[]>(renderInfo.nodesCount);
+            static_assert(std::is_same_v<decltype(node.children)::value_type, NodeIndex>);
+            static_assert(std::is_trivially_copyable_v<NodeIndex>);
+            std::memcpy(nodeRenderInfo.children.get(), node.children.data(), sizeof(NodeIndex) * renderInfo.nodesCount);
+
+            if (!node.matrix.empty())
+            {
+                assert(node.matrix.size() == 16);
+                nodeRenderInfo.transform = glm::mat4(node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
+                                                     node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
+                                                     node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
+                                                     node.matrix[12], node.matrix[13], node.matrix[14],
+                                                     node.matrix[15]);
+            }
+            else
+            {
+                TRS trs{};
+                if (!node.translation.empty())
+                {
+                    assert(node.translation.size() == 3);
+                    trs.translation = glm::vec3(node.translation[0], node.translation[1], node.translation[2]);
+                }
+                if (!node.rotation.empty())
+                {
+                    assert(node.rotation.size() == 4);
+                    trs.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1],node.rotation[2]);
+                }
+                if (!node.scale.empty())
+                {
+                    assert(node.scale.size() == 3);
+                    trs.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
+                }
+                nodeRenderInfo.transform = trs;
+            }
+        }
+    }
+
     if (!model.accessors.empty())
     {
-        renderInfo.accessors = std::make_unique<AccessorRenderInfo[]>(model.accessors.size());
-        for (size_t i = 0; i < model.accessors.size(); i++)
+        renderInfo.accessorsCount = model.accessors.size();
+        renderInfo.accessors = std::make_unique<AccessorRenderInfo[]>(renderInfo.accessorsCount);
+        for (size_t i = 0; i < renderInfo.accessorsCount; ++i)
         {
             const auto & accessor = model.accessors[i];
             const auto & bufferView = model.bufferViews[accessor.bufferView];
@@ -139,8 +190,9 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
 
     if (!model.skins.empty())
     {
-        renderInfo.skins = std::make_unique<SkinRenderInfo[]>(model.skins.size());
-        for (size_t i = 0; i < model.skins.size(); i++)
+        renderInfo.skinsCount = model.skins.size();
+        renderInfo.skins = std::make_unique<SkinRenderInfo[]>(renderInfo.skinsCount);
+        for (size_t i = 0; i < renderInfo.skinsCount; ++i)
         {
             const auto & skin = model.skins[i];
 
@@ -174,15 +226,17 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
 
     if (!model.meshes.empty())
     {
-        renderInfo.meshes = std::make_unique<MeshRenderInfo[]>(model.meshes.size());
-        for (size_t i = 0; i < model.meshes.size(); i++)
+        renderInfo.meshesCount = model.meshes.size();
+        renderInfo.meshes = std::make_unique<MeshRenderInfo[]>(renderInfo.meshesCount);
+        for (size_t i = 0; i < renderInfo.meshesCount; ++i)
         {
             const auto & mesh = model.meshes[i];
             auto & meshRenderInfo = renderInfo.meshes[i];
 
-            renderInfo.meshes[i].primitives = std::make_unique<PrimitiveRenderInfo[]>(mesh.primitives.size());
+            meshRenderInfo.primitivesCount = mesh.primitives.size();
+            meshRenderInfo.primitives = std::make_unique<PrimitiveRenderInfo[]>(meshRenderInfo.primitivesCount);
 
-            for (size_t j = 0; j < mesh.primitives.size(); j++)
+            for (size_t j = 0; j < meshRenderInfo.primitivesCount; ++j)
             {
                 const auto & primitive = mesh.primitives[j];
                 auto & primitiveRenderInfo = meshRenderInfo.primitives[j];
@@ -308,7 +362,8 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         material.pbr.baseColorTexture.texCoord = gltfMaterial.pbrMetallicRoughness.baseColorTexture.texCoord;
         material.pbr.baseColorFactor = glm::make_vec4(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
         material.pbr.metallicRoughnessTexture.index = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index;
-        material.pbr.metallicRoughnessTexture.texCoord = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
+        material.pbr.metallicRoughnessTexture.texCoord = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.
+                texCoord;
         material.pbr.metallicFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.metallicFactor);
         material.pbr.roughnessFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.roughnessFactor);
         material.normalTexture.index = gltfMaterial.normalTexture.index;
@@ -321,5 +376,7 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         material.blend = gltfMaterial.alphaMode == "BLEND";
     }
 
-    return {std::move(buffers), std::move(textures), std::move(animations), std::move(materials), std::move(renderInfo)};
+    return {
+        std::move(buffers), std::move(textures), std::move(animations), std::move(materials), std::move(renderInfo)
+    };
 }

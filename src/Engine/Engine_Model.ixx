@@ -5,6 +5,7 @@
 module;
 
 #include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include "glad/gl.h"
 #include "tiny_gltf.h"
 
@@ -17,6 +18,7 @@ import OpenGL;
 export using AccessorIndex = int;
 export using MaterialIndex = int;
 export using TextureIndex = int;
+export using NodeIndex = int;
 
 struct TextureInfo
 {
@@ -105,14 +107,32 @@ export struct SkinRenderInfo
     std::vector<glm::mat4> inverseBindMatrices{};
 };
 
+export struct TRS
+{
+    glm::quat rotation{glm::identity<glm::quat>()};
+    glm::vec3 translation{};
+    glm::vec3 scale{1.0f};
+};
+
+export struct NodeRenderInfo
+{
+    int skin{-1};
+    int mesh{-1};
+    size_t childrenCount{0};
+    std::variant<glm::mat4, TRS> transform{std::in_place_index<1>};
+    std::unique_ptr<NodeIndex[]> children{nullptr};
+};
+
 export struct ModelRenderInfo
 {
     size_t accessorsCount{0};
     size_t meshesCount{0};
     size_t skinsCount{0};
+    size_t nodesCount{0};
     std::unique_ptr<AccessorRenderInfo[]> accessors{nullptr};
     std::unique_ptr<MeshRenderInfo[]> meshes{nullptr};
     std::unique_ptr<SkinRenderInfo[]> skins{nullptr};
+    std::unique_ptr<NodeRenderInfo[]> nodes{nullptr};
 };
 
 export class Model
@@ -147,11 +167,15 @@ public:
 
     [[nodiscard]] auto prepareShaderPrograms(ShaderProgram & builder) const -> std::expected<void, std::string>
     {
-        for (int i = 0; i < m_model.meshes.size(); ++i)
+        const auto & renderInfo = m_renderInfo;
+        for (int i = 0; i < renderInfo.meshesCount; ++i)
         {
-            for (int j = 0; j < m_model.meshes[i].primitives.size(); ++j)
+            const auto & mesh = renderInfo.meshes[i];
+            for (int j = 0; j < mesh.primitivesCount; ++j)
             {
-                auto e_success = builder.enableVariant(m_renderInfo.meshes[i].primitives[j].shaderFlags);
+                const auto & primitive = mesh.primitives[j];
+
+                auto e_success = builder.enableVariant(primitive.shaderFlags);
                 if (!e_success)
                     return std::unexpected(std::move(e_success).error());
             }

@@ -121,54 +121,39 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
 auto MeshRenderer::renderNodeRecursive(Engine & engine, const int nodeIndex) -> void
 {
-    const tinygltf::Node & node = m_mesh.model().nodes[nodeIndex];
+    const NodeRenderInfo & node = m_mesh.renderInfo().nodes[nodeIndex];
 
     if (node.mesh > -1)
         renderMesh(engine, node.mesh, m_nodes[nodeIndex].globalTransform);
-    for (const auto childIndex: node.children)
-        renderNodeRecursive(engine, childIndex);
+    for (int i = 0; i < node.childrenCount; ++i)
+        renderNodeRecursive(engine, node.children[i]);
 }
 
 auto MeshRenderer::calculateGlobalTransformsRecursive(const int nodeIndex, glm::mat4 transform) -> void
 {
-    const tinygltf::Node & node = m_mesh.model().nodes[nodeIndex];
+    const NodeRenderInfo & node = m_mesh.renderInfo().nodes[nodeIndex];
 
-    // TODO Precalculate matrix or trs
-    if (!node.matrix.empty())
+    if (const auto * mat = std::get_if<glm::mat4>(&node.transform))
     {
-        transform *= glm::mat4(node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
-                               node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
-                               node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
-                               node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]);
+        transform *= *mat;
+
     }
     else
     {
-        const auto & tr = m_animator.has_value()
-                              ? m_animator->get().nodeTransform(nodeIndex)
-                              : Animator::AnimatedTransform{};
+        const auto & trs = std::get<TRS>(node.transform);
+        const auto & animTRS = m_animator.has_value()
+                                   ? m_animator->get().nodeTransform(nodeIndex)
+                                   : Animator::AnimatedTransform{};
 
-        if (tr.translation.has_value())
-            transform = glm::translate(transform, *tr.translation);
-        else if (!node.translation.empty())
-            transform = glm::translate(
-                transform, glm::vec3(node.translation[0], node.translation[1], node.translation[2]));
-
-        if (tr.rotation.has_value())
-            transform *= glm::mat4_cast(*tr.rotation);
-        else if (!node.rotation.empty())
-            transform *= glm::mat4_cast(glm::quat(node.rotation[3], node.rotation[0], node.rotation[1],
-                                                  node.rotation[2]));
-
-        if (tr.scale.has_value())
-            transform = glm::scale(transform, *tr.scale);
-        else if (!node.scale.empty())
-            transform = glm::scale(transform, glm::vec3(node.scale[0], node.scale[1], node.scale[2]));
+        transform = glm::translate(transform, animTRS.translation.has_value() ? *animTRS.translation : trs.translation);
+        transform *= glm::mat4_cast(animTRS.rotation.has_value() ? *animTRS.rotation : trs.rotation);
+        transform = glm::scale(transform, animTRS.scale.has_value() ? *animTRS.scale : trs.scale);
     }
 
     m_nodes[nodeIndex].globalTransform = transform;
 
-    for (const auto childIndex: node.children)
-        calculateGlobalTransformsRecursive(childIndex, transform);
+    for (int i = 0; i < node.childrenCount; ++i)
+        calculateGlobalTransformsRecursive(node.children[i], transform);
 }
 
 auto MeshRenderer::calculateJointMatrices(const int skinIndex, const glm::mat4 & transform) -> void
