@@ -15,28 +15,26 @@ import std;
 import OpenGL;
 import Utility;
 
-static auto addBuffer(Engine & engine, const tinygltf::Model & model, const size_t accessorId,
-                      std::vector<GLuint> & buffers, ModelRenderInfo & renderInfo) -> GLuint
+static auto addBuffer(Engine & engine, const std::vector<Buffer> & buffers, BufferView & bufferView) -> GLuint
 {
-    GLuint glBuffer = 0;
-
-    const auto & accessor = model.accessors[accessorId];
-    glBuffer = buffers[accessor.bufferView];
-    if (glBuffer == 0)
+    if (bufferView.glBuffer.has_value() == 0)
     {
-        const auto & bufferView = model.bufferViews[accessor.bufferView];
-        const auto & buffer = model.buffers[bufferView.buffer];
+        GLuint glBuffer = 0;
+
+        const auto & buffer = buffers[bufferView.buffer];
 
         glGenBuffers(1, &glBuffer);
         engine.bindBuffer(bufferView.target, glBuffer);
         glBufferData(bufferView.target, bufferView.byteLength, &buffer.data.at(0) + bufferView.byteOffset,
                      GL_STATIC_DRAW);
 
-        buffers[accessor.bufferView] = glBuffer;
+        bufferView.glBuffer = glBuffer;
+        return glBuffer;
     }
-
-    renderInfo.accessors[accessorId].glBuffer = glBuffer;
-    return glBuffer;
+    else
+    {
+        return *bufferView.glBuffer;
+    }
 }
 
 static auto loadTexture(const tinygltf::Model & model, const int & textureId, std::vector<GLuint> & textures,
@@ -110,7 +108,8 @@ static auto loadTexture(const tinygltf::Model & model, const int & textureId, st
 
 auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
 {
-    std::vector<GLuint> buffers;
+    std::vector<Buffer> buffers;
+    std::vector<BufferView> bufferViews;
     std::vector<GLuint> textures;
     std::vector<Animation> animations;
     std::vector<Material> materials;
@@ -167,6 +166,30 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         }
     }
 
+    if (!model.buffers.empty())
+    {
+        buffers.reserve(model.buffers.size());
+        for (size_t i = 0; i < model.buffers.size(); ++i)
+        {
+            const auto & buffer = model.buffers[i];
+
+            buffers.emplace_back(buffer.data);
+        }
+    }
+
+    if (!model.bufferViews.empty())
+    {
+        bufferViews.reserve(model.bufferViews.size());
+        for (size_t i = 0; i < model.bufferViews.size(); ++i)
+        {
+            const auto & bufferView = model.bufferViews[i];
+
+            bufferViews.emplace_back(std::optional<GLuint>{}, bufferView.buffer, bufferView.target,
+                                     bufferView.byteOffset, static_cast<GLsizeiptr>(bufferView.byteLength),
+                                     bufferView.byteStride);
+        }
+    }
+
     if (!model.accessors.empty())
     {
         renderInfo.accessorsCount = model.accessors.size();
@@ -181,8 +204,7 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
             accessorRenderInfo.componentCount = tinygltf::GetNumComponentsInType(accessor.type);
             accessorRenderInfo.byteStride = accessor.ByteStride(bufferView);
             accessorRenderInfo.count = accessor.count;
-            accessorRenderInfo.byteOffsetFromBuffer = accessor.byteOffset + bufferView.byteOffset;
-            accessorRenderInfo.byteOffsetFromBufferView = accessor.byteOffset;
+            accessorRenderInfo.byteOffset = accessor.byteOffset;
             accessorRenderInfo.bufferView = accessor.bufferView;
             accessorRenderInfo.componentType = accessor.componentType;
             accessorRenderInfo.normalized = accessor.normalized;
@@ -202,12 +224,13 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
             if (skin.inverseBindMatrices > -1)
             {
                 const auto & accessor = renderInfo.accessors[skin.inverseBindMatrices];
-                const auto & bufferView = model.bufferViews[accessor.bufferView];
-                const auto & buffer = model.buffers[bufferView.buffer];
+                const auto & bufferView = bufferViews[accessor.bufferView];
+                const auto & buffer = buffers[bufferView.buffer];
                 const auto attributeStride = accessor.byteStride / sizeof(glm::mat4);
 
                 StridedIterator it{
-                    reinterpret_cast<const glm::mat4 *>(buffer.data.data() + accessor.byteOffsetFromBuffer),
+                    reinterpret_cast<const glm::mat4 *>(
+                        buffer.data.data() + bufferView.byteOffset + accessor.byteOffset),
                     static_cast<StridedIterator<const glm::mat4 *>::difference_type>(attributeStride),
                 };
                 skinRenderInfo.inverseBindMatrices = std::vector<glm::mat4>{
@@ -229,7 +252,6 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         }
     }
 
-    buffers.resize(model.bufferViews.size(), 0);
     textures.resize(model.textures.size(), 0);
 
     if (!model.meshes.empty())
@@ -253,7 +275,7 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                 ShaderFlags shaderFlags = ShaderHasNone;
 
                 if (primitive.indices >= 0)
-                    addBuffer(engine, model, primitive.indices, buffers, renderInfo);
+                    addBuffer(engine, buffers, bufferViews[renderInfo.accessors[primitive.indices].bufferView]);
 
                 primitiveRenderInfo.attributes.reserve(primitive.attributes.size());
                 for (const auto & [attributeName, accessorId]: primitive.attributes)

@@ -156,10 +156,10 @@ auto Engine::run() -> std::expected<void, std::string>
                 object.willUpdate(*this);
         }
 
-        for (auto & object: m_objects)
+        for (int i = 0; i < m_objects.size(); ++i)
         {
-            if (object.isActive())
-                object.update(*this);
+            if (m_objects[i].isActive())
+                m_objects[i].update(*this);
         }
 
         const auto pvMat = m_camera->projectionMatrix() * m_camera->computeViewMatrix();

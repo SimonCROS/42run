@@ -80,7 +80,7 @@ auto MapController::onUpdate(Engine& engine) -> void
         if (front.transform().translation().z < -TMPSegmentSize)
         {
             m_movingSegments.pop_front();
-            m_segmentsPool.push(front);
+            m_segmentsPool.emplace(front);
         }
     }
 

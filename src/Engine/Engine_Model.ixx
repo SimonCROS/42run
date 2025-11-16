@@ -15,10 +15,39 @@ import Engine.Animation;
 import :Engine;
 import OpenGL;
 
+export using BufferIndex = int;
+export using BufferViewIndex = int;
 export using AccessorIndex = int;
 export using MaterialIndex = int;
 export using TextureIndex = int;
 export using NodeIndex = int;
+
+struct Buffer
+{
+    std::vector<unsigned char> data;
+};
+
+struct BufferView
+{
+    std::optional<GLint> glBuffer;
+    BufferIndex buffer;
+    int target;
+    size_t byteOffset{0};
+    GLsizeiptr byteLength{0};
+    size_t byteStride{0};
+};
+
+export struct AccessorRenderInfo
+{
+    GLint componentSize{0};
+    GLint componentCount{0};
+    GLsizei byteStride{0};
+    size_t count{};
+    size_t byteOffset{};
+    BufferViewIndex bufferView{};
+    int componentType{-1};
+    bool normalized{false};
+};
 
 struct TextureInfo
 {
@@ -50,20 +79,6 @@ struct Material
     glm::vec3 emissiveFactor;
     bool doubleSided;
     bool blend; // based on alphaMode, it's a boolean because MASK is not supported
-};
-
-export struct AccessorRenderInfo
-{
-    GLuint glBuffer{0};
-    GLint componentSize{0};
-    GLint componentCount{0};
-    GLsizei byteStride{0};
-    size_t count;
-    size_t byteOffsetFromBuffer;
-    size_t byteOffsetFromBufferView;
-    int bufferView{};
-    int componentType{-1};
-    bool normalized{false};
 };
 
 export enum class PrimitiveAttributeType
@@ -142,7 +157,8 @@ export struct ModelRenderInfo
 export class Model
 {
 private:
-    std::vector<GLuint> m_buffers;
+    std::vector<Buffer> m_buffers; // TODO use a pointer to ensure location never change and faster access
+    std::vector<BufferView> m_bufferViews; // TODO use a pointer to ensure location never change and faster access
     std::vector<GLuint> m_textures;
     std::vector<Animation> m_animations; // TODO use a pointer to ensure location never change and faster access
     std::vector<Material> m_materials;
@@ -151,7 +167,7 @@ private:
 public:
     static auto Create(Engine & engine, const tinygltf::Model & model) -> Model;
 
-    Model(std::vector<GLuint> && buffers, std::vector<GLuint> && textures, std::vector<Animation> && animations,
+    Model(std::vector<Buffer> && buffers, std::vector<GLuint> && textures, std::vector<Animation> && animations,
           std::vector<Material> && materials, ModelRenderInfo && renderInfo) : m_buffers(std::move(buffers)),
                                                                                m_textures(std::move(textures)),
                                                                                m_animations(std::move(animations)),
@@ -159,7 +175,9 @@ public:
                                                                                m_renderInfo(std::move(renderInfo))
     {}
 
-    [[nodiscard]] auto buffer(const size_t index) const -> GLuint { return m_buffers[index]; }
+    [[nodiscard]] auto buffer(const BufferIndex index) const -> const Buffer & { return m_buffers[index]; }
+
+    [[nodiscard]] auto bufferView(const BufferViewIndex index) const -> const Buffer & { return m_buffers[index]; }
 
     [[nodiscard]] auto texture(const size_t index) const -> GLuint { return m_textures[index]; }
 
