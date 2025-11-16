@@ -14,7 +14,7 @@ import Engine.AnimationChannel;
 
 Animator::Animator(Object &object, const Model &mesh): Component(object), m_mesh(mesh)
 {
-    //m_nodeTransforms.resize(mesh.model().nodes.size());
+    m_nodeTransforms.resize(mesh.renderInfo().nodesCount);
 }
 
 void Animator::onUpdate(Engine &engine)

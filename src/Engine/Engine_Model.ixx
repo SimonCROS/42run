@@ -70,10 +70,10 @@ export enum class PrimitiveAttributeType
 {
     Position,
     Normal,
-    Tangent,
     Color0,
     TexCoord0,
     TexCoord1,
+    Tangent,
     Joints0,
     Weights0,
     Invalid,

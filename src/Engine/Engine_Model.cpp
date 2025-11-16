@@ -129,10 +129,11 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
             nodeRenderInfo.skin = node.skin;
             nodeRenderInfo.mesh = node.mesh;
             nodeRenderInfo.childrenCount = node.children.size();
-            nodeRenderInfo.children = std::make_unique<NodeIndex[]>(renderInfo.nodesCount);
+            nodeRenderInfo.children = std::make_unique<NodeIndex[]>(nodeRenderInfo.childrenCount);
             static_assert(std::is_same_v<decltype(node.children)::value_type, NodeIndex>);
             static_assert(std::is_trivially_copyable_v<NodeIndex>);
-            std::memcpy(nodeRenderInfo.children.get(), node.children.data(), sizeof(NodeIndex) * renderInfo.nodesCount);
+            std::memcpy(nodeRenderInfo.children.get(), node.children.data(),
+                        sizeof(NodeIndex) * nodeRenderInfo.childrenCount);
 
             if (!node.matrix.empty())
             {
@@ -154,7 +155,7 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                 if (!node.rotation.empty())
                 {
                     assert(node.rotation.size() == 4);
-                    trs.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1],node.rotation[2]);
+                    trs.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
                 }
                 if (!node.scale.empty())
                 {
@@ -214,10 +215,14 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                 };
             }
 
+            skinRenderInfo.joints = skin.joints;
+
             glGenBuffers(1, &skinRenderInfo.glBuffer);
             engine.bindBuffer(GL_UNIFORM_BUFFER, skinRenderInfo.glBuffer);
-            assert(skin.joints.size() <= MAX_JOINTS && "Too many joints");
-            glBufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(skin.joints.size() * sizeof(glm::mat4)), nullptr,
+            assert(skinRenderInfo.joints.size() <= MAX_JOINTS && "Too many joints");
+            glBufferData(GL_UNIFORM_BUFFER,
+                         static_cast<GLsizeiptr>(skinRenderInfo.joints.size() * sizeof(glm::mat4)),
+                         nullptr,
                          GL_DYNAMIC_DRAW);
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
@@ -378,18 +383,15 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         material.blend = gltfMaterial.alphaMode == "BLEND";
     }
 
-    assert(model.scenes.size() > 0 && "Library GLTF are not supported");
+    assert(!model.scenes.empty() && "Library GLTF are not supported");
     assert(model.defaultScene != -1 && "A default scene is required");
-    if (model.defaultScene > 0)
-    {
-        const auto & scene = model.scenes[model.defaultScene];
+    const auto & scene = model.scenes[model.defaultScene];
 
-        renderInfo.rootNodesCount = scene.nodes.size();
-        renderInfo.rootNodes = std::make_unique<NodeIndex[]>(renderInfo.rootNodesCount);
-        static_assert(std::is_same_v<decltype(scene.nodes)::value_type, NodeIndex>);
-        static_assert(std::is_trivially_copyable_v<NodeIndex>);
-        std::memcpy(renderInfo.rootNodes.get(), scene.nodes.data(), sizeof(NodeIndex) * renderInfo.rootNodesCount);
-    }
+    renderInfo.rootNodesCount = scene.nodes.size();
+    renderInfo.rootNodes = std::make_unique<NodeIndex[]>(renderInfo.rootNodesCount);
+    static_assert(std::is_same_v<decltype(scene.nodes)::value_type, NodeIndex>);
+    static_assert(std::is_trivially_copyable_v<NodeIndex>);
+    std::memcpy(renderInfo.rootNodes.get(), scene.nodes.data(), sizeof(NodeIndex) * renderInfo.rootNodesCount);
 
     return {
         std::move(buffers), std::move(textures), std::move(animations), std::move(materials), std::move(renderInfo)
