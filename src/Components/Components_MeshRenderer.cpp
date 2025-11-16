@@ -136,7 +136,6 @@ auto MeshRenderer::calculateGlobalTransformsRecursive(const int nodeIndex, glm::
     if (const auto * mat = std::get_if<glm::mat4>(&node.transform))
     {
         transform *= *mat;
-
     }
     else
     {
@@ -158,26 +157,20 @@ auto MeshRenderer::calculateGlobalTransformsRecursive(const int nodeIndex, glm::
 
 auto MeshRenderer::calculateJointMatrices(const int skinIndex, const glm::mat4 & transform) -> void
 {
-    const auto & gltfSkin = m_mesh.renderInfo().skins[skinIndex];
-    const auto & gltfJoints = gltfSkin.joints;
+    const auto & skin = m_mesh.renderInfo().skins[skinIndex];
     auto & jointMatrices = m_skins[skinIndex].jointMatrices;
 
     glm::mat4 globalInverseTransform;
-    if (gltfSkin.skeleton > -1)
-        globalInverseTransform = glm::inverse(m_nodes[gltfSkin.skeleton].globalTransform);
+    if (skin.skeleton > -1)
+        globalInverseTransform = glm::inverse(m_nodes[skin.skeleton].globalTransform);
     else
         globalInverseTransform = transform;
 
-    if (gltfSkin.inverseBindMatrices != -1)
+    for (int i = 0; i < skin.joints.size(); ++i)
     {
-        for (int i = 0; i < gltfJoints.size(); ++i)
-            jointMatrices[i] = globalInverseTransform * m_nodes[gltfJoints[i]].globalTransform * m_mesh.renderInfo().
-                               skins[skinIndex].inverseBindMatrices[i];
-    }
-    else
-    {
-        for (int i = 0; i < gltfJoints.size(); ++i)
-            jointMatrices[i] = globalInverseTransform * m_nodes[gltfJoints[i]].globalTransform;
+        jointMatrices[i] = globalInverseTransform
+                           * m_nodes[skin.joints[i]].globalTransform
+                           * skin.inverseBindMatrices[i];
     }
 }
 

@@ -196,6 +196,8 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         {
             const auto & skin = model.skins[i];
 
+            auto & skinRenderInfo = renderInfo.skins[i];
+
             if (skin.inverseBindMatrices > -1)
             {
                 const auto & accessor = renderInfo.accessors[skin.inverseBindMatrices];
@@ -207,13 +209,13 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                     reinterpret_cast<const glm::mat4 *>(buffer.data.data() + accessor.byteOffsetFromBuffer),
                     static_cast<StridedIterator<const glm::mat4 *>::difference_type>(attributeStride),
                 };
-                renderInfo.skins[i].inverseBindMatrices = std::vector<glm::mat4>{
+                skinRenderInfo.inverseBindMatrices = std::vector<glm::mat4>{
                     it, it + static_cast<long>(accessor.count)
                 };
             }
 
-            glGenBuffers(1, &renderInfo.skins[i].glBuffer);
-            engine.bindBuffer(GL_UNIFORM_BUFFER, renderInfo.skins[i].glBuffer);
+            glGenBuffers(1, &skinRenderInfo.glBuffer);
+            engine.bindBuffer(GL_UNIFORM_BUFFER, skinRenderInfo.glBuffer);
             assert(skin.joints.size() <= MAX_JOINTS && "Too many joints");
             glBufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(skin.joints.size() * sizeof(glm::mat4)), nullptr,
                          GL_DYNAMIC_DRAW);
@@ -374,6 +376,19 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         material.emissiveFactor = glm::make_vec3(gltfMaterial.emissiveFactor.data());
         material.doubleSided = gltfMaterial.doubleSided;
         material.blend = gltfMaterial.alphaMode == "BLEND";
+    }
+
+    assert(model.scenes.size() > 0 && "Library GLTF are not supported");
+    assert(model.defaultScene != -1 && "A default scene is required");
+    if (model.defaultScene > 0)
+    {
+        const auto & scene = model.scenes[model.defaultScene];
+
+        renderInfo.rootNodesCount = scene.nodes.size();
+        renderInfo.rootNodes = std::make_unique<NodeIndex[]>(renderInfo.rootNodesCount);
+        static_assert(std::is_same_v<decltype(scene.nodes)::value_type, NodeIndex>);
+        static_assert(std::is_trivially_copyable_v<NodeIndex>);
+        std::memcpy(renderInfo.rootNodes.get(), scene.nodes.data(), sizeof(NodeIndex) * renderInfo.rootNodesCount);
     }
 
     return {

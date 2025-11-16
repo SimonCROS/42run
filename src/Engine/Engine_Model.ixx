@@ -103,8 +103,10 @@ export struct MeshRenderInfo
 
 export struct SkinRenderInfo
 {
+    std::vector<glm::mat4> inverseBindMatrices{glm::identity<glm::mat4>()};
+    std::vector<int> joints;
     GLuint glBuffer{0};
-    std::vector<glm::mat4> inverseBindMatrices{};
+    int skeleton{-1};
 };
 
 export struct TRS
@@ -129,10 +131,12 @@ export struct ModelRenderInfo
     size_t meshesCount{0};
     size_t skinsCount{0};
     size_t nodesCount{0};
+    size_t rootNodesCount{0};
     std::unique_ptr<AccessorRenderInfo[]> accessors{nullptr};
     std::unique_ptr<MeshRenderInfo[]> meshes{nullptr};
     std::unique_ptr<SkinRenderInfo[]> skins{nullptr};
     std::unique_ptr<NodeRenderInfo[]> nodes{nullptr};
+    std::unique_ptr<NodeIndex[]> rootNodes{nullptr};
 };
 
 export class Model
