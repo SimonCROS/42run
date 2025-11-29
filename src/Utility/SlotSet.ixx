@@ -7,15 +7,15 @@ import std.compat;
 
 export using SlotSetIndex = int32_t;
 
-// template <class T>
-// concept Indexed = requires(T a)
-// {
-//     { a.index } -> std::same_as<SlotSetIndex>;
-//     a.index = std::declval<SlotSetIndex>();
-// };
+template <class T>
+concept Indexed = requires(T a)
+{
+    requires std::same_as<decltype(a.index), SlotSetIndex>;
+    a.index = std::declval<SlotSetIndex>();
+};
 
 export
-template<class T>
+template<Indexed T>
 class SlotSet
 {
 public:
