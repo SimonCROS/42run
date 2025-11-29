@@ -10,6 +10,7 @@ export module Engine.Animation;
 import std;
 import Engine.AnimationSampler;
 import Engine.AnimationChannel;
+import Engine.RenderInfo;
 
 export class Animation
 {
@@ -19,19 +20,21 @@ private:
     std::vector<AnimationChannel> m_channels;
     std::vector<AnimationSampler> m_samplers;
 
-    static auto initInputBuffer(const tinygltf::Model &model, int accessorIndex) -> AnimationSampler::InputBuffer;
+    static auto initInputBuffer(const ModelRenderInfo & renderInfo,
+                                AccessorIndex accessorIdx) -> AnimationSampler::InputBuffer;
 
-    static auto initOutputBuffer(const tinygltf::Model &model, int accessorIndex) -> AnimationSampler::OutputBuffer;
+    static auto initOutputBuffer(const ModelRenderInfo & renderInfo,
+                                 AccessorIndex accessorIdx) -> AnimationSampler::OutputBuffer;
 
 public:
     Animation(const float duration,
-              std::vector<AnimationChannel> &&channels,
-              std::vector<AnimationSampler> &&samplers)
+              std::vector<AnimationChannel> && channels,
+              std::vector<AnimationSampler> && samplers)
         : m_duration(duration),
           m_channels(std::move(channels)),
           m_samplers(std::move(samplers)) {}
 
-    static auto Create(const tinygltf::Model &model, const tinygltf::Animation &animation) -> Animation;
+    static auto Create(const ModelRenderInfo & renderInfo, const tinygltf::Animation & animation) -> Animation;
 
     [[nodiscard]] auto name() const -> const std::string & { return m_name; }
     [[nodiscard]] auto duration() const -> float { return m_duration; }

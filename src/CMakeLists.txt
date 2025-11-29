@@ -4,6 +4,9 @@ target_compile_features(42run PUBLIC
         cxx_std_23
 )
 
+target_compile_options(42run PRIVATE -fsanitize=address -g3)
+target_link_options(42run PRIVATE -fsanitize=address -g3)
+
 target_sources(42run
         PUBLIC
                 Utility/EnumHelpers.h
@@ -64,6 +67,7 @@ target_sources(42run
                 OpenGL2/Cubemap2_Builder.ixx
                 OpenGL2/Buffer.ixx
                 OpenGL2/Buffer_Builder.ixx
+                Engine/RenderInfo.ixx
                 Time.ixx
         PRIVATE
                 main.cpp

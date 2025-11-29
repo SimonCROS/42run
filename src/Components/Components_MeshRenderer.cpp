@@ -10,6 +10,7 @@ module;
 module Components;
 import std;
 import Engine;
+import Engine.RenderInfo;
 import OpenGL;
 
 static void * bufferOffset(const size_t offset)
@@ -38,13 +39,16 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
             const int attributeLocation = static_cast<int>(attribute.type);
             if (attributeLocation != -1)
             {
-                engine.bindBuffer(GL_ARRAY_BUFFER, accessorRenderInfo.glBuffer);
+                engine.bindBuffer(
+                    GL_ARRAY_BUFFER,
+                    *m_mesh.renderInfo().bufferViews[accessorRenderInfo.bufferView].glBuffer);
+
                 glVertexAttribPointer(attributeLocation,
                                       accessorRenderInfo.componentCount,
                                       accessorRenderInfo.componentType,
                                       accessorRenderInfo.normalized,
                                       accessorRenderInfo.byteStride,
-                                      bufferOffset(accessorRenderInfo.byteOffsetFromBufferView));
+                                      bufferOffset(accessorRenderInfo.byteOffset));
             }
         }
 
@@ -110,11 +114,14 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
         const auto & accessorRenderInfo = m_mesh.renderInfo().accessors[primitiveRenderInfo.indices];
 
-        engine.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, accessorRenderInfo.glBuffer);
+        engine.bindBuffer(
+            GL_ELEMENT_ARRAY_BUFFER,
+            *m_mesh.renderInfo().bufferViews[accessorRenderInfo.bufferView].glBuffer);
 
-        glDrawElements(primitiveRenderInfo.mode, static_cast<GLsizei>(accessorRenderInfo.count),
+        glDrawElements(primitiveRenderInfo.mode,
+                       static_cast<GLsizei>(accessorRenderInfo.count),
                        accessorRenderInfo.componentType,
-                       bufferOffset(accessorRenderInfo.byteOffsetFromBufferView));
+                       bufferOffset(accessorRenderInfo.byteOffset));
     }
 }
 

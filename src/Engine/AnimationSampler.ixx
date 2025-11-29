@@ -24,7 +24,7 @@ public:
     struct OutputBuffer
     {
         size_t size;
-        size_t byteStride;
+        GLsizei byteStride;
         const GLubyte *data;
     };
 
