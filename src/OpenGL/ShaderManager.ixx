@@ -2,6 +2,10 @@
 // Created by scros on 11/29/25.
 //
 
+module;
+
+#include "glad/gl.h"
+
 export module ShaderManager;
 import std;
 import Shader;
@@ -16,6 +20,11 @@ private:
     SlotSet<ShaderFile> m_shaderFiles;
 
 public:
+    [[nodiscard]] auto createShader(const GLenum type, const SlotSetIndex shaderFile, const ShaderFlags flags) -> std::expected<SlotSetIndex, std::string>
+    {
+
+    }
+
     [[nodiscard]] auto reloadAllShaders() -> std::expected<void, std::string>
     {
         for (auto & shaderFile : m_shaderFiles)

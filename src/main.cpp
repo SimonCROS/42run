@@ -134,7 +134,7 @@ auto start() -> std::expected<void, std::string>
         return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
 
     auto& map = engine.instantiate();
-    map.addComponent<MapController>(cubemapTexture);
+    //map.addComponent<MapController>(cubemapTexture);
 
     {
         // Ancient

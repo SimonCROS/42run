@@ -142,11 +142,13 @@ public:
         {
             glBindBuffer(GL_ARRAY_BUFFER, id);
             m_currentBoundArrayBuffer = id;
-        } else if (target == GL_ELEMENT_ARRAY_BUFFER && m_currentBoundArrayElementBuffer != id)
+        }
+        else if (target == GL_ELEMENT_ARRAY_BUFFER && m_currentBoundArrayElementBuffer != id)
         {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
             m_currentBoundArrayElementBuffer = id;
-        } else
+        }
+        else
         {
             glBindBuffer(target, id);
         }

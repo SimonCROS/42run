@@ -153,13 +153,17 @@ auto Engine::run() -> std::expected<void, std::string>
         for (auto & object: m_objects)
         {
             if (object.isActive())
+            {
                 object.willUpdate(*this);
+            }
         }
 
-        for (int i = 0; i < m_objects.size(); ++i)
+        for (auto & object: m_objects)
         {
-            if (m_objects[i].isActive())
-                m_objects[i].update(*this);
+            if (object.isActive())
+            {
+                object.update(*this);
+            }
         }
 
         const auto pvMat = m_camera->projectionMatrix() * m_camera->computeViewMatrix();
@@ -183,13 +187,17 @@ auto Engine::run() -> std::expected<void, std::string>
         for (auto & object: m_objects)
         {
             if (object.isActive())
+            {
                 object.render(*this);
+            }
         }
 
         for (auto & object: m_objects)
         {
             if (object.isActive())
+            {
                 object.postRender(*this);
+            }
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

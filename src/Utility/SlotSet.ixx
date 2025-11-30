@@ -5,12 +5,59 @@
 export module Utility.SlotSet;
 import std.compat;
 
-export using SlotSetIndex = int32_t;
+export struct SlotSetIndex
+{
+    int32_t slotIndex = -1;
 
-template <class T>
+    constexpr SlotSetIndex() = default;
+
+    SlotSetIndex(const SlotSetIndex &) = default;
+
+    SlotSetIndex(SlotSetIndex &&) = default;
+
+    SlotSetIndex & operator=(const SlotSetIndex &) = default;
+
+    SlotSetIndex & operator=(SlotSetIndex &&) = default;
+
+    constexpr explicit SlotSetIndex(const int32_t index) : slotIndex(index) {}
+
+    static constexpr auto invalid() -> SlotSetIndex { return {}; }
+
+    auto operator==(const SlotSetIndex & other) const -> bool { return slotIndex == other.slotIndex; }
+    auto operator<=>(const SlotSetIndex & other) const -> std::strong_ordering { return slotIndex <=> other.slotIndex; }
+};
+
+struct SlotSetValueIndex
+{
+    int32_t valueIndex = -1;
+
+    constexpr SlotSetValueIndex() = default;
+
+    SlotSetValueIndex(const SlotSetValueIndex &) = default;
+
+    SlotSetValueIndex(SlotSetValueIndex &&) = default;
+
+    SlotSetValueIndex & operator=(const SlotSetValueIndex &) = default;
+
+    SlotSetValueIndex & operator=(SlotSetValueIndex &&) = default;
+
+    constexpr explicit SlotSetValueIndex(const int32_t index) : valueIndex(index) {}
+
+    static constexpr auto invalid() -> SlotSetValueIndex { return {}; }
+
+    auto operator==(const SlotSetValueIndex & other) const -> bool { return valueIndex == other.valueIndex; }
+
+    auto operator<=>(const SlotSetValueIndex & other) const -> std::strong_ordering
+    {
+        return valueIndex <=> other.valueIndex;
+    }
+};
+
+template<class T>
 concept Indexed = requires(T a)
 {
     requires std::same_as<decltype(a.index), SlotSetIndex>;
+    requires std::swappable<T>;
     a.index = std::declval<SlotSetIndex>();
 };
 
@@ -20,14 +67,13 @@ class SlotSet
 {
 public:
     using Value = T;
-    using Index = SlotSetIndex;
 
     using ValueContainer = std::deque<Value>;
     using Iterator = typename ValueContainer::iterator;
     using ConstIterator = typename ValueContainer::const_iterator;
 
-    using SlotContainer = std::deque<Index>;
-    using FreeSlotContainer = std::queue<Index>;
+    using SlotContainer = std::deque<SlotSetValueIndex>;
+    using FreeSlotContainer = std::priority_queue<SlotSetIndex>;
 
 private:
     ValueContainer m_values; // tightly-packed values
@@ -41,42 +87,45 @@ public:
         requires std::constructible_from<Value, Args...>
     auto emplace(Args &&... args) -> Value &
     {
-        Index valueIndex = m_values.size();
-        Index index;
+        const SlotSetValueIndex valueIndex = SlotSetValueIndex(m_values.size());
+        SlotSetIndex slotIndex;
         if (m_freeSlots.empty())
         {
-            index = m_slots.size();
+            slotIndex = SlotSetIndex(m_slots.size());
             m_slots.emplace_back(valueIndex);
         }
         else
         {
-            index = m_freeSlots.front();
+            slotIndex = m_freeSlots.top();
             m_freeSlots.pop();
-            m_slots[index] = valueIndex;
+            m_slots[slotIndex.slotIndex] = valueIndex;
         }
 
         auto & ref = m_values.emplace_back(std::forward<Args>(args)...);
-        ref.index = index;
+        ref.index = slotIndex;
         return ref;
     }
 
-    auto erase(const Index index) -> bool
+    auto erase(const SlotSetIndex index) -> bool
     {
-        Index valueIndex = m_slots[index];
-        Index lastValueIndex = m_values.size() - 1;
+        if (index == SlotSetIndex::invalid())
+        {
+            return false;
+        }
 
-        m_freeSlots.emplace(index);
-        m_slots[index] = 0;
+        const SlotSetValueIndex valueIndex = m_slots[index.slotIndex];
+        const SlotSetValueIndex lastValueIndex = SlotSetValueIndex(m_values.size() - 1);
+
+        m_freeSlots.emplace(index.slotIndex);
+        m_slots[index.slotIndex] = SlotSetValueIndex::invalid();
         if (valueIndex != lastValueIndex)
         {
-            auto & other = m_values[lastValueIndex];
-            m_slots[other.index] = valueIndex;
-            other.index = valueIndex;
-
-            std::swap(m_values[valueIndex], other);
+            const auto & last = m_values[lastValueIndex];
+            m_slots[last.index] = valueIndex;
+            std::swap(m_values[valueIndex], last);
         }
         m_values.pop_back();
-        return true; // currently always true
+        return true;
     }
 
     [[nodiscard]] auto size() -> typename ValueContainer::size_type { return m_values.size(); }
@@ -86,5 +135,8 @@ public:
     [[nodiscard]] auto begin() const -> ConstIterator { return m_values.begin(); }
     [[nodiscard]] auto end() const -> ConstIterator { return m_values.end(); }
 
-    [[nodiscard]] auto operator[](const Index index) -> Value & { return m_values[m_slots[index]]; }
+    [[nodiscard]] auto operator[](const SlotSetIndex index) -> Value &
+    {
+        return m_values[m_slots[index.slotIndex].valueIndex];
+    }
 };
