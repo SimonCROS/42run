@@ -20,14 +20,21 @@ private:
     SlotSet<ShaderFile> m_shaderFiles;
 
 public:
-    [[nodiscard]] auto createShader(const GLenum type, const SlotSetIndex shaderFile, const ShaderFlags flags) -> std::expected<SlotSetIndex, std::string>
+    [[nodiscard]] auto createShader(const GLenum type, const SlotSetIndex fileIdx,
+                                    const ShaderFlags flags) -> std::expected<SlotSetIndex, std::string>
     {
+        const auto e_shader = Shader::Create(type, fileIdx, flags);
+        if (!e_shader)
+        {
+            return std::unexpected(std::move(e_shader).error());
+        }
 
+        return {m_shaders.emplace(std::move(e_shader).value()).index};
     }
 
     [[nodiscard]] auto reloadAllShaders() -> std::expected<void, std::string>
     {
-        for (auto & shaderFile : m_shaderFiles)
+        for (ShaderFile & shaderFile: m_shaderFiles)
         {
             const auto && e_result = shaderFile.readCode();
             if (!e_result)
@@ -36,9 +43,9 @@ public:
             }
         }
 
-        for (const auto & shader : m_shaders)
+        for (Shader & shader: m_shaders)
         {
-            const auto && e_result = m_shaderFiles[shader.index].compile(shader.flags, shader.id);
+            const auto && e_result = compile(shader);
             if (!e_result)
             {
                 return e_result;
@@ -46,5 +53,18 @@ public:
         }
 
         return {};
+    }
+
+    [[nodiscard]] auto compile(Shader & shader) const -> std::expected<void, std::string>
+    {
+        const ShaderFile & shaderFile = m_shaderFiles[shader.fileIdx()];
+
+        if (shaderFile.isValid())
+        {
+            return std::unexpected("ShaderFile is invalid");
+        }
+
+        const auto code = shaderFile.createCodeForFlags(shader.flags());
+        return shader.update(code);
     }
 };

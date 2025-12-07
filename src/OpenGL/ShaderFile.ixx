@@ -13,42 +13,6 @@ import Utility.SlotSet;
 
 #define QUDI(x) #x
 #define QUdi(x) QUDI(x)
-static auto getCodeWithFlags(const std::string_view& code, const ShaderFlags flags) -> std::string
-{
-    constexpr std::size_t afterVersionIndex = 13;
-
-    std::string defines;
-    defines += "#define MAX_JOINTS " QUdi(MAX_JOINTS) "\n";
-    if (flags & ShaderHasNormals)
-        defines += "#define HAS_NORMALS\n";
-    if (flags & ShaderHasTangents)
-        defines += "#define HAS_TANGENTS\n";
-    if (flags & ShaderHasBaseColorMap)
-        defines += "#define HAS_BASECOLORMAP\n";
-    if (flags & ShaderHasMetalRoughnessMap)
-        defines += "#define HAS_METALROUGHNESSMAP\n";
-    if (flags & ShaderHasNormalMap)
-        defines += "#define HAS_NORMALMAP\n";
-    if (flags & ShaderHasEmissiveMap)
-        defines += "#define HAS_EMISSIVEMAP\n";
-    if (flags & ShaderHasVec3Colors)
-        defines += "#define HAS_VEC3_COLORS\n";
-    if (flags & ShaderHasVec4Colors)
-        defines += "#define HAS_VEC4_COLORS\n";
-    if (flags & ShaderHasSkin)
-        defines += "#define HAS_SKIN\n";
-    if (flags & ShaderHasTexCoord0)
-        defines += "#define HAS_TEXCOORD_0\n";
-    if (flags & ShaderHasTexCoord1)
-        defines += "#define HAS_TEXCOORD_1\n";
-
-    auto copy = std::string(code);
-    if (defines.empty())
-        return copy;
-
-    copy.insert(afterVersionIndex, defines);
-    return copy;
-}
 
 export class ShaderFile
 {
@@ -82,30 +46,44 @@ public:
         return {};
     }
 
-    [[nodiscard]] auto compile(const ShaderFlags flags, const GLint target) const -> std::expected<void, std::string>
+    [[nodiscard]] auto code() const -> const std::string & { return m_code; }
+
+    [[nodiscard]] auto createCodeForFlags(const ShaderFlags flags) const -> std::string
     {
-        if (m_code.empty())
-        {
-            return std::unexpected("Code is empty");
-        }
+        constexpr std::size_t afterVersionIndex = 13;
 
-        const auto code = getCodeWithFlags(m_code, flags);
-        const auto codePtr = code.data();
-        const auto length = static_cast<GLint>(code.size());
+        std::string defines;
+        defines += "#define MAX_JOINTS " QUdi(MAX_JOINTS) "\n";
+        if (flags & ShaderHasNormals)
+            defines += "#define HAS_NORMALS\n";
+        if (flags & ShaderHasTangents)
+            defines += "#define HAS_TANGENTS\n";
+        if (flags & ShaderHasBaseColorMap)
+            defines += "#define HAS_BASECOLORMAP\n";
+        if (flags & ShaderHasMetalRoughnessMap)
+            defines += "#define HAS_METALROUGHNESSMAP\n";
+        if (flags & ShaderHasNormalMap)
+            defines += "#define HAS_NORMALMAP\n";
+        if (flags & ShaderHasEmissiveMap)
+            defines += "#define HAS_EMISSIVEMAP\n";
+        if (flags & ShaderHasVec3Colors)
+            defines += "#define HAS_VEC3_COLORS\n";
+        if (flags & ShaderHasVec4Colors)
+            defines += "#define HAS_VEC4_COLORS\n";
+        if (flags & ShaderHasSkin)
+            defines += "#define HAS_SKIN\n";
+        if (flags & ShaderHasTexCoord0)
+            defines += "#define HAS_TEXCOORD_0\n";
+        if (flags & ShaderHasTexCoord1)
+            defines += "#define HAS_TEXCOORD_1\n";
 
-        glShaderSource(target, 1, &codePtr, &length);
-        glCompileShader(target);
+        auto copy = m_code;
+        if (defines.empty())
+            return copy;
 
-        int success;
-        glGetShaderiv(target, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            char infoLog[1024];
-            GLsizei infoLength;
-            glGetShaderInfoLog(target, 1024, &infoLength, infoLog);
-            return std::unexpected(std::string(infoLog, infoLength));
-        }
-
-        return {};
+        copy.insert(afterVersionIndex, defines);
+        return copy;
     }
+
+    [[nodiscard]] auto isValid() const -> bool { return !m_code.empty(); }
 };

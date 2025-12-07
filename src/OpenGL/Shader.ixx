@@ -27,8 +27,10 @@ export enum ShaderFlags : unsigned short
 
 export class Shader
 {
+public:
+    SlotSetIndex index;
+
 private:
-    SlotSetIndex m_index;
     SlotSetIndex m_shaderFileIdx;
     GLint m_id;
     GLenum m_type;
@@ -39,7 +41,7 @@ public:
         : m_shaderFileIdx(shaderFile), m_id(id), m_type(type), m_flags(flags)
     {}
 
-    static auto Create(const GLenum type,
+    [[nodiscard]] static auto Create(const GLenum type,
                        const SlotSetIndex shaderFile,
                        const ShaderFlags flags) -> std::expected<Shader, std::string>
     {
@@ -48,5 +50,31 @@ public:
             return std::unexpected("Failed to create new shader id");
 
         return std::expected<Shader, std::string>{std::in_place, type, shaderFile, flags, id};
+    }
+
+    [[nodiscard]] auto fileIdx() const -> SlotSetIndex { return m_shaderFileIdx; }
+    [[nodiscard]] auto flags() const -> ShaderFlags { return m_flags; }
+    [[nodiscard]] auto type() const -> GLenum { return m_type; }
+    [[nodiscard]] auto id() const -> GLuint { return m_id; }
+
+    [[nodiscard]] auto update(const std::string_view & code) -> std::expected<void, std::string>
+    {
+        const auto codePtr = code.data();
+        const auto length = static_cast<GLint>(code.size());
+
+        glShaderSource(m_id, 1, &codePtr, &length);
+        glCompileShader(m_id);
+
+        int success;
+        glGetShaderiv(m_id, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            char infoLog[1024];
+            GLsizei infoLength;
+            glGetShaderInfoLog(m_id, 1024, &infoLength, infoLog);
+            return std::unexpected(std::string(infoLog, infoLength));
+        }
+
+        return {};
     }
 };

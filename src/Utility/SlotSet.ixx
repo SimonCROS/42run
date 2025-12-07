@@ -139,4 +139,9 @@ public:
     {
         return m_values[m_slots[index.slotIndex].valueIndex];
     }
+
+    [[nodiscard]] auto operator[](const SlotSetIndex index) const -> const Value &
+    {
+        return m_values[m_slots[index.slotIndex].valueIndex];
+    }
 };
