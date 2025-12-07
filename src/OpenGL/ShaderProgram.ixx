@@ -4,13 +4,19 @@
 
 module;
 
+#include <version>
 #include <cassert>
 
 #include "glad/gl.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 export module ShaderProgram;
-import Utility.SlotSet;
+import std;
 import Shader;
+import UniformValue;
+import Utility.SlotSet;
+import Utility.StringUnorderedMap;
 
 export class ShaderProgram
 {
@@ -18,6 +24,7 @@ public:
     SlotSetIndex index;
 
 private:
+    StringUnorderedMap<UniformValue> m_uniformCache;
     SlotSetIndex m_vertexShaderIdx;
     SlotSetIndex m_fragmentShaderIdx;
     GLint m_id;
@@ -43,6 +50,7 @@ public:
     {}
 
     ShaderProgram(const ShaderProgram && other) noexcept : index(std::exchange(other.index, {})),
+                                                           m_uniformCache(std::exchange(other.m_uniformCache, {})),
                                                            m_vertexShaderIdx(
                                                                std::exchange(other.m_vertexShaderIdx, {})),
                                                            m_fragmentShaderIdx(
@@ -57,6 +65,7 @@ public:
     ShaderProgram & operator=(ShaderProgram && other) noexcept
     {
         std::swap(index, other.index);
+        std::swap(m_uniformCache, other.m_uniformCache);
         std::swap(m_vertexShaderIdx, other.m_vertexShaderIdx);
         std::swap(m_fragmentShaderIdx, other.m_fragmentShaderIdx);
         std::swap(m_id, other.m_id);
@@ -90,6 +99,35 @@ public:
             return std::unexpected(std::string(infoLog, infoLength));
         }
 
+        for (auto & cache: m_uniformCache | std::views::values)
+        {
+            cache.invalidateLocation();
+        }
+
         return {};
+    }
+
+    auto setBool(const std::string_view& name, GLboolean value) -> void; // TODO
+    auto setInt(const std::string_view& name, GLint value) -> void; // TODO
+    auto setUint(const std::string_view& name, GLuint value) -> void; // TODO
+    auto setFloat(const std::string_view& name, GLfloat value) -> void; // TODO
+    auto setVec3(const std::string_view& name, const glm::vec3 value) -> void; // TODO
+    auto setVec4(const std::string_view& name, const glm::vec4 value) -> void; // TODO
+    auto setMat4(const std::string_view& name, const glm::mat4 value) -> void; // TODO
+    auto setUniformBlock(const std::string_view& name, GLuint uniformBlockBinding) -> void; // TODO
+
+private:
+    auto getOrCreateUniformCache(const std::string_view& name) -> UniformValue &
+    {
+#if __cpp_lib_associative_heterogeneous_insertion
+        return m_uniformCache.try_emplace(name, name).first->second;
+#else
+        const auto it = m_uniformCache.find(name);
+        if (it == m_uniformCache.end())
+        {
+            return m_uniformCache.try_emplace(std::string(name), name).first->second;
+        }
+        return it->second;
+#endif
     }
 };
