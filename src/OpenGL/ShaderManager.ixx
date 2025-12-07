@@ -58,13 +58,6 @@ public:
     [[nodiscard]] auto compile(Shader & shader) const -> std::expected<void, std::string>
     {
         const ShaderFile & shaderFile = m_shaderFiles[shader.fileIdx()];
-
-        if (shaderFile.isValid())
-        {
-            return std::unexpected("ShaderFile is invalid");
-        }
-
-        const auto code = shaderFile.createCodeForFlags(shader.flags());
-        return shader.update(code);
+        return shader.update(shaderFile);
     }
 };

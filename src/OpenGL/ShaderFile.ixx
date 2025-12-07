@@ -2,13 +2,9 @@
 // Created by scros on 11/29/25.
 //
 
-module;
-
-#include "glad/gl.h"
-
 export module ShaderFile;
 import std;
-import Shader;
+import ShaderFlags;
 import Utility.SlotSet;
 
 #define QUDI(x) #x
@@ -24,6 +20,19 @@ private:
     std::string m_code;
 
 public:
+    explicit ShaderFile(const std::string_view & path) : m_path(path) {}
+
+    ShaderFile(const ShaderFile && other) noexcept : index(std::exchange(other.index, {})),
+                                                     m_path(std::exchange(other.m_path, {})),
+                                                     m_code(std::exchange(other.m_code, {}))
+    {}
+
+    ShaderFile(const ShaderFile &) = delete;
+
+    ShaderFile & operator=(const ShaderFile &) = delete;
+
+    ShaderFile & operator=(const ShaderFile &&) = delete;
+
     [[nodiscard]] auto readCode() -> std::expected<void, std::string>
     {
         std::ifstream file;
@@ -38,13 +47,15 @@ public:
 
             m_code = std::move(stream).str();
         }
-        catch (std::ifstream::failure& e)
+        catch (std::ifstream::failure & e)
         {
             return std::unexpected("Failed to get shader code at `" + m_path + "`: " + e.what());
         }
 
         return {};
     }
+
+    [[nodiscard]] auto isValid() const -> bool { return !m_code.empty(); }
 
     [[nodiscard]] auto code() const -> const std::string & { return m_code; }
 
@@ -54,27 +65,27 @@ public:
 
         std::string defines;
         defines += "#define MAX_JOINTS " QUdi(MAX_JOINTS) "\n";
-        if (flags & ShaderHasNormals)
+        if ((flags & ShaderFlags::ShaderHasNormals) == ShaderFlags::ShaderHasNormals)
             defines += "#define HAS_NORMALS\n";
-        if (flags & ShaderHasTangents)
+        if ((flags & ShaderFlags::ShaderHasTangents) == ShaderFlags::ShaderHasTangents)
             defines += "#define HAS_TANGENTS\n";
-        if (flags & ShaderHasBaseColorMap)
+        if ((flags & ShaderFlags::ShaderHasBaseColorMap) == ShaderFlags::ShaderHasBaseColorMap)
             defines += "#define HAS_BASECOLORMAP\n";
-        if (flags & ShaderHasMetalRoughnessMap)
+        if ((flags & ShaderFlags::ShaderHasMetalRoughnessMap) == ShaderFlags::ShaderHasMetalRoughnessMap)
             defines += "#define HAS_METALROUGHNESSMAP\n";
-        if (flags & ShaderHasNormalMap)
+        if ((flags & ShaderFlags::ShaderHasNormalMap) == ShaderFlags::ShaderHasNormalMap)
             defines += "#define HAS_NORMALMAP\n";
-        if (flags & ShaderHasEmissiveMap)
+        if ((flags & ShaderFlags::ShaderHasEmissiveMap) == ShaderFlags::ShaderHasEmissiveMap)
             defines += "#define HAS_EMISSIVEMAP\n";
-        if (flags & ShaderHasVec3Colors)
+        if ((flags & ShaderFlags::ShaderHasVec3Colors) == ShaderFlags::ShaderHasVec3Colors)
             defines += "#define HAS_VEC3_COLORS\n";
-        if (flags & ShaderHasVec4Colors)
+        if ((flags & ShaderFlags::ShaderHasVec4Colors) == ShaderFlags::ShaderHasVec4Colors)
             defines += "#define HAS_VEC4_COLORS\n";
-        if (flags & ShaderHasSkin)
+        if ((flags & ShaderFlags::ShaderHasSkin) == ShaderFlags::ShaderHasSkin)
             defines += "#define HAS_SKIN\n";
-        if (flags & ShaderHasTexCoord0)
+        if ((flags & ShaderFlags::ShaderHasTexCoord0) == ShaderFlags::ShaderHasTexCoord0)
             defines += "#define HAS_TEXCOORD_0\n";
-        if (flags & ShaderHasTexCoord1)
+        if ((flags & ShaderFlags::ShaderHasTexCoord1) == ShaderFlags::ShaderHasTexCoord1)
             defines += "#define HAS_TEXCOORD_1\n";
 
         auto copy = m_code;
@@ -84,6 +95,4 @@ public:
         copy.insert(afterVersionIndex, defines);
         return copy;
     }
-
-    [[nodiscard]] auto isValid() const -> bool { return !m_code.empty(); }
 };
