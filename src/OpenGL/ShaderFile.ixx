@@ -31,7 +31,13 @@ public:
 
     ShaderFile & operator=(const ShaderFile &) = delete;
 
-    ShaderFile & operator=(const ShaderFile &&) = delete;
+    ShaderFile & operator=(ShaderFile && other) noexcept
+    {
+        std::swap(index, other.index);
+        std::swap(m_path, other.m_path);
+        std::swap(m_code, other.m_code);
+        return *this;
+    }
 
     [[nodiscard]] auto readCode() -> std::expected<void, std::string>
     {

@@ -54,7 +54,15 @@ public:
 
     Shader & operator=(const Shader &) = delete;
 
-    Shader & operator=(const Shader &&) = delete;
+    Shader & operator=(Shader && other) noexcept
+    {
+        std::swap(index, other.index);
+        std::swap(m_fileIdx, other.m_fileIdx);
+        std::swap(m_id, other.m_id);
+        std::swap(m_type, other.m_type);
+        std::swap(m_flags, other.m_flags);
+        return *this;
+    }
 
     ~Shader()
     {

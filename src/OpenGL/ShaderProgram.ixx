@@ -54,7 +54,14 @@ public:
 
     ShaderProgram & operator=(const ShaderProgram &) = delete;
 
-    ShaderProgram & operator=(const ShaderProgram &&) = delete;
+    ShaderProgram & operator=(ShaderProgram && other) noexcept
+    {
+        std::swap(index, other.index);
+        std::swap(m_vertexShaderIdx, other.m_vertexShaderIdx);
+        std::swap(m_fragmentShaderIdx, other.m_fragmentShaderIdx);
+        std::swap(m_id, other.m_id);
+        return *this;
+    }
 
     ~ShaderProgram()
     {
