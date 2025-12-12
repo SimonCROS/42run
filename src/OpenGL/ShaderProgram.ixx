@@ -107,17 +107,48 @@ public:
         return {};
     }
 
-    auto setBool(const std::string_view& name, GLboolean value) -> void; // TODO
-    auto setInt(const std::string_view& name, GLint value) -> void; // TODO
-    auto setUint(const std::string_view& name, GLuint value) -> void; // TODO
-    auto setFloat(const std::string_view& name, GLfloat value) -> void; // TODO
-    auto setVec3(const std::string_view& name, const glm::vec3 value) -> void; // TODO
-    auto setVec4(const std::string_view& name, const glm::vec4 value) -> void; // TODO
-    auto setMat4(const std::string_view& name, const glm::mat4 value) -> void; // TODO
-    auto setUniformBlock(const std::string_view& name, GLuint uniformBlockBinding) -> void; // TODO
+    auto setBool(const std::string_view & name, const GLboolean value) -> void
+    {
+        getOrCreateUniformCache(name).set(m_id, value);
+    }
+
+    auto setInt(const std::string_view & name, const GLint value) -> void
+    {
+        getOrCreateUniformCache(name).set(m_id, value);
+    }
+
+    auto setUint(const std::string_view & name, const GLuint value) -> void
+    {
+        getOrCreateUniformCache(name).set(m_id, value);
+    }
+
+    auto setFloat(const std::string_view & name, const GLfloat value) -> void
+    {
+        getOrCreateUniformCache(name).set(m_id, value);
+    }
+
+    auto setVec3(const std::string_view & name, const glm::vec3 value) -> void
+    {
+        getOrCreateUniformCache(name).set(m_id, value);
+    }
+
+    auto setVec4(const std::string_view & name, const glm::vec4 value) -> void
+    {
+        getOrCreateUniformCache(name).set(m_id, value);
+    }
+
+    auto setMat4(const std::string_view & name, const glm::mat4 & value) -> void
+    {
+        getOrCreateUniformCache(name).set(m_id, value);
+    }
+
+    auto setUniformBlock(const std::string_view & name, const GLuint uniformBlockBinding) -> void
+    {
+        getOrCreateUniformCache(name).set(m_id, UniformValue::BlockBinding(uniformBlockBinding));
+    }
 
 private:
-    auto getOrCreateUniformCache(const std::string_view& name) -> UniformValue &
+    auto getOrCreateUniformCache(const std::string_view & name) -> UniformValue &
     {
 #if __cpp_lib_associative_heterogeneous_insertion
         return m_uniformCache.try_emplace(name, name).first->second;
