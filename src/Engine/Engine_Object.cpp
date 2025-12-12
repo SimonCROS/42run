@@ -40,7 +40,7 @@ auto Object::markDirty() -> void
         m_dirty = true;
 
         auto child = m_firstChildIndex;
-        while (child != SlotSetIndex::invalid())
+        while (child != SlotSetIndex::invalid)
         {
             m_engine.get().objects()[child].markDirty();
             child = m_engine.get().objects()[child].m_nextSiblingIndex;
@@ -52,7 +52,7 @@ auto Object::updateWorldTransformIfDirty() -> void
 {
     if (m_dirty)
     {
-        if (m_parentIndex != SlotSetIndex::invalid())
+        if (m_parentIndex != SlotSetIndex::invalid)
         {
             auto& parent = m_engine.get().objects()[m_parentIndex];
             parent.updateWorldTransformIfDirty();
@@ -74,7 +74,7 @@ auto Object::setActiveFromParent(const bool active) -> void
     if (m_isActive) // stop propagation if already disabled
     {
         auto child = m_firstChildIndex;
-        while (child != SlotSetIndex::invalid())
+        while (child != SlotSetIndex::invalid)
         {
             m_engine.get().objects()[child].setActiveFromParent(active);
             child = m_engine.get().objects()[child].m_nextSiblingIndex;
@@ -89,7 +89,7 @@ auto Object::setActive(const bool active) -> void
         m_isActive = active;
 
         auto child = m_firstChildIndex;
-        while (child != SlotSetIndex::invalid())
+        while (child != SlotSetIndex::invalid)
         {
             m_engine.get().objects()[child].setActiveFromParent(active);
             child = m_engine.get().objects()[child].m_nextSiblingIndex;
@@ -99,13 +99,13 @@ auto Object::setActive(const bool active) -> void
 
 auto Object::unsetParentInternal(const bool recursiveUpdate) -> void
 {
-    if (m_parentIndex == SlotSetIndex::invalid())
+    if (m_parentIndex == SlotSetIndex::invalid)
         return;
 
     auto* prevNextPtr = &m_engine.get().objects()[m_parentIndex].m_firstChildIndex;
     auto current = *prevNextPtr;
 
-    while (current != SlotSetIndex::invalid())
+    while (current != SlotSetIndex::invalid)
     {
         if (current == index)
         {
@@ -116,8 +116,8 @@ auto Object::unsetParentInternal(const bool recursiveUpdate) -> void
         current = m_engine.get().objects()[current].m_nextSiblingIndex;
     }
 
-    m_parentIndex = SlotSetIndex::invalid();
-    m_nextSiblingIndex = SlotSetIndex::invalid();
+    m_parentIndex = SlotSetIndex::invalid;
+    m_nextSiblingIndex = SlotSetIndex::invalid;
 
     if (recursiveUpdate)
     {

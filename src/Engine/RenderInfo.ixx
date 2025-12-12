@@ -107,7 +107,7 @@ export struct PrimitiveRenderInfo
     int mode{-1};
     AccessorIndex indices{-1};
     VertexArrayFlags vertexArrayFlags{VertexArrayHasNone};
-    ShaderFlags shaderFlags{ShaderHasNone};
+    ShaderFlags shaderFlags{ShaderFlags::HasNone};
 };
 
 export struct MeshRenderInfo

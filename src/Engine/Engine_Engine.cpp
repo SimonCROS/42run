@@ -204,7 +204,7 @@ auto Engine::run() -> std::expected<void, std::string>
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
-        auto & program = getShaderProgram("hdr").value().get().getProgram(ShaderHasNone);
+        auto & program = getShaderProgram("hdr").value().get().getProgram(HasNone);
         useProgram(program);
         bindTexture(0, colorBuffer);
         program.setBool("u_hdr", true);

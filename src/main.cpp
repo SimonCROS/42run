@@ -73,7 +73,7 @@ auto start() -> std::expected<void, std::string>
         return std::unexpected(std::move(e_hdrShader).error());
 
     {
-        auto e_return = e_hdrShader->get().enableVariant(ShaderHasNone);
+        auto e_return = e_hdrShader->get().enableVariant(HasNone);
         if (!e_return)
             return std::unexpected(std::move(e_return).error());
     }
@@ -101,7 +101,7 @@ auto start() -> std::expected<void, std::string>
     auto cubemapTexture = Cubemap::Create(faces);
     {
         auto& object = engine.instantiate();
-        auto e_variant = e_skyboxShader->get().enableVariant(ShaderHasNone);
+        auto e_variant = e_skyboxShader->get().enableVariant(HasNone);
         object.addComponent<SkyboxRenderer>(engine, cubemapTexture, *e_variant);
     }
 

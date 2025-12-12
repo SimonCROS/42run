@@ -623,6 +623,9 @@ FodyWeavers.xsd
 
 !/Makefile
 .idea/editor.xml
-/resources/models/ancient/textures
+/resources/models
+/resources/textures
+/resources/shaders
+/resources/Tantolunden4
 
 lib/imgui/cache/*.ini

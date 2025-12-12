@@ -25,12 +25,14 @@ target_sources(42run
                 OpenGL/OpenGL_Debug.ixx
                 OpenGL/Cubemap.ixx
                 OpenGL/OpenGL_IndicesBuffer.ixx
-                OpenGL/OpenGL_Pipeline.ixx
-                OpenGL/OpenGL_Shader.ixx
-                OpenGL/OpenGL_ShaderProgram.ixx
-                OpenGL/OpenGL_ShaderProgramInstance.ixx
                 OpenGL/OpenGL_VertexArray.ixx
                 OpenGL/OpenGL_VertexBuffer.ixx
+                OpenGL/Shader.ixx
+                OpenGL/ShaderFile.ixx
+                OpenGL/ShaderFlags.ixx
+                OpenGL/ShaderManager.ixx
+                OpenGL/ShaderProgram.ixx
+                OpenGL/UniformValue.ixx
                 OpenGL/Program/Pipeline.ixx
                 OpenGL/Program/RenderPass.ixx
                 OpenGL/Texture2D.ixx
@@ -75,8 +77,6 @@ target_sources(42run
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
                 OpenGL/Cubemap.cpp
-                OpenGL/OpenGL_ShaderProgram.cpp
-                OpenGL/OpenGL_ShaderProgramInstance.cpp
                 OpenGL/Texture2D.cpp
                 Components/Components_Animator.cpp
                 Components/Components_ImguiSingleton.cpp

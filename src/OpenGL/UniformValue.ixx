@@ -13,20 +13,13 @@ import std;
 
 export class UniformValue
 {
-public:
-    struct BlockBinding
-    {
-        GLint binding;
-    };
-
 private:
     std::string m_name;
-    std::variant<std::monostate, GLboolean, GLfloat, GLint, GLuint, glm::vec2, glm::vec3, glm::vec4, glm::mat4,
-        BlockBinding> m_value;
+    std::variant<std::monostate, GLboolean, GLfloat, GLint, GLuint, glm::vec2, glm::vec3, glm::vec4, glm::mat4> m_value;
     GLint m_location = -1;
 
 public:
-    explicit UniformValue(const std::string & m_name) : m_name(m_name) {}
+    explicit UniformValue(const std::string_view & m_name) : m_name(m_name) {}
 
     auto invalidateLocation() -> void
     {
@@ -68,7 +61,7 @@ public:
         }
         else if constexpr (std::is_same_v<T, GLuint>)
         {
-            glUniform1i(m_location, value);
+            glUniform1ui(m_location, value);
         }
         else if constexpr (std::is_same_v<T, glm::vec2>)
         {
@@ -85,10 +78,6 @@ public:
         else if constexpr (std::is_same_v<T, glm::mat4>)
         {
             glUniformMatrix4fv(m_location, 1, GL_FALSE, glm::value_ptr(value));
-        }
-        else if constexpr (std::is_same_v<T, BlockBinding>)
-        {
-            glUniformBlockBinding(m_location, value.binding);
         }
     }
 };

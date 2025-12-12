@@ -118,7 +118,7 @@ public:
         }
     }
 
-    auto useProgram(const ShaderProgramInstance & program) -> void
+    auto useProgram(const ShaderProgram & program) -> void
     {
         if (m_currentShaderProgram != program.id())
         {

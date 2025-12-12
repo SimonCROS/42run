@@ -22,7 +22,7 @@ private:
 public:
     explicit ShaderFile(const std::string_view & path) : m_path(path) {}
 
-    ShaderFile(const ShaderFile && other) noexcept : index(std::exchange(other.index, {})),
+    ShaderFile(ShaderFile && other) noexcept : index(std::exchange(other.index, {})),
                                                      m_path(std::exchange(other.m_path, {})),
                                                      m_code(std::exchange(other.m_code, {}))
     {}
@@ -71,27 +71,27 @@ public:
 
         std::string defines;
         defines += "#define MAX_JOINTS " QUdi(MAX_JOINTS) "\n";
-        if ((flags & ShaderFlags::ShaderHasNormals) == ShaderFlags::ShaderHasNormals)
+        if ((flags & ShaderFlags::HasNormals) == ShaderFlags::HasNormals)
             defines += "#define HAS_NORMALS\n";
-        if ((flags & ShaderFlags::ShaderHasTangents) == ShaderFlags::ShaderHasTangents)
+        if ((flags & ShaderFlags::HasTangents) == ShaderFlags::HasTangents)
             defines += "#define HAS_TANGENTS\n";
-        if ((flags & ShaderFlags::ShaderHasBaseColorMap) == ShaderFlags::ShaderHasBaseColorMap)
+        if ((flags & ShaderFlags::HasBaseColorMap) == ShaderFlags::HasBaseColorMap)
             defines += "#define HAS_BASECOLORMAP\n";
-        if ((flags & ShaderFlags::ShaderHasMetalRoughnessMap) == ShaderFlags::ShaderHasMetalRoughnessMap)
+        if ((flags & ShaderFlags::HasMetalRoughnessMap) == ShaderFlags::HasMetalRoughnessMap)
             defines += "#define HAS_METALROUGHNESSMAP\n";
-        if ((flags & ShaderFlags::ShaderHasNormalMap) == ShaderFlags::ShaderHasNormalMap)
+        if ((flags & ShaderFlags::HasNormalMap) == ShaderFlags::HasNormalMap)
             defines += "#define HAS_NORMALMAP\n";
-        if ((flags & ShaderFlags::ShaderHasEmissiveMap) == ShaderFlags::ShaderHasEmissiveMap)
+        if ((flags & ShaderFlags::HasEmissiveMap) == ShaderFlags::HasEmissiveMap)
             defines += "#define HAS_EMISSIVEMAP\n";
-        if ((flags & ShaderFlags::ShaderHasVec3Colors) == ShaderFlags::ShaderHasVec3Colors)
+        if ((flags & ShaderFlags::HasVec3Colors) == ShaderFlags::HasVec3Colors)
             defines += "#define HAS_VEC3_COLORS\n";
-        if ((flags & ShaderFlags::ShaderHasVec4Colors) == ShaderFlags::ShaderHasVec4Colors)
+        if ((flags & ShaderFlags::HasVec4Colors) == ShaderFlags::HasVec4Colors)
             defines += "#define HAS_VEC4_COLORS\n";
-        if ((flags & ShaderFlags::ShaderHasSkin) == ShaderFlags::ShaderHasSkin)
+        if ((flags & ShaderFlags::HasSkin) == ShaderFlags::HasSkin)
             defines += "#define HAS_SKIN\n";
-        if ((flags & ShaderFlags::ShaderHasTexCoord0) == ShaderFlags::ShaderHasTexCoord0)
+        if ((flags & ShaderFlags::HasTexCoord0) == ShaderFlags::HasTexCoord0)
             defines += "#define HAS_TEXCOORD_0\n";
-        if ((flags & ShaderFlags::ShaderHasTexCoord1) == ShaderFlags::ShaderHasTexCoord1)
+        if ((flags & ShaderFlags::HasTexCoord1) == ShaderFlags::HasTexCoord1)
             defines += "#define HAS_TEXCOORD_1\n";
 
         auto copy = m_code;

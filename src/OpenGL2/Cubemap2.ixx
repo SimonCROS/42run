@@ -81,8 +81,7 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto fromEquirectangular(const Texture2D2& equirectangular,
-                                 ShaderProgramInstance& equirectToCubeShader)
+        auto fromEquirectangular(const Texture2D2& equirectangular, ShaderProgram& equirectToCubeShader)
             -> std::expected<void, std::string>;
 
         [[nodiscard]]

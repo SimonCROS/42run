@@ -49,13 +49,13 @@ public:
         : m_vertexShaderIdx(vertexShaderIdx), m_fragmentShaderIdx(fragmentShaderIdx), m_id(id)
     {}
 
-    ShaderProgram(const ShaderProgram && other) noexcept : index(std::exchange(other.index, {})),
-                                                           m_uniformCache(std::exchange(other.m_uniformCache, {})),
-                                                           m_vertexShaderIdx(
-                                                               std::exchange(other.m_vertexShaderIdx, {})),
-                                                           m_fragmentShaderIdx(
-                                                               std::exchange(other.m_fragmentShaderIdx, {})),
-                                                           m_id(std::exchange(other.m_id, {}))
+    ShaderProgram(ShaderProgram && other) noexcept : index(std::exchange(other.index, {})),
+                                                     m_uniformCache(std::exchange(other.m_uniformCache, {})),
+                                                     m_vertexShaderIdx(
+                                                         std::exchange(other.m_vertexShaderIdx, {})),
+                                                     m_fragmentShaderIdx(
+                                                         std::exchange(other.m_fragmentShaderIdx, {})),
+                                                     m_id(std::exchange(other.m_id, {}))
     {}
 
     ShaderProgram(const ShaderProgram &) = delete;
@@ -76,6 +76,8 @@ public:
     {
         glDeleteProgram(m_id);
     }
+
+    auto use() const -> void { glUseProgram(m_id); }
 
     [[nodiscard]] auto vertexShaderIdx() const -> SlotSetIndex { return m_vertexShaderIdx; }
     [[nodiscard]] auto fragmentShaderIdx() const -> SlotSetIndex { return m_fragmentShaderIdx; }
@@ -144,7 +146,7 @@ public:
 
     auto setUniformBlock(const std::string_view & name, const GLuint uniformBlockBinding) -> void
     {
-        getOrCreateUniformCache(name).set(m_id, UniformValue::BlockBinding(uniformBlockBinding));
+        glUniformBlockBinding(m_id, glGetUniformBlockIndex(m_id, name.data()), uniformBlockBinding);
     }
 
 private:

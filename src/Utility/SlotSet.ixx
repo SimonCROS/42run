@@ -9,22 +9,29 @@ export struct SlotSetIndex
 {
     int32_t slotIndex = -1;
 
+    static constexpr SlotSetIndex invalid = {};
+
     constexpr SlotSetIndex() = default;
 
-    SlotSetIndex(const SlotSetIndex &) = default;
+    constexpr SlotSetIndex(const SlotSetIndex &) = default;
 
-    SlotSetIndex(SlotSetIndex &&) = default;
+    constexpr SlotSetIndex(SlotSetIndex &&) = default;
 
-    SlotSetIndex & operator=(const SlotSetIndex &) = default;
+    constexpr SlotSetIndex & operator=(const SlotSetIndex &) = default;
 
-    SlotSetIndex & operator=(SlotSetIndex &&) = default;
+    constexpr SlotSetIndex & operator=(SlotSetIndex &&) = default;
 
     constexpr explicit SlotSetIndex(const int32_t index) : slotIndex(index) {}
 
-    static constexpr auto invalid() -> SlotSetIndex { return {}; }
+    constexpr auto operator==(const SlotSetIndex & other) const -> bool
+    {
+        return slotIndex == other.slotIndex;
+    }
 
-    auto operator==(const SlotSetIndex & other) const -> bool { return slotIndex == other.slotIndex; }
-    auto operator<=>(const SlotSetIndex & other) const -> std::strong_ordering { return slotIndex <=> other.slotIndex; }
+    constexpr auto operator<=>(const SlotSetIndex & other) const -> std::strong_ordering
+    {
+        return slotIndex <=> other.slotIndex;
+    }
 };
 
 struct SlotSetValueIndex
@@ -84,7 +91,7 @@ public:
     SlotSet() = default;
 
     template<class... Args>
-        requires std::constructible_from<Value, Args...>
+        requires std::constructible_from<Value, Args...> || std::move_constructible<T>
     auto emplace(Args &&... args) -> Value &
     {
         const SlotSetValueIndex valueIndex = SlotSetValueIndex(m_values.size());
@@ -108,7 +115,7 @@ public:
 
     auto erase(const SlotSetIndex index) -> bool
     {
-        if (index == SlotSetIndex::invalid())
+        if (index == SlotSetIndex::invalid)
         {
             return false;
         }

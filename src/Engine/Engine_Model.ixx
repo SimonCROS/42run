@@ -40,7 +40,7 @@ public:
 
     [[nodiscard]] auto renderInfo() const -> const ModelRenderInfo & { return m_renderInfo; }
 
-    [[nodiscard]] auto prepareShaderPrograms(ShaderProgram & builder) const -> std::expected<void, std::string>
+    [[nodiscard]] auto prepareShaderPrograms(ShaderManager & manager) const -> std::expected<void, std::string>
     {
         const auto & renderInfo = m_renderInfo;
         for (int i = 0; i < renderInfo.meshesCount; ++i)
@@ -50,9 +50,15 @@ public:
             {
                 const auto & primitive = mesh.primitives[j];
 
-                auto e_success = builder.enableVariant(primitive.shaderFlags);
-                if (!e_success)
-                    return std::unexpected(std::move(e_success).error());
+                // TODO Helper struct to store every infos to create shader automatically or get it
+                auto e_result = manager.getOrCreateShaderProgram(
+                    manager.getOrCreateShader(GL_VERTEX_SHADER, SlotSetIndex::invalid, primitive.shaderFlags).value(),
+                    manager.getOrCreateShader(GL_FRAGMENT_SHADER, SlotSetIndex::invalid, primitive.shaderFlags).value()
+                );
+                if (!e_result)
+                {
+                    return std::unexpected(std::move(e_result).error());
+                }
             }
         }
 

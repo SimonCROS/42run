@@ -10,6 +10,7 @@ module;
 #include "glad/gl.h"
 
 export module Shader;
+import std;
 import ShaderFile;
 import ShaderFlags;
 import Utility.SlotSet;
@@ -43,11 +44,11 @@ public:
         : m_fileIdx(shaderFile), m_id(id), m_type(type), m_flags(flags)
     {}
 
-    Shader(const Shader && other) noexcept : index(std::exchange(other.index, {})),
-                                             m_fileIdx(std::exchange(other.m_fileIdx, {})),
-                                             m_id(std::exchange(other.m_id, {})),
-                                             m_type(std::exchange(other.m_type, {})),
-                                             m_flags(std::exchange(other.m_flags, {}))
+    Shader(Shader && other) noexcept : index(std::exchange(other.index, {})),
+                                       m_fileIdx(std::exchange(other.m_fileIdx, {})),
+                                       m_id(std::exchange(other.m_id, {})),
+                                       m_type(std::exchange(other.m_type, {})),
+                                       m_flags(std::exchange(other.m_flags, {}))
     {}
 
     Shader(const Shader &) = delete;

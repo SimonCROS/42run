@@ -4,6 +4,7 @@
 
 module;
 
+#include <cassert>
 #include "glad/gl.h"
 
 export module ShaderManager;
@@ -14,7 +15,7 @@ import ShaderFile;
 import ShaderFlags;
 import Utility.SlotSet;
 
-class ShaderManager
+export class ShaderManager
 {
 private:
     SlotSet<ShaderProgram> m_shaderPrograms;
@@ -22,23 +23,24 @@ private:
     SlotSet<ShaderFile> m_shaderFiles;
 
 public:
-    [[nodiscard]] auto createShaderProgram(const SlotSetIndex vertexShaderIdx,
-                                           const SlotSetIndex fragmentShaderIdx) -> std::expected<SlotSetIndex,
-        std::string>
+    [[nodiscard]] auto addShaderFile(const std::string_view & path)
+        -> std::expected<SlotSetIndex, std::string>
     {
-        const auto e_shaderProgram = ShaderProgram::Create(m_shaders[vertexShaderIdx], m_shaders[fragmentShaderIdx]);
-        if (!e_shaderProgram)
+        auto shaderFile = ShaderFile(path);
+        if (const auto && e_result = shaderFile.readCode(); !e_result)
         {
-            return std::unexpected(std::move(e_shaderProgram).error());
+            return std::unexpected(std::move(e_result).error());
         }
 
-        return {m_shaderPrograms.emplace(std::move(e_shaderProgram).value()).index};
+        return {m_shaderFiles.emplace(std::move(shaderFile)).index};
     }
 
-    [[nodiscard]] auto createShader(const GLenum type, const SlotSetIndex fileIdx,
-                                    const ShaderFlags flags) -> std::expected<SlotSetIndex, std::string>
+    [[nodiscard]] auto createShader(const GLenum type, const SlotSetIndex fileIdx, const ShaderFlags flags)
+        -> std::expected<SlotSetIndex, std::string>
     {
-        const auto e_shader = Shader::Create(type, fileIdx, flags);
+        assert(fileIdx != SlotSetIndex::invalid && "file index is invalid");
+
+        auto e_shader = Shader::Create(type, fileIdx, flags);
         if (!e_shader)
         {
             return std::unexpected(std::move(e_shader).error());
@@ -47,12 +49,58 @@ public:
         return {m_shaders.emplace(std::move(e_shader).value()).index};
     }
 
+    [[nodiscard]] auto createShaderProgram(const SlotSetIndex vertexShaderIdx, const SlotSetIndex fragmentShaderIdx)
+        -> std::expected<SlotSetIndex, std::string>
+    {
+        assert(vertexShaderIdx != SlotSetIndex::invalid && "vertex shader index is invalid");
+        assert(fragmentShaderIdx != SlotSetIndex::invalid && "fragment shader index is invalid");
+
+        auto e_shaderProgram = ShaderProgram::Create(m_shaders[vertexShaderIdx], m_shaders[fragmentShaderIdx]);
+        if (!e_shaderProgram)
+        {
+            return std::unexpected(std::move(e_shaderProgram).error());
+        }
+
+        return {m_shaderPrograms.emplace(std::move(e_shaderProgram).value()).index};
+    }
+
+    [[nodiscard]] auto getOrCreateShader(const GLenum type, const SlotSetIndex fileIdx, const ShaderFlags flags)
+        -> std::expected<SlotSetIndex, std::string>
+    {
+        assert(fileIdx != SlotSetIndex::invalid && "file index is invalid");
+
+        for (const auto & shader: m_shaders)
+        {
+            if (shader.type() == type && shader.fileIdx() == fileIdx && shader.flags() == flags)
+            {
+                return shader.index;
+            }
+        }
+        return createShader(type, fileIdx, flags);
+    }
+
+    [[nodiscard]] auto getOrCreateShaderProgram(const SlotSetIndex vertexShaderIdx,
+                                                const SlotSetIndex fragmentShaderIdx)
+        -> std::expected<SlotSetIndex, std::string>
+    {
+        assert(vertexShaderIdx != SlotSetIndex::invalid && "vertex shader index is invalid");
+        assert(fragmentShaderIdx != SlotSetIndex::invalid && "fragment shader index is invalid");
+
+        for (const auto & program: m_shaderPrograms)
+        {
+            if (program.vertexShaderIdx() == vertexShaderIdx && program.fragmentShaderIdx() == fragmentShaderIdx)
+            {
+                return program.index;
+            }
+        }
+        return createShaderProgram(vertexShaderIdx, fragmentShaderIdx);
+    }
+
     [[nodiscard]] auto reloadAllShaders() -> std::expected<void, std::string>
     {
         for (ShaderFile & shaderFile: m_shaderFiles)
         {
-            const auto && e_result = shaderFile.readCode();
-            if (!e_result)
+            if (const auto && e_result = shaderFile.readCode(); !e_result)
             {
                 return e_result;
             }
@@ -60,8 +108,7 @@ public:
 
         for (Shader & shader: m_shaders)
         {
-            const auto && e_result = compile(shader);
-            if (!e_result)
+            if (const auto && e_result = compile(shader); !e_result)
             {
                 return e_result;
             }
@@ -69,8 +116,7 @@ public:
 
         for (ShaderProgram & program: m_shaderPrograms)
         {
-            const auto && e_result = link(program);
-            if (!e_result)
+            if (const auto && e_result = link(program); !e_result)
             {
                 return e_result;
             }

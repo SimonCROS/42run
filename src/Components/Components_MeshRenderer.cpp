@@ -207,7 +207,7 @@ void MeshRenderer::onRender(Engine & engine)
 
         for (auto & program: m_program.programs)
         {
-            if (program.first & ShaderHasSkin)
+            if (program.first & HasSkin)
             {
                 program.second->setUniformBlock("JointMatrices", uniformBlockBinding);
             }

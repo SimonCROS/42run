@@ -7,10 +7,12 @@ export module OpenGL;
 export import :Debug;
 export import :Cubemap;
 export import :IndicesBuffer;
-export import :Pipeline;
-export import :Shader;
-export import :ShaderProgram;
-export import :ShaderProgramInstance;
 export import :Texture2D;
 export import :VertexArray;
 export import :VertexBuffer;
+
+export import Shader;
+export import ShaderFile;
+export import ShaderFlags;
+export import ShaderManager;
+export import ShaderProgram;

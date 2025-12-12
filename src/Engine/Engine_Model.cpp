@@ -274,7 +274,7 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                 auto & primitiveRenderInfo = meshRenderInfo.primitives[j];
 
                 VertexArrayFlags vertexArrayFlags = VertexArrayHasNone;
-                ShaderFlags shaderFlags = ShaderHasNone;
+                ShaderFlags shaderFlags = HasNone;
 
                 if (primitive.indices >= 0)
                 {
@@ -298,13 +298,13 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                     else if (attributeName == "NORMAL")
                     {
                         vertexArrayFlags |= VertexArrayHasNormals;
-                        shaderFlags |= ShaderHasNormals;
+                        shaderFlags |= HasNormals;
                         type = PrimitiveAttributeType::Normal;
                     }
                     else if (attributeName == "TANGENT")
                     {
                         vertexArrayFlags |= VertexArrayHasTangents;
-                        shaderFlags |= ShaderHasTangents;
+                        shaderFlags |= HasTangents;
                         type = PrimitiveAttributeType::Tangent;
                     }
                     else if (attributeName == "COLOR_0")
@@ -312,30 +312,30 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                         vertexArrayFlags |= VertexArrayHasColor0;
                         if (model.accessors[accessorId].type == TINYGLTF_TYPE_VEC3)
                         {
-                            shaderFlags |= ShaderHasVec3Colors;
+                            shaderFlags |= HasVec3Colors;
                         }
                         else if (model.accessors[accessorId].type == TINYGLTF_TYPE_VEC4)
                         {
-                            shaderFlags |= ShaderHasVec4Colors;
+                            shaderFlags |= HasVec4Colors;
                         }
                         type = PrimitiveAttributeType::Color0;
                     }
                     else if (attributeName == "TEXCOORD_0")
                     {
                         vertexArrayFlags |= VertexArrayHasTexCoord0;
-                        shaderFlags |= ShaderHasTexCoord0;
+                        shaderFlags |= HasTexCoord0;
                         type = PrimitiveAttributeType::TexCoord0;
                     }
                     else if (attributeName == "TEXCOORD_1")
                     {
                         vertexArrayFlags |= VertexArrayHasTexCoord1;
-                        shaderFlags |= ShaderHasTexCoord1;
+                        shaderFlags |= HasTexCoord1;
                         type = PrimitiveAttributeType::TexCoord1;
                     }
                     else if (attributeName == "JOINTS_0")
                     {
                         vertexArrayFlags |= VertexArrayHasSkin;
-                        shaderFlags |= ShaderHasSkin;
+                        shaderFlags |= HasSkin;
                         type = PrimitiveAttributeType::Joints0;
                     }
                     else if (attributeName == "WEIGHTS_0")
@@ -353,23 +353,23 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                     {
                         loadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures,
                                     GL_SRGB_ALPHA);
-                        shaderFlags |= ShaderHasBaseColorMap;
+                        shaderFlags |= HasBaseColorMap;
                     }
                     if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
                     {
                         loadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures,
                                     GL_RGB);
-                        shaderFlags |= ShaderHasMetalRoughnessMap;
+                        shaderFlags |= HasMetalRoughnessMap;
                     }
                     if (material.normalTexture.index >= 0)
                     {
                         loadTexture(model, material.normalTexture.index, textures, GL_RGB);
-                        shaderFlags |= ShaderHasNormalMap;
+                        shaderFlags |= HasNormalMap;
                     }
                     if (material.emissiveTexture.index >= 0)
                     {
                         loadTexture(model, material.emissiveTexture.index, textures, GL_SRGB);
-                        shaderFlags |= ShaderHasEmissiveMap;
+                        shaderFlags |= HasEmissiveMap;
                     }
                 }
 
