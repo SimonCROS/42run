@@ -15,6 +15,15 @@ import ShaderFile;
 import ShaderFlags;
 import Utility.SlotSet;
 
+export struct ShaderProgramDefinition
+{
+    std::string_view vertexShaderFilePath;
+    std::string_view fragmentShaderFilePath;
+    SlotSetIndex vertexShaderFileIndex;
+    SlotSetIndex fragmentShaderFileIndex;
+    ShaderFlags shaderFlags; // Unified, but can be split into two variables for vertex/fragment
+};
+
 export class ShaderManager
 {
 private:
@@ -38,7 +47,7 @@ public:
     [[nodiscard]] auto createShader(const GLenum type, const SlotSetIndex fileIdx, const ShaderFlags flags)
         -> std::expected<SlotSetIndex, std::string>
     {
-        assert(fileIdx != SlotSetIndex::invalid && "file index is invalid");
+        assert(fileIdx != SlotSetIndex::invalid() && "file index is invalid");
 
         auto e_shader = Shader::Create(type, fileIdx, flags);
         if (!e_shader)
@@ -52,8 +61,8 @@ public:
     [[nodiscard]] auto createShaderProgram(const SlotSetIndex vertexShaderIdx, const SlotSetIndex fragmentShaderIdx)
         -> std::expected<SlotSetIndex, std::string>
     {
-        assert(vertexShaderIdx != SlotSetIndex::invalid && "vertex shader index is invalid");
-        assert(fragmentShaderIdx != SlotSetIndex::invalid && "fragment shader index is invalid");
+        assert(vertexShaderIdx != SlotSetIndex::invalid() && "vertex shader index is invalid");
+        assert(fragmentShaderIdx != SlotSetIndex::invalid() && "fragment shader index is invalid");
 
         auto e_shaderProgram = ShaderProgram::Create(m_shaders[vertexShaderIdx], m_shaders[fragmentShaderIdx]);
         if (!e_shaderProgram)
@@ -64,10 +73,23 @@ public:
         return {m_shaderPrograms.emplace(std::move(e_shaderProgram).value()).index};
     }
 
+    [[nodiscard]] auto getOrAddShaderFile(const std::string_view & path)
+        -> std::expected<SlotSetIndex, std::string>
+    {
+        for (const auto & shaderFile: m_shaderFiles)
+        {
+            if (shaderFile.path() == path)
+            {
+                return shaderFile.index;
+            }
+        }
+        return addShaderFile(path);
+    }
+
     [[nodiscard]] auto getOrCreateShader(const GLenum type, const SlotSetIndex fileIdx, const ShaderFlags flags)
         -> std::expected<SlotSetIndex, std::string>
     {
-        assert(fileIdx != SlotSetIndex::invalid && "file index is invalid");
+        assert(fileIdx != SlotSetIndex::invalid() && "file index is invalid");
 
         for (const auto & shader: m_shaders)
         {
@@ -83,8 +105,8 @@ public:
                                                 const SlotSetIndex fragmentShaderIdx)
         -> std::expected<SlotSetIndex, std::string>
     {
-        assert(vertexShaderIdx != SlotSetIndex::invalid && "vertex shader index is invalid");
-        assert(fragmentShaderIdx != SlotSetIndex::invalid && "fragment shader index is invalid");
+        assert(vertexShaderIdx != SlotSetIndex::invalid() && "vertex shader index is invalid");
+        assert(fragmentShaderIdx != SlotSetIndex::invalid() && "fragment shader index is invalid");
 
         for (const auto & program: m_shaderPrograms)
         {
@@ -94,6 +116,30 @@ public:
             }
         }
         return createShaderProgram(vertexShaderIdx, fragmentShaderIdx);
+    }
+
+    [[nodiscard]] auto getOrCreateShaderProgram(const SlotSetIndex vertexShaderFileIdx,
+                                                const SlotSetIndex fragmentShaderFileIdx,
+                                                const ShaderFlags shaderFlags)
+        -> std::expected<SlotSetIndex, std::string>
+    {
+        const auto e_vertexResult = getOrCreateShader(GL_VERTEX_SHADER,
+                                                      vertexShaderFileIdx,
+                                                      shaderFlags & ShaderFlags::HasSkin);
+        if (!e_vertexResult)
+        {
+            return std::move(e_vertexResult);
+        }
+
+        const auto e_fragmentResult = getOrCreateShader(GL_FRAGMENT_SHADER,
+                                                        fragmentShaderFileIdx,
+                                                        shaderFlags & ~ShaderFlags::HasSkin);
+        if (!e_fragmentResult)
+        {
+            return std::move(e_fragmentResult);
+        }
+
+        return getOrCreateShaderProgram(*e_vertexResult, *e_fragmentResult);
     }
 
     [[nodiscard]] auto reloadAllShaders() -> std::expected<void, std::string>

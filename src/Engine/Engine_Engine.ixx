@@ -42,9 +42,10 @@ private:
     FrameInfo m_currentFrameInfo{};
 
     StringUnorderedMap<ModelPtr> m_models;
-    StringUnorderedMap<ShaderProgramPtr> m_shaders;
     SlotSet<Object> m_objects;
     std::unordered_map<VertexArrayFlags, VertexArray> m_vertexArrays;
+
+    ShaderManager m_shaderManager;
 
     bool m_doubleSided{false};
     bool m_blendEnabled{false};
@@ -197,11 +198,6 @@ public:
 
     [[nodiscard]]
     auto
-    makeShaderVariants(const std::string_view & id, const std::string & vertPath, const std::string & fragPath)
-        -> std::expected<ShaderProgramVariantsRef, std::string>;
-
-    [[nodiscard]]
-    auto
     loadModel(const std::string_view & id, const std::string & path, bool binary)
         -> std::expected<ModelRef, std::string>;
 
@@ -213,17 +209,11 @@ public:
     [[nodiscard]] auto getCamera() const noexcept -> const Camera * { return m_camera; }
     auto setCamera(const Camera & camera) -> void { m_camera = &camera; }
 
-    auto objects() -> SlotSet<Object> & { return m_objects; }
+    [[nodiscard]] auto objects() -> SlotSet<Object> & { return m_objects; }
 
-    auto getShaderProgram(const std::string_view & id) const -> std::optional<std::reference_wrapper<ShaderProgram> >
-    {
-        const auto it = m_shaders.find(id);
-        if (it == m_shaders.end())
-            return std::nullopt;
-        return *it->second;
-    }
+    [[nodiscard]] auto getShaderManager() -> ShaderManager & { return m_shaderManager; }
 
-    auto getModel(const std::string_view & id) const -> std::optional<std::reference_wrapper<Model> >
+    [[nodiscard]] auto getModel(const std::string_view & id) const -> std::optional<std::reference_wrapper<Model> >
     {
         const auto it = m_models.find(id);
         if (it == m_models.end())

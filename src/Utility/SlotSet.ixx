@@ -7,9 +7,9 @@ import std.compat;
 
 export struct SlotSetIndex
 {
-    int32_t slotIndex = -1;
+    int32_t value = -1;
 
-    static constexpr SlotSetIndex invalid = {};
+    static constexpr auto invalid() -> SlotSetIndex { return {}; }
 
     constexpr SlotSetIndex() = default;
 
@@ -21,43 +21,34 @@ export struct SlotSetIndex
 
     constexpr SlotSetIndex & operator=(SlotSetIndex &&) = default;
 
-    constexpr explicit SlotSetIndex(const int32_t index) : slotIndex(index) {}
+    constexpr explicit SlotSetIndex(const int32_t index) : value(index) {}
 
-    constexpr auto operator==(const SlotSetIndex & other) const -> bool
-    {
-        return slotIndex == other.slotIndex;
-    }
+    constexpr auto operator==(const SlotSetIndex & other) const -> bool = default;
 
-    constexpr auto operator<=>(const SlotSetIndex & other) const -> std::strong_ordering
-    {
-        return slotIndex <=> other.slotIndex;
-    }
+    constexpr auto operator<=>(const SlotSetIndex & other) const -> std::strong_ordering = default;
 };
 
 struct SlotSetValueIndex
 {
-    int32_t valueIndex = -1;
-
-    constexpr SlotSetValueIndex() = default;
-
-    SlotSetValueIndex(const SlotSetValueIndex &) = default;
-
-    SlotSetValueIndex(SlotSetValueIndex &&) = default;
-
-    SlotSetValueIndex & operator=(const SlotSetValueIndex &) = default;
-
-    SlotSetValueIndex & operator=(SlotSetValueIndex &&) = default;
-
-    constexpr explicit SlotSetValueIndex(const int32_t index) : valueIndex(index) {}
+    int32_t value = -1;
 
     static constexpr auto invalid() -> SlotSetValueIndex { return {}; }
 
-    auto operator==(const SlotSetValueIndex & other) const -> bool { return valueIndex == other.valueIndex; }
+    constexpr SlotSetValueIndex() = default;
 
-    auto operator<=>(const SlotSetValueIndex & other) const -> std::strong_ordering
-    {
-        return valueIndex <=> other.valueIndex;
-    }
+    constexpr SlotSetValueIndex(const SlotSetValueIndex &) = default;
+
+    constexpr SlotSetValueIndex(SlotSetValueIndex &&) = default;
+
+    constexpr SlotSetValueIndex & operator=(const SlotSetValueIndex &) = default;
+
+    constexpr SlotSetValueIndex & operator=(SlotSetValueIndex &&) = default;
+
+    constexpr explicit SlotSetValueIndex(const int32_t index) : value(index) {}
+
+    constexpr auto operator==(const SlotSetValueIndex & other) const -> bool = default;
+
+    constexpr auto operator<=>(const SlotSetValueIndex & other) const -> std::strong_ordering = default;
 };
 
 template<class T>
@@ -105,7 +96,7 @@ public:
         {
             slotIndex = m_freeSlots.top();
             m_freeSlots.pop();
-            m_slots[slotIndex.slotIndex] = valueIndex;
+            m_slots[slotIndex.value] = valueIndex;
         }
 
         auto & ref = m_values.emplace_back(std::forward<Args>(args)...);
@@ -115,16 +106,16 @@ public:
 
     auto erase(const SlotSetIndex index) -> bool
     {
-        if (index == SlotSetIndex::invalid)
+        if (index == SlotSetIndex::invalid())
         {
             return false;
         }
 
-        const SlotSetValueIndex valueIndex = m_slots[index.slotIndex];
+        const SlotSetValueIndex valueIndex = m_slots[index.value];
         const SlotSetValueIndex lastValueIndex = SlotSetValueIndex(m_values.size() - 1);
 
-        m_freeSlots.emplace(index.slotIndex);
-        m_slots[index.slotIndex] = SlotSetValueIndex::invalid();
+        m_freeSlots.emplace(index.value);
+        m_slots[index.value] = SlotSetValueIndex::invalid();
         if (valueIndex != lastValueIndex)
         {
             const auto & last = m_values[lastValueIndex];
@@ -144,11 +135,11 @@ public:
 
     [[nodiscard]] auto operator[](const SlotSetIndex index) -> Value &
     {
-        return m_values[m_slots[index.slotIndex].valueIndex];
+        return m_values[m_slots[index.value].value];
     }
 
     [[nodiscard]] auto operator[](const SlotSetIndex index) const -> const Value &
     {
-        return m_values[m_slots[index.slotIndex].valueIndex];
+        return m_values[m_slots[index.value].value];
     }
 };

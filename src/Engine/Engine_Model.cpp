@@ -110,12 +110,13 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
 {
     std::vector<GLuint> textures;
     std::vector<Animation> animations;
-    std::vector<Material> materials;
     ModelRenderInfo renderInfo;
 
-    if (!model.nodes.empty())
+    textures.resize(model.textures.size(), 0);
+
+    renderInfo.nodesCount = model.nodes.size();
+    if (renderInfo.nodesCount > 0)
     {
-        renderInfo.nodesCount = model.nodes.size();
         renderInfo.nodes = std::make_unique<NodeRenderInfo[]>(renderInfo.nodesCount);
         for (size_t i = 0; i < renderInfo.nodesCount; ++i)
         {
@@ -152,7 +153,11 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                 if (!node.rotation.empty())
                 {
                     assert(node.rotation.size() == 4);
-                    trs.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
+                    trs.rotation = glm::quat(
+                        static_cast<float>(node.rotation[3]),
+                        static_cast<float>(node.rotation[0]),
+                        static_cast<float>(node.rotation[1]),
+                        static_cast<float>(node.rotation[2]));
                 }
                 if (!node.scale.empty())
                 {
@@ -164,9 +169,9 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         }
     }
 
-    if (!model.buffers.empty())
+    renderInfo.buffersCount = model.buffers.size();
+    if (renderInfo.buffersCount > 0)
     {
-        renderInfo.buffersCount = model.buffers.size();
         renderInfo.buffers = std::make_unique<Buffer[]>(renderInfo.buffersCount);
         for (size_t i = 0; i < renderInfo.buffersCount; ++i)
         {
@@ -174,9 +179,9 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         }
     }
 
-    if (!model.bufferViews.empty())
+    renderInfo.bufferViewsCount = model.bufferViews.size();
+    if (renderInfo.bufferViewsCount > 0)
     {
-        renderInfo.bufferViewsCount = model.bufferViews.size();
         renderInfo.bufferViews = std::make_unique<BufferView[]>(renderInfo.bufferViewsCount);
         for (size_t i = 0; i < renderInfo.bufferViewsCount; ++i)
         {
@@ -191,9 +196,9 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         }
     }
 
-    if (!model.accessors.empty())
+    renderInfo.accessorsCount = model.accessors.size();
+    if (renderInfo.accessorsCount > 0)
     {
-        renderInfo.accessorsCount = model.accessors.size();
         renderInfo.accessors = std::make_unique<AccessorRenderInfo[]>(renderInfo.accessorsCount);
         for (size_t i = 0; i < renderInfo.accessorsCount; ++i)
         {
@@ -213,9 +218,9 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         }
     }
 
-    if (!model.skins.empty())
+    renderInfo.skinsCount = model.skins.size();
+    if (renderInfo.skinsCount > 0)
     {
-        renderInfo.skinsCount = model.skins.size();
         renderInfo.skins = std::make_unique<SkinRenderInfo[]>(renderInfo.skinsCount);
         for (size_t i = 0; i < renderInfo.skinsCount; ++i)
         {
@@ -254,11 +259,9 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
         }
     }
 
-    textures.resize(model.textures.size(), 0);
-
-    if (!model.meshes.empty())
+    renderInfo.meshesCount = model.meshes.size();
+    if (renderInfo.meshesCount > 0)
     {
-        renderInfo.meshesCount = model.meshes.size();
         renderInfo.meshes = std::make_unique<MeshRenderInfo[]>(renderInfo.meshesCount);
         for (size_t i = 0; i < renderInfo.meshesCount; ++i)
         {
@@ -274,7 +277,6 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                 auto & primitiveRenderInfo = meshRenderInfo.primitives[j];
 
                 VertexArrayFlags vertexArrayFlags = VertexArrayHasNone;
-                ShaderFlags shaderFlags = HasNone;
 
                 if (primitive.indices >= 0)
                 {
@@ -298,86 +300,96 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                     else if (attributeName == "NORMAL")
                     {
                         vertexArrayFlags |= VertexArrayHasNormals;
-                        shaderFlags |= HasNormals;
                         type = PrimitiveAttributeType::Normal;
                     }
                     else if (attributeName == "TANGENT")
                     {
                         vertexArrayFlags |= VertexArrayHasTangents;
-                        shaderFlags |= HasTangents;
                         type = PrimitiveAttributeType::Tangent;
                     }
                     else if (attributeName == "COLOR_0")
                     {
                         vertexArrayFlags |= VertexArrayHasColor0;
-                        if (model.accessors[accessorId].type == TINYGLTF_TYPE_VEC3)
-                        {
-                            shaderFlags |= HasVec3Colors;
-                        }
-                        else if (model.accessors[accessorId].type == TINYGLTF_TYPE_VEC4)
-                        {
-                            shaderFlags |= HasVec4Colors;
-                        }
                         type = PrimitiveAttributeType::Color0;
                     }
                     else if (attributeName == "TEXCOORD_0")
                     {
                         vertexArrayFlags |= VertexArrayHasTexCoord0;
-                        shaderFlags |= HasTexCoord0;
                         type = PrimitiveAttributeType::TexCoord0;
                     }
                     else if (attributeName == "TEXCOORD_1")
                     {
                         vertexArrayFlags |= VertexArrayHasTexCoord1;
-                        shaderFlags |= HasTexCoord1;
                         type = PrimitiveAttributeType::TexCoord1;
                     }
                     else if (attributeName == "JOINTS_0")
                     {
                         vertexArrayFlags |= VertexArrayHasSkin;
-                        shaderFlags |= HasSkin;
                         type = PrimitiveAttributeType::Joints0;
                     }
                     else if (attributeName == "WEIGHTS_0")
                     {
+                        vertexArrayFlags |= VertexArrayHasWeights0;
                         type = PrimitiveAttributeType::Weights0;
                     }
 
                     primitiveRenderInfo.attributes.emplace_back(type, accessorId);
                 }
 
-                if (primitive.material >= 0)
-                {
-                    const auto & material = model.materials[primitive.material];
-                    if (material.pbrMetallicRoughness.baseColorTexture.index >= 0)
-                    {
-                        loadTexture(model, material.pbrMetallicRoughness.baseColorTexture.index, textures,
-                                    GL_SRGB_ALPHA);
-                        shaderFlags |= HasBaseColorMap;
-                    }
-                    if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
-                    {
-                        loadTexture(model, material.pbrMetallicRoughness.metallicRoughnessTexture.index, textures,
-                                    GL_RGB);
-                        shaderFlags |= HasMetalRoughnessMap;
-                    }
-                    if (material.normalTexture.index >= 0)
-                    {
-                        loadTexture(model, material.normalTexture.index, textures, GL_RGB);
-                        shaderFlags |= HasNormalMap;
-                    }
-                    if (material.emissiveTexture.index >= 0)
-                    {
-                        loadTexture(model, material.emissiveTexture.index, textures, GL_SRGB);
-                        shaderFlags |= HasEmissiveMap;
-                    }
-                }
-
                 primitiveRenderInfo.material = primitive.material;
                 primitiveRenderInfo.mode = primitive.mode;
                 primitiveRenderInfo.indices = primitive.indices;
                 primitiveRenderInfo.vertexArrayFlags = vertexArrayFlags;
-                primitiveRenderInfo.shaderFlags = shaderFlags;
+            }
+        }
+    }
+
+    renderInfo.materialsCount = model.materials.size();
+    if (renderInfo.materialsCount > 0)
+    {
+        renderInfo.materials = std::make_unique<Material[]>(renderInfo.materialsCount);
+        for (size_t i = 0; i < renderInfo.materialsCount; ++i)
+        {
+            auto & gltfMaterial = model.materials[i];
+            auto & material = renderInfo.materials[i];
+
+            material.pbr.baseColorTexture.index = gltfMaterial.pbrMetallicRoughness.baseColorTexture.index;
+            material.pbr.baseColorTexture.texCoord = gltfMaterial.pbrMetallicRoughness.baseColorTexture.texCoord;
+            material.pbr.baseColorFactor = glm::make_vec4(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
+            material.pbr.metallicRoughnessTexture.index = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.
+                    index;
+            material.pbr.metallicRoughnessTexture.texCoord = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.
+                    texCoord;
+            material.pbr.metallicFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.metallicFactor);
+            material.pbr.roughnessFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.roughnessFactor);
+            material.normalTexture.index = gltfMaterial.normalTexture.index;
+            material.normalTexture.texCoord = gltfMaterial.normalTexture.texCoord;
+            material.normalTexture.scale = static_cast<float>(gltfMaterial.normalTexture.scale);
+            material.emissiveTexture.index = gltfMaterial.emissiveTexture.index;
+            material.emissiveTexture.texCoord = gltfMaterial.emissiveTexture.texCoord;
+            material.emissiveFactor = glm::make_vec3(gltfMaterial.emissiveFactor.data());
+            material.doubleSided = gltfMaterial.doubleSided;
+            material.blend = gltfMaterial.alphaMode == "BLEND";
+
+            if (material.pbr.baseColorTexture.index >= 0)
+            {
+                loadTexture(model, material.pbr.baseColorTexture.index, textures, GL_SRGB_ALPHA);
+                material.shaderFlags |= ShaderFlags::HasBaseColorMap;
+            }
+            if (material.pbr.metallicRoughnessTexture.index >= 0)
+            {
+                loadTexture(model, material.pbr.metallicRoughnessTexture.index, textures, GL_RGB);
+                material.shaderFlags |= ShaderFlags::HasMetalRoughnessMap;
+            }
+            if (material.normalTexture.index >= 0)
+            {
+                loadTexture(model, material.normalTexture.index, textures, GL_RGB);
+                material.shaderFlags |= ShaderFlags::HasNormalMap;
+            }
+            if (material.emissiveTexture.index >= 0)
+            {
+                loadTexture(model, material.emissiveTexture.index, textures, GL_SRGB);
+                material.shaderFlags |= ShaderFlags::HasEmissiveMap;
             }
         }
     }
@@ -386,30 +398,6 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
     for (const auto & animation: model.animations)
     {
         animations.emplace_back(Animation::Create(renderInfo, animation));
-    }
-
-    materials.resize(model.materials.size());
-    for (int i = 0; i < model.materials.size(); ++i)
-    {
-        auto & gltfMaterial = model.materials[i];
-        auto & material = materials[i];
-
-        material.pbr.baseColorTexture.index = gltfMaterial.pbrMetallicRoughness.baseColorTexture.index;
-        material.pbr.baseColorTexture.texCoord = gltfMaterial.pbrMetallicRoughness.baseColorTexture.texCoord;
-        material.pbr.baseColorFactor = glm::make_vec4(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
-        material.pbr.metallicRoughnessTexture.index = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index;
-        material.pbr.metallicRoughnessTexture.texCoord = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.
-                texCoord;
-        material.pbr.metallicFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.metallicFactor);
-        material.pbr.roughnessFactor = static_cast<float>(gltfMaterial.pbrMetallicRoughness.roughnessFactor);
-        material.normalTexture.index = gltfMaterial.normalTexture.index;
-        material.normalTexture.texCoord = gltfMaterial.normalTexture.texCoord;
-        material.normalTexture.scale = static_cast<float>(gltfMaterial.normalTexture.scale);
-        material.emissiveTexture.index = gltfMaterial.emissiveTexture.index;
-        material.emissiveTexture.texCoord = gltfMaterial.emissiveTexture.texCoord;
-        material.emissiveFactor = glm::make_vec3(gltfMaterial.emissiveFactor.data());
-        material.doubleSided = gltfMaterial.doubleSided;
-        material.blend = gltfMaterial.alphaMode == "BLEND";
     }
 
     assert(!model.scenes.empty() && "Library GLTF are not supported");
@@ -423,6 +411,6 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
     std::memcpy(renderInfo.rootNodes.get(), scene.nodes.data(), sizeof(NodeIndex) * renderInfo.rootNodesCount);
 
     return {
-        std::move(textures), std::move(animations), std::move(materials), std::move(renderInfo)
+        std::move(textures), std::move(animations), std::move(renderInfo)
     };
 }

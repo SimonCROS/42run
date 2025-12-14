@@ -63,6 +63,8 @@ public:
 
     [[nodiscard]] auto isValid() const -> bool { return !m_code.empty(); }
 
+    [[nodiscard]] auto path() const -> const std::string & { return m_path; }
+
     [[nodiscard]] auto code() const -> const std::string & { return m_code; }
 
     [[nodiscard]] auto createCodeForFlags(const ShaderFlags flags) const -> std::string
@@ -71,10 +73,6 @@ public:
 
         std::string defines;
         defines += "#define MAX_JOINTS " QUdi(MAX_JOINTS) "\n";
-        if ((flags & ShaderFlags::HasNormals) == ShaderFlags::HasNormals)
-            defines += "#define HAS_NORMALS\n";
-        if ((flags & ShaderFlags::HasTangents) == ShaderFlags::HasTangents)
-            defines += "#define HAS_TANGENTS\n";
         if ((flags & ShaderFlags::HasBaseColorMap) == ShaderFlags::HasBaseColorMap)
             defines += "#define HAS_BASECOLORMAP\n";
         if ((flags & ShaderFlags::HasMetalRoughnessMap) == ShaderFlags::HasMetalRoughnessMap)
@@ -83,16 +81,8 @@ public:
             defines += "#define HAS_NORMALMAP\n";
         if ((flags & ShaderFlags::HasEmissiveMap) == ShaderFlags::HasEmissiveMap)
             defines += "#define HAS_EMISSIVEMAP\n";
-        if ((flags & ShaderFlags::HasVec3Colors) == ShaderFlags::HasVec3Colors)
-            defines += "#define HAS_VEC3_COLORS\n";
-        if ((flags & ShaderFlags::HasVec4Colors) == ShaderFlags::HasVec4Colors)
-            defines += "#define HAS_VEC4_COLORS\n";
         if ((flags & ShaderFlags::HasSkin) == ShaderFlags::HasSkin)
             defines += "#define HAS_SKIN\n";
-        if ((flags & ShaderFlags::HasTexCoord0) == ShaderFlags::HasTexCoord0)
-            defines += "#define HAS_TEXCOORD_0\n";
-        if ((flags & ShaderFlags::HasTexCoord1) == ShaderFlags::HasTexCoord1)
-            defines += "#define HAS_TEXCOORD_1\n";
 
         auto copy = m_code;
         if (defines.empty())

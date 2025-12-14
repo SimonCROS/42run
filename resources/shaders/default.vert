@@ -1,46 +1,20 @@
 #version 410
 
 layout (location = 0) in vec3 a_position;
-#ifdef HAS_NORMALS
 layout (location = 1) in vec3 a_normal;
-#endif
-#if defined HAS_VEC3_COLORS
-layout (location = 2) in vec3 a_color0;
-#elif defined HAS_VEC4_COLORS
+// layout (location = 2) in vec3 a_color0;
 layout (location = 2) in vec4 a_color0;
-#endif
-#ifdef HAS_TEXCOORD_0
 layout (location = 3) in vec2 a_texCoords0;
-#endif
-#ifdef HAS_TEXCOORD_1
 layout (location = 4) in vec2 a_texCoords1;
-#endif
-#ifdef HAS_TANGENTS
 layout (location = 5) in vec3 a_tangent;
-#endif
-#ifdef HAS_SKIN
 layout (location = 6) in vec4 a_joint;
 layout (location = 7) in vec4 a_weight;
-#endif
 
 layout (location = 0) out vec3 v_FragPos;
-#ifdef HAS_NORMALS
-#ifdef HAS_TANGENTS
 layout (location = 1) out mat3 v_TBN;
-#else
-layout (location = 1) out vec3 v_Normal;
-#endif
-#endif
-#if defined HAS_VEC3_COLORS
-layout (location = 4) out vec3 v_color0;
-#elif defined HAS_VEC4_COLORS
+// layout (location = 4) out vec3 v_color0;
 layout (location = 4) out vec4 v_color0;
-#endif
-#if defined HAS_TEXCOORD_1
 layout (location = 5) out vec2 v_texCoords[2];
-#elif defined HAS_TEXCOORD_0
-layout (location = 5) out vec2 v_texCoords[1];
-#endif
 
 uniform mat4 u_projectionView;
 uniform mat4 u_transform;
@@ -101,10 +75,6 @@ void main()
 #endif
 #endif
 
-#ifdef HAS_TEXCOORD_0
     v_texCoords[0] = a_texCoords0;
-#endif
-#ifdef HAS_TEXCOORD_1
     v_texCoords[1] = a_texCoords1;
-#endif
 }

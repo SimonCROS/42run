@@ -50,12 +50,9 @@ public:
         m_skins.resize(m_mesh.renderInfo().skinsCount);
 
         for (int i = 0; i < m_skins.size(); ++i)
+        {
             m_skins[i].jointMatrices.resize(m_mesh.renderInfo().skins[i].joints.size());
-
-        // maybe make Create static function
-        auto e_prepareResult = m_mesh.prepareShaderPrograms(program);
-        if (!e_prepareResult)
-            throw std::runtime_error("Failed to prepare shader programs: " + e_prepareResult.error());
+        }
     }
 
     [[nodiscard]] auto mesh() const -> const Model& { return m_mesh; }

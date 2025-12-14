@@ -3,23 +3,10 @@
 #define PI 3.1415926538
 
 layout (location = 0) in vec3 v_FragPos;
-#ifdef HAS_NORMALS
-#ifdef HAS_TANGENTS
 layout (location = 1) in mat3 v_TBN;
-#else
-layout (location = 1) in vec3 v_Normal;
-#endif
-#endif
-#if defined HAS_VEC3_COLORS
-layout (location = 4) in vec3 v_color0;
-#elif defined HAS_VEC4_COLORS
+// layout (location = 4) in vec3 v_color0;
 layout (location = 4) in vec4 v_color0;
-#endif
-#if defined HAS_TEXCOORD_1
 layout (location = 5) in vec2 v_texCoords[2];
-#elif defined HAS_TEXCOORD_0
-layout (location = 5) in vec2 v_texCoords[1];
-#endif
 
 layout (location = 0) out vec4 f_color;
 
@@ -83,22 +70,7 @@ mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
 // or from the interpolated mesh normal and tangent attributes.
 vec3 getNormal()
 {
-    // Retrieve the tangent space matrix
-#ifdef HAS_TANGENTS
     mat3 tbn = v_TBN;
-#else
-#ifdef HAS_TEXCOORD_0
-    vec2 uv = v_texCoords[0];
-#else
-    vec2 uv = v_FragPos.xy;
-#endif
-#ifdef HAS_NORMALS
-    vec3 N = v_Normal;
-#else
-    vec3 N = normalize(cross(dFdx(v_FragPos), dFdy(v_FragPos)));
-#endif
-    mat3 tbn = cotangent_frame(N, v_FragPos, uv);
-#endif
 
 #ifdef HAS_NORMALMAP
     vec3 n = texture(u_normalMap, v_texCoords[u_normalTexCoordIndex]).rgb;
@@ -227,11 +199,7 @@ void main()
 #ifdef HAS_BASECOLORMAP
     baseColor *= texture(u_baseColorTexture, v_texCoords[u_baseColorTexCoordIndex]);
 #endif
-#if defined HAS_VEC3_COLORS
-    baseColor *= vec4(v_color0, 1.0f);
-#elif defined HAS_VEC4_COLORS
     baseColor *= v_color0;
-#endif
 
     if(baseColor.a < 0.1)
         discard;

@@ -21,6 +21,7 @@ export enum VertexArrayFlags : unsigned char
     VertexArrayHasTexCoord1 = 1 << 4,
     VertexArrayHasTangents = 1 << 5,
     VertexArrayHasSkin = 1 << 6,
+    VertexArrayHasWeights0 = 1 << 7,
 };
 
 export

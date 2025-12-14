@@ -66,17 +66,17 @@ auto start() -> std::expected<void, std::string>
     if (!e_shader)
         return std::unexpected(std::move(e_shader).error());
 
-    auto e_hdrShader = engine.makeShaderVariants("hdr",
-                                                 RESOURCE_PATH"shaders/hdr.vert",
-                                                 RESOURCE_PATH"shaders/hdr.frag");
-    if (!e_hdrShader)
-        return std::unexpected(std::move(e_hdrShader).error());
-
-    {
-        auto e_return = e_hdrShader->get().enableVariant(HasNone);
-        if (!e_return)
-            return std::unexpected(std::move(e_return).error());
-    }
+    // auto e_hdrShader = engine.makeShaderVariants("hdr",
+    //                                              RESOURCE_PATH"shaders/hdr.vert",
+    //                                              RESOURCE_PATH"shaders/hdr.frag");
+    // if (!e_hdrShader)
+    //     return std::unexpected(std::move(e_hdrShader).error());
+    //
+    // {
+    //     auto e_return = e_hdrShader->get().enableVariant(None);
+    //     if (!e_return)
+    //         return std::unexpected(std::move(e_return).error());
+    // }
 
     auto e_skyboxShader = engine.makeShaderVariants("skybox",
                                                     RESOURCE_PATH"shaders/skybox.vert",
@@ -99,11 +99,11 @@ auto start() -> std::expected<void, std::string>
     };
 
     auto cubemapTexture = Cubemap::Create(faces);
-    {
-        auto& object = engine.instantiate();
-        auto e_variant = e_skyboxShader->get().enableVariant(HasNone);
-        object.addComponent<SkyboxRenderer>(engine, cubemapTexture, *e_variant);
-    }
+    // {
+    //     auto& object = engine.instantiate();
+    //     auto e_variant = e_skyboxShader->get().enableVariant(None);
+    //     object.addComponent<SkyboxRenderer>(engine, cubemapTexture, *e_variant);
+    // }
 
     // {
     //     auto& object = engine.instantiate();

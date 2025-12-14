@@ -13,6 +13,7 @@ export module Engine.RenderInfo;
 
 import std;
 import OpenGL;
+import Utility.SlotSet;
 
 export using BufferIndex = int;
 export using BufferViewIndex = int;
@@ -77,6 +78,9 @@ export struct Material
     NormalTextureInfo normalTexture;
     TextureInfo emissiveTexture;
     glm::vec3 emissiveFactor;
+    SlotSetIndex programIndex;
+    SlotSetIndex skinnedProgramIndex;
+    ShaderFlags shaderFlags{ShaderFlags::None};
     bool doubleSided;
     bool blend; // based on alphaMode, it's a boolean because MASK is not supported
 };
@@ -107,7 +111,6 @@ export struct PrimitiveRenderInfo
     int mode{-1};
     AccessorIndex indices{-1};
     VertexArrayFlags vertexArrayFlags{VertexArrayHasNone};
-    ShaderFlags shaderFlags{ShaderFlags::HasNone};
 };
 
 export struct MeshRenderInfo
@@ -149,6 +152,7 @@ export struct ModelRenderInfo
     size_t skinsCount{0};
     size_t nodesCount{0};
     size_t rootNodesCount{0};
+    size_t materialsCount{0};
     std::unique_ptr<Buffer[]> buffers{nullptr};
     std::unique_ptr<BufferView[]> bufferViews{nullptr};
     std::unique_ptr<AccessorRenderInfo[]> accessors{nullptr};
@@ -156,4 +160,5 @@ export struct ModelRenderInfo
     std::unique_ptr<SkinRenderInfo[]> skins{nullptr};
     std::unique_ptr<NodeRenderInfo[]> nodes{nullptr};
     std::unique_ptr<NodeIndex[]> rootNodes{nullptr};
+    std::unique_ptr<Material[]> materials{nullptr};
 };

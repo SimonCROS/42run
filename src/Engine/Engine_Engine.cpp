@@ -4,6 +4,7 @@
 
 module;
 
+#include "42runConfig.h"
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "tiny_gltf.h"
@@ -204,7 +205,8 @@ auto Engine::run() -> std::expected<void, std::string>
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
-        auto & program = getShaderProgram("hdr").value().get().getProgram(HasNone);
+        // TODO cache
+        auto & program = *m_shaderManager.getOrCreateShaderProgram(RESOURCE_PATH"shaders/hdr.vert", RESOURCE_PATH"shaders/hdr.frag", ShaderFlags::None);
         useProgram(program);
         bindTexture(0, colorBuffer);
         program.setBool("u_hdr", true);
@@ -223,23 +225,6 @@ auto Engine::run() -> std::expected<void, std::string>
     }
 
     return {};
-}
-
-auto Engine::makeShaderVariants(const std::string_view & id, const std::string & vertPath,
-                                const std::string & fragPath) -> std::expected<ShaderProgramVariantsRef, std::string>
-{
-    auto e_shaderVariants = ShaderProgram::Create(vertPath, fragPath);
-    if (!e_shaderVariants)
-        return std::unexpected(std::move(e_shaderVariants).error());
-
-    // C++ 26 will avoid new key allocation if key already exist (remove explicit std::string constructor call).
-    // In this function, unnecessary string allocation is not really a problem since we should not try to add two shaders with the same id
-    auto [it, inserted] = m_shaders.try_emplace(std::string(id),
-                                                std::make_unique<ShaderProgram>(*std::move(e_shaderVariants)));
-
-    if (!inserted)
-        return std::unexpected("A shader with the same id already exist");
-    return *it->second;
 }
 
 auto Engine::loadModel(const std::string_view & id, const std::string & path,

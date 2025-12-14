@@ -19,16 +19,14 @@ export class Model
 private:
     std::vector<GLuint> m_textures;
     std::vector<Animation> m_animations; // TODO use a pointer to ensure location never change and faster access
-    std::vector<Material> m_materials;
     ModelRenderInfo m_renderInfo;
 
 public:
     static auto Create(Engine & engine, const tinygltf::Model & model) -> Model;
 
-    Model(std::vector<GLuint> && textures, std::vector<Animation> && animations, std::vector<Material> && materials,
+    Model(std::vector<GLuint> && textures, std::vector<Animation> && animations,
           ModelRenderInfo && renderInfo) : m_textures(std::move(textures)),
                                            m_animations(std::move(animations)),
-                                           m_materials(std::move(materials)),
                                            m_renderInfo(std::move(renderInfo))
     {}
 
@@ -36,30 +34,26 @@ public:
 
     [[nodiscard]] auto animations() const -> const std::vector<Animation> & { return m_animations; }
 
-    [[nodiscard]] auto materials() const -> const std::vector<Material> & { return m_materials; }
-
     [[nodiscard]] auto renderInfo() const -> const ModelRenderInfo & { return m_renderInfo; }
 
-    [[nodiscard]] auto prepareShaderPrograms(ShaderManager & manager) const -> std::expected<void, std::string>
+    [[nodiscard]] auto prepareShaderPrograms(ShaderManager & manager,
+                                             const SlotSetIndex vertexShaderFile,
+                                             const SlotSetIndex fragmentShaderFile)
+        -> std::expected<void, std::string>
     {
-        const auto & renderInfo = m_renderInfo;
-        for (int i = 0; i < renderInfo.meshesCount; ++i)
+        auto & renderInfo = m_renderInfo;
+        for (int i = 0; i < renderInfo.materialsCount; ++i)
         {
-            const auto & mesh = renderInfo.meshes[i];
-            for (int j = 0; j < mesh.primitivesCount; ++j)
-            {
-                const auto & primitive = mesh.primitives[j];
+            auto & material = renderInfo.materials[i];
 
-                // TODO Helper struct to store every infos to create shader automatically or get it
-                auto e_result = manager.getOrCreateShaderProgram(
-                    manager.getOrCreateShader(GL_VERTEX_SHADER, SlotSetIndex::invalid, primitive.shaderFlags).value(),
-                    manager.getOrCreateShader(GL_FRAGMENT_SHADER, SlotSetIndex::invalid, primitive.shaderFlags).value()
-                );
-                if (!e_result)
-                {
-                    return std::unexpected(std::move(e_result).error());
-                }
+            const auto e_result = manager.
+                    getOrCreateShaderProgram(vertexShaderFile, fragmentShaderFile, material.shaderFlags);
+            if (!e_result)
+            {
+                return std::unexpected(std::move(e_result).error());
             }
+
+            material.programIndex = *e_result;
         }
 
         return {};
