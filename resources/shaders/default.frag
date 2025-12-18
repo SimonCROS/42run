@@ -2,8 +2,9 @@
 
 #define PI 3.1415926538
 
-layout (location = 0) in vec3 v_FragPos;
-layout (location = 1) in mat3 v_TBN;
+layout (location = 0) in vec3 v_position;
+layout (location = 1) in vec3 v_normal;
+layout (location = 2) in vec4 v_tangent;
 // layout (location = 4) in vec3 v_color0;
 layout (location = 4) in vec4 v_color0;
 layout (location = 5) in vec2 v_texCoords[2];
@@ -47,45 +48,55 @@ const float c_MinRoughness = 0.04;
 const float c_MinMetallic = 0.04;
 const uint c_Shininess = 5;
 
-mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
-{
-    // get edge vectors of the pixel triangle
-    vec3 dp1 = dFdx(p);
-    vec3 dp2 = dFdy(p);
+mat3 getTBNFromDerivatives(vec3 N, vec3 pos, vec2 uv) {
+    vec3 dp1 = dFdx(pos);
+    vec3 dp2 = dFdy(pos);
     vec2 duv1 = dFdx(uv);
     vec2 duv2 = dFdy(uv);
 
-    // solve the linear system
     vec3 dp2perp = cross(dp2, N);
     vec3 dp1perp = cross(N, dp1);
     vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
     vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
 
-    // construct a scale-invariant frame
     float invmax = inversesqrt(max(dot(T,T), dot(B,B)));
     return mat3(T * invmax, B * invmax, N);
 }
 
-// Find the normal for this fragment, pulling either from a predefined normal map
-// or from the interpolated mesh normal and tangent attributes.
 vec3 getNormal()
 {
-    mat3 tbn = v_TBN;
+    vec3 N = normalize(v_normal);
+    mat3 TBN;
+
+    if (dot(v_tangent.xyz, v_tangent.xyz) > 0.01) {
+        vec3 T = normalize(v_tangent.xyz);
+
+        // Re-orthogonalize T with respect to N (Gram-Schmidt process)
+        T = normalize(T - dot(T, N) * N);
+
+        vec3 B = cross(N, T) * v_tangent.w;
+        TBN = mat3(T, B, N);
+    }
+    else
+    {
+        vec2 uv = v_texCoords[0];
+        TBN = getTBNFromDerivatives(N, v_position, uv);
+    }
 
 #ifdef HAS_NORMALMAP
-    vec3 n = texture(u_normalMap, v_texCoords[u_normalTexCoordIndex]).rgb;
-    n = n * 2.0 - 1.0; // make it [-1, 1]
-    n = normalize(tbn * n);
-    n *= vec3(u_normalScale, u_normalScale, 1.0);
+    vec3 finalNormal = texture(u_normalMap, v_texCoords[u_normalTexCoordIndex]).rgb;
+    finalNormal = finalNormal * 2.0 - 1.0; // make it [-1, 1]
+    finalNormal = normalize(TBN * finalNormal);
+    finalNormal *= vec3(u_normalScale, u_normalScale, 1.0);
 #else
     // The tbn matrix is linearly interpolated, so we need to re-normalize
-    vec3 n = normalize(tbn[2].xyz);
+    vec3 finalNormal = normalize(TBN[2].xyz);
 #endif
 
     // // reverse backface normals
-    // n *= (2.0 * float(gl_FrontFacing) - 1.0);
+    // finalNormal *= (2.0 * float(gl_FrontFacing) - 1.0);
 
-    return n;
+    return finalNormal;
 }
 
 float distributionGGX(vec3 N, vec3 H, float roughness)
@@ -188,7 +199,7 @@ vec3 calcPBRDirectionalLight(
 
 void main()
 {
-    float dist = length(u_cameraPosition - v_FragPos);
+    float dist = length(u_cameraPosition - v_position);
     float fogFactor = max(0, dist - 30) * 0.05;
     fogFactor *= fogFactor;
     if (fogFactor >= 1)
@@ -218,7 +229,7 @@ void main()
 
     vec3 ambient = vec3(0.2);
     vec3 normal = getNormal();
-    vec3 viewDir = normalize(u_cameraPosition - v_FragPos);
+    vec3 viewDir = normalize(u_cameraPosition - v_position);
 
     vec3 result = ambient * baseColor.rgb;
     // --- IN LOOP
@@ -261,7 +272,7 @@ void main()
         float reflectance = fresnel * roughnessEffect;
 
         // Ensure the result is in the [0, 1] range
-        vec3 I = normalize(v_FragPos - u_cameraPosition);
+        vec3 I = normalize(v_position - u_cameraPosition);
         vec3 R = reflect(I, normalize(v_Normal));
         result += vec3(texture(u_cubemap, R).rgb);
     }*/

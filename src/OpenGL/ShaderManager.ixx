@@ -47,7 +47,7 @@ public:
     [[nodiscard]] auto createShader(const GLenum type, const SlotSetIndex fileIdx, const ShaderFlags flags)
         -> std::expected<SlotSetIndex, std::string>
     {
-        assert(fileIdx != SlotSetIndex::invalid() && "file index is invalid");
+        assert(fileIdx.isValid() && "file index is invalid");
 
         auto e_shader = Shader::Create(type, fileIdx, flags);
         if (!e_shader)
@@ -61,8 +61,8 @@ public:
     [[nodiscard]] auto createShaderProgram(const SlotSetIndex vertexShaderIdx, const SlotSetIndex fragmentShaderIdx)
         -> std::expected<SlotSetIndex, std::string>
     {
-        assert(vertexShaderIdx != SlotSetIndex::invalid() && "vertex shader index is invalid");
-        assert(fragmentShaderIdx != SlotSetIndex::invalid() && "fragment shader index is invalid");
+        assert(vertexShaderIdx.isValid() && "vertex shader index is invalid");
+        assert(fragmentShaderIdx.isValid() && "fragment shader index is invalid");
 
         auto e_shaderProgram = ShaderProgram::Create(m_shaders[vertexShaderIdx], m_shaders[fragmentShaderIdx]);
         if (!e_shaderProgram)
@@ -89,7 +89,7 @@ public:
     [[nodiscard]] auto getOrCreateShader(const GLenum type, const SlotSetIndex fileIdx, const ShaderFlags flags)
         -> std::expected<SlotSetIndex, std::string>
     {
-        assert(fileIdx != SlotSetIndex::invalid() && "file index is invalid");
+        assert(fileIdx.isValid() && "file index is invalid");
 
         for (const auto & shader: m_shaders)
         {
@@ -105,8 +105,8 @@ public:
                                                 const SlotSetIndex fragmentShaderIdx)
         -> std::expected<SlotSetIndex, std::string>
     {
-        assert(vertexShaderIdx != SlotSetIndex::invalid() && "vertex shader index is invalid");
-        assert(fragmentShaderIdx != SlotSetIndex::invalid() && "fragment shader index is invalid");
+        assert(vertexShaderIdx.isValid() && "vertex shader index is invalid");
+        assert(fragmentShaderIdx.isValid() && "fragment shader index is invalid");
 
         for (const auto & program: m_shaderPrograms)
         {
@@ -182,5 +182,49 @@ public:
         const Shader & vertexShader = m_shaders[shaderProgram.vertexShaderIdx()];
         const Shader & fragmentShader = m_shaders[shaderProgram.fragmentShaderIdx()];
         return shaderProgram.link(vertexShader, fragmentShader);
+    }
+
+    [[nodiscard]] auto getProgram(const SlotSetIndex index) -> ShaderProgram &
+    {
+        assert(index.isValid() && "Index is invalid");
+        return m_shaderPrograms[index];
+    }
+
+    [[nodiscard]] auto getProgram(const SlotSetIndex index) const -> const ShaderProgram &
+    {
+        assert(index.isValid() && "Index is invalid");
+        return m_shaderPrograms[index];
+    }
+
+    [[nodiscard]] auto getPrograms() -> SlotSet<ShaderProgram> &
+    {
+        return m_shaderPrograms;
+    }
+
+    [[nodiscard]] auto getPrograms() const -> const SlotSet<ShaderProgram> &
+    {
+        return m_shaderPrograms;
+    }
+
+    [[nodiscard]] auto getShader(const SlotSetIndex index) -> Shader &
+    {
+        assert(index.isValid() && "Index is invalid");
+        return m_shaders[index];
+    }
+
+    [[nodiscard]] auto getShader(const SlotSetIndex index) const -> const Shader &
+    {
+        assert(index.isValid() && "Index is invalid");
+        return m_shaders[index];
+    }
+
+    [[nodiscard]] auto getShaders() -> SlotSet<Shader> &
+    {
+        return m_shaders;
+    }
+
+    [[nodiscard]] auto getShaders() const -> const SlotSet<Shader> &
+    {
+        return m_shaders;
     }
 };

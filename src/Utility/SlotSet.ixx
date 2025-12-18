@@ -9,23 +9,25 @@ export struct SlotSetIndex
 {
     int32_t value = -1;
 
-    static constexpr auto invalid() -> SlotSetIndex { return {}; }
+    static constexpr auto invalid() noexcept -> SlotSetIndex { return {}; }
 
-    constexpr SlotSetIndex() = default;
+    constexpr SlotSetIndex() noexcept = default;
 
-    constexpr SlotSetIndex(const SlotSetIndex &) = default;
+    constexpr SlotSetIndex(const SlotSetIndex &) noexcept = default;
 
-    constexpr SlotSetIndex(SlotSetIndex &&) = default;
+    constexpr SlotSetIndex(SlotSetIndex &&) noexcept = default;
 
-    constexpr SlotSetIndex & operator=(const SlotSetIndex &) = default;
+    constexpr SlotSetIndex & operator=(const SlotSetIndex &) noexcept = default;
 
-    constexpr SlotSetIndex & operator=(SlotSetIndex &&) = default;
+    constexpr SlotSetIndex & operator=(SlotSetIndex &&) noexcept = default;
 
-    constexpr explicit SlotSetIndex(const int32_t index) : value(index) {}
+    constexpr explicit SlotSetIndex(const int32_t index) noexcept : value(index) {}
 
-    constexpr auto operator==(const SlotSetIndex & other) const -> bool = default;
+    constexpr auto operator==(const SlotSetIndex & other) const noexcept -> bool = default;
 
-    constexpr auto operator<=>(const SlotSetIndex & other) const -> std::strong_ordering = default;
+    constexpr auto operator<=>(const SlotSetIndex & other) const noexcept -> std::strong_ordering = default;
+
+    [[nodiscard]] constexpr auto isValid() const noexcept -> bool { return *this != invalid(); }
 };
 
 struct SlotSetValueIndex

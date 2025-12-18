@@ -124,7 +124,7 @@ public:
         if (m_currentShaderProgram != program.id())
         {
             m_currentShaderProgram = program.id();
-            program.use();
+            glUseProgram(m_currentShaderProgram);
         }
     }
 

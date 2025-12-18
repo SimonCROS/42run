@@ -168,16 +168,13 @@ auto Engine::run() -> std::expected<void, std::string>
         }
 
         const auto pvMat = m_camera->projectionMatrix() * m_camera->computeViewMatrix();
-        for (auto & [id, shader]: m_shaders)
+        for (auto & program: m_shaderManager.getPrograms())
         {
-            for (auto & [flags, variant]: shader->programs)
-            {
-                useProgram(*variant.get());
-                variant.get()->setVec3("u_cameraPosition", m_camera->object().transform().translation());
-                variant.get()->setVec4("u_fogColor", glm::vec4(0.4705882353f, 0.6549019608f, 1.0f, 1.0f));
-                variant.get()->setVec3("u_lightPosition", {4, 5, 8});
-                variant.get()->setMat4("u_projectionView", pvMat);
-            }
+            useProgram(program);
+            program.setVec3("u_cameraPosition", m_camera->object().transform().translation());
+            program.setVec4("u_fogColor", glm::vec4(0.4705882353f, 0.6549019608f, 1.0f, 1.0f));
+            program.setVec3("u_lightPosition", {4, 5, 8});
+            program.setMat4("u_projectionView", pvMat);
         }
 
         glEnable(GL_DEPTH_TEST);
@@ -206,7 +203,10 @@ auto Engine::run() -> std::expected<void, std::string>
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
         // TODO cache
-        auto & program = *m_shaderManager.getOrCreateShaderProgram(RESOURCE_PATH"shaders/hdr.vert", RESOURCE_PATH"shaders/hdr.frag", ShaderFlags::None);
+        const auto programIdx = *m_shaderManager.getOrCreateShaderProgram(
+            *m_shaderManager.getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.vert"),
+*m_shaderManager.getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
+        auto & program = m_shaderManager.getProgram(programIdx);
         useProgram(program);
         bindTexture(0, colorBuffer);
         program.setBool("u_hdr", true);

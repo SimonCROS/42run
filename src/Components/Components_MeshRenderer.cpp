@@ -4,6 +4,7 @@
 
 module;
 
+#include "42runConfig.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "glad/gl.h"
 
@@ -25,9 +26,6 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
     for (int p = 0; p < meshRenderInfo.primitivesCount; ++p)
     {
         const auto & primitiveRenderInfo = meshRenderInfo.primitives[p];
-
-        auto & program = m_program.getProgram(primitiveRenderInfo.shaderFlags);
-        engine.useProgram(program);
 
         auto & vertexArray = engine.getVertexArray(primitiveRenderInfo.vertexArrayFlags);
         engine.bindVertexArray(vertexArray);
@@ -52,6 +50,13 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
             }
         }
 
+        // TODO have a default material instead of getting a default shader here when no material
+        const auto programIdx = primitiveRenderInfo.material >= 0 ? m_mesh.renderInfo().materials[primitiveRenderInfo.material].programIndex :
+            *engine.getShaderManager().getOrCreateShaderProgram(*engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/default.vert"),
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/default.frag"), ShaderFlags::None);
+        auto & program = engine.getShaderManager().getProgram(programIdx);
+        engine.useProgram(program);
+
         program.setMat4("u_transform", transform);
 
         engine.bindCubemap(0, m_reflectionCubemap.textureId());
@@ -59,7 +64,7 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
         if (primitiveRenderInfo.material >= 0)
         {
-            const auto & material = m_mesh.materials()[primitiveRenderInfo.material];
+            const auto & material = m_mesh.renderInfo().materials[primitiveRenderInfo.material];
 
             engine.setDoubleSided(material.doubleSided);
             engine.setBlendEnabled(material.blend);
@@ -205,11 +210,11 @@ void MeshRenderer::onRender(Engine & engine)
         const GLuint uniformBlockBinding = skinIndex;
         glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlockBinding, jointsUBO);
 
-        for (auto & program: m_program.programs)
+        for (auto & program: engine.getShaderManager().getPrograms())
         {
-            if (program.first & HasSkin)
+            if ((engine.getShaderManager().getShader(program.vertexShaderIdx()).flags() & ShaderFlags::HasSkin) == ShaderFlags::HasSkin)
             {
-                program.second->setUniformBlock("JointMatrices", uniformBlockBinding);
+                program.setUniformBlock("JointMatrices", uniformBlockBinding);
             }
         }
 

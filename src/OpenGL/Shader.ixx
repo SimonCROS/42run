@@ -79,7 +79,7 @@ public:
     {
         assert(file.index == m_fileIdx && "Unexpected shader file");
 
-        if (file.isValid())
+        if (!file.isValid())
         {
             return std::unexpected("ShaderFile is invalid");
         }

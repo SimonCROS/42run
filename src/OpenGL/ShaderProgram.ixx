@@ -77,8 +77,6 @@ public:
         glDeleteProgram(m_id);
     }
 
-    auto use() const -> void { glUseProgram(m_id); }
-
     [[nodiscard]] auto vertexShaderIdx() const -> SlotSetIndex { return m_vertexShaderIdx; }
     [[nodiscard]] auto fragmentShaderIdx() const -> SlotSetIndex { return m_fragmentShaderIdx; }
     [[nodiscard]] auto id() const -> GLuint { return m_id; }
