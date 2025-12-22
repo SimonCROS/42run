@@ -20,14 +20,7 @@ set(GLM_ENABLE_CXX_20 ON CACHE BOOL "Enable C++20 features in GLM")
 # FindOpenGL prefers GLVND by default when available
 cmake_policy(SET CMP0072 NEW)
 
-find_package(X11)
-if(APPLE AND X11_FOUND)
-    set(CMAKE_FIND_FRAMEWORK NEVER)
-    find_package(OpenGL 4.1 REQUIRED)
-    unset(CMAKE_FIND_FRAMEWORK)
-else()
-    find_package(OpenGL 4.1 REQUIRED)
-endif()
+find_package(OpenGL 4.1 REQUIRED)
 
 # ---------------------------------------------------------------------------------
 # Download or retrieve glfw
