@@ -111,12 +111,16 @@ auto Engine::run() -> std::expected<void, std::string>
 
     unsigned int hdrFBO;
     glGenFramebuffers(1, &hdrFBO);
+
+    int fb_w, fb_h;
+    glfwGetFramebufferSize(m_window.getGLFWHandle(), &fb_w, &fb_h);
+
     // create floating point color buffer
     unsigned int colorBuffer;
     glGenTextures(1, &colorBuffer);
     glBindTexture(GL_TEXTURE_2D, colorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(m_window.width()),
-                 static_cast<GLsizei>(m_window.height()), 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(fb_w),
+                 static_cast<GLsizei>(fb_h), 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -132,8 +136,8 @@ auto Engine::run() -> std::expected<void, std::string>
         GL_TEXTURE_2D,
         0,
         GL_DEPTH_COMPONENT, // format interne
-        static_cast<GLsizei>(m_window.width()),
-        static_cast<GLsizei>(m_window.height()),
+        static_cast<GLsizei>(fb_w),
+        static_cast<GLsizei>(fb_h),
         0,
         GL_DEPTH_COMPONENT, // format
         GL_FLOAT, // type (GL_UNSIGNED_BYTE ou GL_FLOAT selon besoin)

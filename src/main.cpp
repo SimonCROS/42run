@@ -19,16 +19,16 @@ import OpenGL.Image;
 import OpenGL.Texture2D2;
 import Utility.SlotSet;
 
-// class Rotator : public Component
-// {
-// public:
-//     explicit Rotator(Object& object) : Component(object) {  }
-//
-//     auto onUpdate(Engine& engine) -> void override
-//     {
-//         object().transform().rotate(glm::quat(glm::vec3(0.0f, glm::radians(1.0f), 0.0f)));
-//     }
-// };
+class Rotator : public Component
+{
+public:
+    explicit Rotator(Object& object) : Component(object) {  }
+
+    auto onUpdate(Engine& engine) -> void override
+    {
+        object().transform().rotate(glm::quat(glm::vec3(0.0f, 0.0f, glm::radians(0.2f))));
+    }
+};
 
 auto start() -> std::expected<void, std::string>
 {
@@ -46,12 +46,14 @@ auto start() -> std::expected<void, std::string>
     auto engine = Engine::Create(*std::move(e_window));
 
     // TODO safe
-    const SlotSetIndex defaultVertIdx = *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/default.vert");
-    const SlotSetIndex defaultFragIdx = *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/default.frag");
+    const SlotSetIndex defaultVertIdx = *engine.getShaderManager().getOrAddShaderFile(
+        RESOURCE_PATH"shaders/default.vert");
+    const SlotSetIndex defaultFragIdx = *engine.getShaderManager().getOrAddShaderFile(
+        RESOURCE_PATH"shaders/default.frag");
 
-    (void)*engine.getShaderManager().getOrCreateShaderProgram(
-    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.vert"),
-*engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
+    (void) *engine.getShaderManager().getOrCreateShaderProgram(
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.vert"),
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
 
     // auto texture = OpenGL::Texture2D2(nullptr);
     // {
@@ -81,15 +83,20 @@ auto start() -> std::expected<void, std::string>
     //         return std::unexpected(std::move(e_return).error());
     // }
 
-    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres_smooth.glb", true);
+    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
 
-    // TODO safe
-    (void)e_spheresMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
+    if (const auto && e_result = e_spheresMesh->get().prepareShaderPrograms(
+        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
+    {
+        return e_result;
+    }
 
-    // TODO safe
-    (void)engine.getShaderManager().reloadAllShaders();
+    if (const auto && e_result = engine.getShaderManager().reloadAllShaders(); !e_result)
+    {
+        return e_result;
+    }
 
     const std::vector<std::string> faces
     {
@@ -109,19 +116,20 @@ auto start() -> std::expected<void, std::string>
     // }
 
     {
-        auto& object = engine.instantiate();
+        auto & object = engine.instantiate();
         object.addComponent<MeshRenderer>(*e_spheresMesh, cubemapTexture);
     }
 
     {
         // Camera
         auto& object = engine.instantiate();
-        object.transform().setTranslation({14.5, 15, -6.6});
-        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-45.0f), glm::radians(115.0f), 0)));
+        object.transform().setTranslation({0, 20, 0});
+        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-90.0f), glm::radians(0.0f), glm::radians(0.0f))));
 
-        const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
+        const auto & camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
         engine.setCamera(camera);
         // object.addComponent<Rotator>();
+        object.addComponent<CameraController>(glm::vec3(0, 0, 0), 20);
     }
 
     // auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);

@@ -14,7 +14,7 @@ import std;
 import Engine;
 import Window;
 
-class CameraController final : public Component
+export class CameraController final : public Component
 {
 public:
     static constexpr float DefaultDistance = 10.0f;
@@ -26,11 +26,12 @@ private:
     float m_pitch{};
     float m_yaw{};
 
+    bool m_lastUpdateReloadShader = false;
+
 public:
-    CameraController(Object& object, const glm::vec3 target, const float distance) : Component(object),
+    CameraController(Object & object, const glm::vec3 target, const float distance) : Component(object),
         m_target(target), m_distance(distance)
-    {
-    }
+    {}
 
     auto setTarget(const glm::vec3 target, const float distance = DefaultDistance) -> void
     {
@@ -39,10 +40,23 @@ public:
         m_pitch = m_yaw = 0.0f;
     }
 
-    auto onUpdate(Engine& engine) -> void override
+    auto onUpdate(Engine & engine) -> void override
     {
         const Controls controls = engine.controls();
         const float delta = engine.frameInfo().deltaTime.count();
+
+        if (controls.isPressed(GLFW_KEY_P) && !m_lastUpdateReloadShader)
+        {
+            m_lastUpdateReloadShader = true;
+            if (const auto && e_result = engine.getShaderManager().reloadAllShaders(); !e_result)
+            {
+                std::println("{}", e_result.error());
+            }
+        }
+        else
+        {
+            m_lastUpdateReloadShader = false;
+        }
 
         if (controls.isPressed(GLFW_KEY_A))
             m_yaw += delta;

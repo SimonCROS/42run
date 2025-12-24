@@ -14,16 +14,20 @@ import std;
 export class UniformValue
 {
 private:
+    static constexpr GLint Unset = -2;
+    static constexpr GLint NotFound = -1;
+
     std::string m_name;
     std::variant<std::monostate, GLboolean, GLfloat, GLint, GLuint, glm::vec2, glm::vec3, glm::vec4, glm::mat4> m_value;
-    GLint m_location = -1;
+    GLint m_location;
 
 public:
-    explicit UniformValue(const std::string_view & m_name) : m_name(m_name) {}
+    explicit UniformValue(const std::string_view & m_name) : m_name(m_name), m_location(Unset) {}
 
     auto invalidateLocation() -> void
     {
-        m_location = -1;
+        m_location = Unset;
+        m_value = std::monostate{};
     }
 
     template<typename T>
@@ -35,14 +39,14 @@ public:
     template<typename T>
     auto set(const GLint program, const T & value) -> void
     {
-        if (hasValue(value))
+        if (m_location == NotFound || hasValue(value))
         {
             return;
         }
 
         m_value = value;
 
-        if (m_location == -1)
+        if (m_location == Unset)
         {
             m_location = glGetUniformLocation(program, m_name.c_str());
         }

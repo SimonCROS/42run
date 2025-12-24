@@ -66,4 +66,6 @@ void main()
 
     v_texCoords[0] = a_texCoords0;
     v_texCoords[1] = a_texCoords1;
+
+    v_color0 = a_color0;
 }
