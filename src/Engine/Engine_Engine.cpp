@@ -114,6 +114,7 @@ auto Engine::run() -> std::expected<void, std::string>
 
     int fb_w, fb_h;
     glfwGetFramebufferSize(m_window.getGLFWHandle(), &fb_w, &fb_h);
+    glViewport(0, 0, fb_w, fb_h);
 
     // create floating point color buffer
     unsigned int colorBuffer;

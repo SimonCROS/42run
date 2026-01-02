@@ -24,7 +24,7 @@ export namespace OpenGL
         std::array<const void*, 6> m_faceData;
         GLenum m_format;
         GLenum m_type;
-        GLint m_minFilter = GL_LINEAR;
+        GLint m_minFilter = GL_LINEAR_MIPMAP_LINEAR;
         GLint m_magFilter = GL_LINEAR;
 
     public:

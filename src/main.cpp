@@ -72,40 +72,46 @@ auto start() -> std::expected<void, std::string>
         return e_result;
     }
 
-    const std::vector<std::string> faces
-    {
-        RESOURCE_PATH"textures/skybox/posx.jpg",
-        RESOURCE_PATH"textures/skybox/negx.jpg",
-        RESOURCE_PATH"textures/skybox/posy.jpg",
-        RESOURCE_PATH"textures/skybox/negy.jpg",
-        RESOURCE_PATH"textures/skybox/posz.jpg",
-        RESOURCE_PATH"textures/skybox/negz.jpg",
-    };
-
-    auto cubemapTexture = Cubemap::Create(faces);
+    // const std::vector<std::string> faces
+    // {
+    //     RESOURCE_PATH"textures/skybox/posx.jpg",
+    //     RESOURCE_PATH"textures/skybox/negx.jpg",
+    //     RESOURCE_PATH"textures/skybox/posy.jpg",
+    //     RESOURCE_PATH"textures/skybox/negy.jpg",
+    //     RESOURCE_PATH"textures/skybox/posz.jpg",
+    //     RESOURCE_PATH"textures/skybox/negz.jpg",
+    // };
+    //
+    // auto cubemapTexture = Cubemap::Create(faces);
 
     const auto eqProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
     *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/equirectangular_to_cubemap.frag"), ShaderFlags::None);
     *engine.getShaderManager().reloadAllShaders();
-    auto e_hdrImage = Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_4k.hdr");
+    auto e_hdrImage = Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr");
     if (!e_hdrImage)
     {
         return std::unexpected(std::move(e_hdrImage).error());
     }
-    auto hdrTexture = *OpenGL::Texture2D2::builder(stateCache.get()).fromImage(*e_hdrImage, GL_RGBA32F).build();
-    auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(hdrTexture.width()).build();
+    auto hdrTexture = *OpenGL::Texture2D2::builder(stateCache.get()).fromImage(*e_hdrImage, GL_RGB32F).build();
+    std::println("{}", *e_hdrImage);
+    std::println("{}", hdrTexture);
+    auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(512).build();
     *cubemap2Texture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
 
-    // {
-    //     auto& object = engine.instantiate();
-    //     auto e_variant = e_skyboxShader->get().enableVariant(None);
-    //     object.addComponent<SkyboxRenderer>(engine, cubemapTexture, *e_variant);
-    // }
+    *engine.getShaderManager().getOrCreateShaderProgram(
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.vert"),
+    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"), ShaderFlags::None);
+    *engine.getShaderManager().reloadAllShaders();
+
+    {
+        auto& object = engine.instantiate();
+        object.addComponent<SkyboxRenderer>(engine, cubemap2Texture);
+    }
 
     {
         auto & object = engine.instantiate();
-        object.addComponent<MeshRenderer>(*e_spheresMesh, cubemapTexture);
+        object.addComponent<MeshRenderer>(*e_spheresMesh, cubemap2Texture);
     }
 
     {

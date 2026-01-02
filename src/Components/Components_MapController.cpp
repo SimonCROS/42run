@@ -4,7 +4,6 @@
 
 module;
 
-#include "42runConfig.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 
@@ -14,7 +13,7 @@ import :MeshRenderer;
 import Engine;
 import OpenGL;
 
-static auto instantiatePlaneTwoTables(Engine& engine, Cubemap& cubemapTexture) -> Object&
+static auto instantiatePlaneTwoTables(Engine& engine, OpenGL::Cubemap2& cubemapTexture) -> Object&
 {
     auto& floorMesh = engine.getModel("floor")->get();
     auto& deskMesh = engine.getModel("desk")->get();
@@ -46,7 +45,7 @@ static auto instantiatePlaneTwoTables(Engine& engine, Cubemap& cubemapTexture) -
     return object;
 }
 
-MapController::MapController(Object& object, Cubemap& cubemapTexture): Component(object), m_cubemapTexture(cubemapTexture)
+MapController::MapController(Object& object, OpenGL::Cubemap2& cubemapTexture): Component(object), m_cubemapTexture(cubemapTexture)
 {
 }
 

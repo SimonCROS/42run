@@ -1,6 +1,6 @@
 #version 410
 
-layout (location = 0) in vec4 v_fragPos;
+layout (location = 0) in vec3 v_fragPos;
 
 layout (location = 0) out vec4 f_color;
 
@@ -18,7 +18,7 @@ vec2 sampleSphericalMap(vec3 v)
 
 void main()
 {
-    vec2 uv = sampleSphericalMap(normalize(v_fragPos.xyz));
+    vec2 uv = sampleSphericalMap(normalize(v_fragPos));
     vec3 color = texture(u_equirectangularMap, uv).rgb;
 
     f_color = vec4(color, 1.0);

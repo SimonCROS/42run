@@ -7,6 +7,7 @@ import std;
 import Engine;
 import OpenGL;
 import Time;
+import OpenGL.Cubemap2;
 
 export class MapController final : public Component
 {
@@ -21,7 +22,7 @@ private:
     std::queue<std::reference_wrapper<Object>> m_segmentsPool;
     std::deque<std::reference_wrapper<Object>> m_movingSegments;
 
-    Cubemap& m_cubemapTexture;
+    OpenGL::Cubemap2& m_cubemapTexture;
 
     DurationType m_startTime{}; // TODO set in something like onStart
 
@@ -31,7 +32,7 @@ private:
     }
 
 public:
-    explicit MapController(Object& object, Cubemap& cubemapTexture);
+    explicit MapController(Object& object, OpenGL::Cubemap2& cubemapTexture);
 
     auto onUpdate(Engine& engine) -> void override;
 };

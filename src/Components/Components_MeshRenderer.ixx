@@ -13,6 +13,7 @@ import std;
 import :Animator;
 import Engine;
 import OpenGL;
+import OpenGL.Cubemap2;
 
 export class MeshRenderer final : public Component
 {
@@ -31,7 +32,7 @@ private:
     bool m_displayed{true};
     GLenum m_polygonMode{GL_FILL};
     std::optional<std::reference_wrapper<const Animator>> m_animator;
-    Cubemap& m_reflectionCubemap;
+    OpenGL::Cubemap2& m_reflectionCubemap;
 
     std::vector<Node> m_nodes;
     std::vector<Skin> m_skins;
@@ -42,7 +43,7 @@ private:
     auto calculateJointMatrices(int skin, const glm::mat4& transform) -> void;
 
 public:
-    explicit MeshRenderer(Object& object, const Model& model, Cubemap& reflectionCubemap) :
+    explicit MeshRenderer(Object& object, const Model& model, OpenGL::Cubemap2& reflectionCubemap) :
         Component(object), m_mesh(model), m_reflectionCubemap(reflectionCubemap)
     {
         m_nodes.resize(m_mesh.renderInfo().nodesCount);

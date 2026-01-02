@@ -117,7 +117,12 @@ struct std::formatter<OpenGL::Texture2D2>
     auto format(const OpenGL::Texture2D2 & obj, FormatContext & ctx) const -> typename FormatContext::iterator
     {
         return std::format_to(ctx.out(),
-                              "Texture2D2{{id:{}}}",
-                              obj.id());
+                              "Texture2D2{{id:{},internalFormat:{},width:{},height:{},format:{},type:{}}}",
+                              obj.id(),
+                              glFormatToString(obj.internalFormat()),
+                              obj.width(),
+                              obj.height(),
+                              glFormatToString(obj.format()),
+                              glTypeToString(obj.type()));
     }
 };

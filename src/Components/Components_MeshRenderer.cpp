@@ -63,7 +63,7 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
         program.setMat4("u_transform", transform);
 
-        engine.bindCubemap(0, m_reflectionCubemap.textureId());
+        engine.bindCubemap(0, m_reflectionCubemap.id());
         program.setInt("m_cubemap", 0);
 
         if (primitiveRenderInfo.material >= 0)
@@ -73,7 +73,6 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
             engine.setDoubleSided(material.doubleSided);
             engine.setBlendEnabled(material.blend);
 
-            // Start texture binding at 0 ?
             if (material.pbr.baseColorTexture.index >= 0)
             {
                 engine.bindTexture(1, m_mesh.texture(material.pbr.baseColorTexture.index));
