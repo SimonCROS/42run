@@ -11,7 +11,7 @@ import std;
 import glToString;
 import OpenGL;
 import OpenGL.StateCache;
-import OpenGL.Image;
+import Image;
 import OpenGL.Texture2D2;
 
 export namespace OpenGL
@@ -81,7 +81,7 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto fromEquirectangular(const Texture2D2& equirectangular, ShaderProgram& equirectToCubeShader)
+        auto fromEquirectangular(ShaderProgram & equirectangularToCubemapShader, const Texture2D2& equirectangular)
             -> std::expected<void, std::string>;
 
         [[nodiscard]]

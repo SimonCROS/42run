@@ -9,7 +9,7 @@ export module OpenGL.Cubemap2:Builder;
 import std.compat;
 import glToString;
 import OpenGL.StateCache;
-import OpenGL.Image;
+import Image;
 
 export namespace OpenGL
 {

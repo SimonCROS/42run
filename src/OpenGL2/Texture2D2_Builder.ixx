@@ -9,7 +9,7 @@ export module OpenGL.Texture2D2:Builder;
 import std;
 import glToString;
 import OpenGL.StateCache;
-import OpenGL.Image;
+import Image;
 
 constexpr bool isBaseInternalFormat(const GLint internalFormat)
 {

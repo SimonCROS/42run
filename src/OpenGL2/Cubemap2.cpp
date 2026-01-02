@@ -11,6 +11,23 @@ module OpenGL.Cubemap2;
 import OpenGL;
 import Engine;
 
+static constexpr GLfloat cubeStrip[] = {
+    -0.5f, 0.5f, 0.5f,     // Front-top-left
+    0.5f, 0.5f, 0.5f,      // Front-top-right
+    -0.5f, -0.5f, 0.5f,    // Front-bottom-left
+    0.5f, -0.5f, 0.5f,     // Front-bottom-right
+    0.5f, -0.5f, -0.5f,    // Back-bottom-right
+    0.5f, 0.5f, 0.5f,      // Front-top-right
+    0.5f, 0.5f, -0.5f,     // Back-top-right
+    -0.5f, 0.5f, 0.5f,     // Front-top-left
+    -0.5f, 0.5f, -0.5f,    // Back-top-left
+    -0.5f, -0.5f, 0.5f,    // Front-bottom-left
+    -0.5f, -0.5f, -0.5f,   // Back-bottom-left
+    0.5f, -0.5f, -0.5f,    // Back-bottom-right
+    -0.5f, 0.5f, -0.5f,    // Back-top-left
+    0.5f, 0.5f, -0.5f      // Back-top-right
+};
+
 namespace OpenGL
 {
     auto CubemapBuilder::build() const -> std::expected<Cubemap2, std::string>
@@ -18,23 +35,23 @@ namespace OpenGL
         GLuint id;
         glGenTextures(1, &id);
 
-        if (m_stateCache->setActiveTexture(0))
-            glActiveTexture(0);
+        if (m_stateCache->setActiveTexture(GL_TEXTURE0))
+            glActiveTexture(GL_TEXTURE0);
         if (m_stateCache->setBoundTexture(id))
             glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 
-        for (GLuint i = 0; i < 6; ++i)
-        {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                         0,
-                         m_internalFormat,
-                         m_size,
-                         m_size,
-                         0,
-                         m_format,
-                         m_type,
-                         m_faceData[i]);
-        }
+        // for (GLuint i = 0; i < 6; ++i)
+        // {
+        //     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+        //                  0,
+        //                  m_internalFormat,
+        //                  m_size,
+        //                  m_size,
+        //                  0,
+        //                  m_format,
+        //                  m_type,
+        //                  m_faceData[i]);
+        // }
 
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, m_minFilter);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, m_magFilter);
@@ -45,46 +62,58 @@ namespace OpenGL
         return std::expected<Cubemap2, std::string>{std::in_place, m_stateCache, id, m_size};
     }
 
-    // auto Cubemap2::fromEquirectangular(Engine& engine, const Texture2D2& equirectangular,
-    //                                    ShaderProgramInstance& equirectToCubeShader) -> std::expected<void, std::string>
-    // {
-    //     GLuint captureFBO;
-    //     glGenFramebuffers(1, &captureFBO);
-    //     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-    //
-    //     const std::array<glm::mat4, 6> captureViews = {
-    //         glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-    //         glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-    //         glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-    //         glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
-    //         glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-    //         glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
-    //     };
-    //
-    //     const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-    //
-    //     equirectToCubeShader.use();
-    //     equirectToCubeShader.setInt("u_equirectangularMap", 0);
-    //
-    //     equirectangular.bind(0);
-    //     glViewport(0, 0, m_size, m_size);
-    //     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-    //     for (unsigned int i = 0; i < 6; ++i)
-    //     {
-    //         equirectToCubeShader.setMat4("u_projectionView", captureProjection * captureViews[i]);
-    //         glFramebufferTexture2D(GL_FRAMEBUFFER,
-    //                                GL_COLOR_ATTACHMENT0,
-    //                                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-    //                                m_id,
-    //                                0);
-    //         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //         renderCube();
-    //         Model::Create()
-    //     }
-    //
-    //     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //     glDeleteFramebuffers(1, &captureFBO);
-    //
-    //     return std::expected<void, std::string>();
-    // }
+    auto Cubemap2::fromEquirectangular(ShaderProgram & equirectangularToCubemapShader, const Texture2D2& equirectangular) -> std::expected<void, std::string>
+    {
+        GLuint captureFBO;
+
+        glGenFramebuffers(1, &captureFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+
+        const std::array<glm::mat4, 6> captureViews = {
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
+        };
+
+        const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+
+        glUseProgram(equirectangularToCubemapShader.id()); // Bad way to use
+        equirectangularToCubemapShader.setInt("u_equirectangularMap", 0);
+
+        equirectangular.bind(GL_TEXTURE0);
+        glViewport(0, 0, m_size, m_size);
+        glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+
+        // TODO optimize ? (unit_cube generic)
+        GLuint cubeVao, cubeVbo;
+        glGenVertexArrays(1, &cubeVao);
+        glGenBuffers(1, &cubeVbo);
+        glBindVertexArray(cubeVao);
+        glBindBuffer(GL_ARRAY_BUFFER, cubeVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeStrip), cubeStrip, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            equirectangularToCubemapShader.setMat4("u_projectionView", captureProjection * captureViews[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                   GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                                   m_id,
+                                   0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 36);
+        }
+
+        glDeleteBuffers(1, &cubeVbo);
+        glDeleteVertexArrays(1, &cubeVao);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &captureFBO);
+
+        return {};
+    }
 }

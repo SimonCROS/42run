@@ -7,16 +7,18 @@
 #include <cstdlib>
 
 #include "42runConfig.h"
+#include "tiny_gltf.h"
 
 import std;
 import Components;
 import Engine;
 import InterfaceBlocks;
 import Window;
+import Image;
 import OpenGL;
 import OpenGL.StateCache;
-import OpenGL.Image;
 import OpenGL.Texture2D2;
+import OpenGL.Cubemap2;
 import Utility.SlotSet;
 
 class Rotator : public Component
@@ -55,34 +57,6 @@ auto start() -> std::expected<void, std::string>
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.vert"),
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
 
-    // auto texture = OpenGL::Texture2D2(nullptr);
-    // {
-    //     auto e_image = OpenGL::Image::create(RESOURCE_PATH"textures/skybox/back.jpg");
-    //     if (!e_image) return std::expected<void, std::string>(std::unexpect, std::move(e_image).error());
-    //
-    //     auto e_texture = OpenGL::Texture2D2::builder(stateCache.get())
-    //                      .fromImage(*e_image, GL_RGB)
-    //                      .build();
-    //     if (!e_texture) return std::expected<void, std::string>(std::unexpect, std::move(e_texture).error());
-    //     texture = *std::move(e_texture);
-    // }
-
-    // std::println("{}", texture);
-    //
-    // return {};
-
-    // auto e_hdrShader = engine.makeShaderVariants("hdr",
-    //                                              RESOURCE_PATH"shaders/hdr.vert",
-    //                                              RESOURCE_PATH"shaders/hdr.frag");
-    // if (!e_hdrShader)
-    //     return std::unexpected(std::move(e_hdrShader).error());
-    //
-    // {
-    //     auto e_return = e_hdrShader->get().enableVariant(None);
-    //     if (!e_return)
-    //         return std::unexpected(std::move(e_return).error());
-    // }
-
     auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
@@ -109,6 +83,20 @@ auto start() -> std::expected<void, std::string>
     };
 
     auto cubemapTexture = Cubemap::Create(faces);
+
+    const auto eqProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
+    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/equirectangular_to_cubemap.frag"), ShaderFlags::None);
+    *engine.getShaderManager().reloadAllShaders();
+    auto e_hdrImage = Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_4k.hdr");
+    if (!e_hdrImage)
+    {
+        return std::unexpected(std::move(e_hdrImage).error());
+    }
+    auto hdrTexture = *OpenGL::Texture2D2::builder(stateCache.get()).fromImage(*e_hdrImage, GL_RGBA32F).build();
+    auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(hdrTexture.width()).build();
+    *cubemap2Texture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
+
     // {
     //     auto& object = engine.instantiate();
     //     auto e_variant = e_skyboxShader->get().enableVariant(None);

@@ -103,7 +103,7 @@ auto Engine::run() -> std::expected<void, std::string>
 
     glPolygonMode(GL_FRONT_AND_BACK, m_polygonMode);
 
-    glClearColor(0.4705882353f, 0.6549019608f, 1.0f, 1.0f);
+    // glClearColor(0.4705882353f, 0.6549019608f, 1.0f, 1.0f);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
@@ -176,7 +176,7 @@ auto Engine::run() -> std::expected<void, std::string>
         {
             useProgram(program);
             program.setVec3("u_cameraPosition", m_camera->object().transform().translation());
-            program.setVec4("u_fogColor", glm::vec4(0.4705882353f, 0.6549019608f, 1.0f, 1.0f));
+            //program.setVec4("u_fogColor", glm::vec4(0.4705882353f, 0.6549019608f, 1.0f, 1.0f));
             program.setVec3("u_lightPosition", {4, 5, 8});
             program.setMat4("u_projectionView", pvMat);
         }

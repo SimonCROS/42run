@@ -184,11 +184,32 @@ void main()
     roughness = clamp(roughness, c_MinRoughness, 1.0);
     metallic = clamp(metallic, c_MinMetallic, 1.0);
 
-    vec3 ambient = vec3(0.2);
     vec3 normal = getNormal();
     vec3 viewDir = normalize(u_cameraPosition - v_position);
+    vec3 R = reflect(-viewDir, normal);
 
-    vec3 result = ambient * baseColor.rgb;
+    // --- BETTER AMBIENT (IBL) ---
+    // Calculate F0 (Reflectance at normal incidence)
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, baseColor.rgb, metallic);
+
+    // Ambient Specular (Reflection) - Sample based on roughness
+    vec3 prefilteredColor = textureLod(u_cubemap, R, roughness * 5.0).rgb;
+
+    // Ambient Diffuse (Irradiance) - Sample very blurry
+    vec3 irradiance = textureLod(u_cubemap, normal, 5.0).rgb;
+    vec3 diffuse = irradiance * baseColor.rgb;
+
+    // Cheap Fresnel for Ambient
+    vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - max(dot(normal, viewDir), 0.0), 5.0);
+
+    // Mix diffuse and specular based on metallic
+    vec3 kD = (1.0 - F) * (1.0 - metallic);
+    vec3 ambient = (kD * diffuse + prefilteredColor * F);
+
+    // Initialize result with Ambient
+    vec3 result = ambient;
+
     // --- IN LOOP
     DirectionalLight sunLight;
     sunLight.direction = vec3(4, -6, -8);

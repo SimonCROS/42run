@@ -15,7 +15,7 @@ namespace OpenGL
         glGenTextures(1, &id);
 
         if (m_stateCache->setActiveTexture(0))
-            glActiveTexture(0);
+            glActiveTexture(GL_TEXTURE0);
         if (m_stateCache->setBoundTexture(id))
             glBindTexture(GL_TEXTURE_2D, id);
 
@@ -33,6 +33,6 @@ namespace OpenGL
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_minFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_magFilter);
 
-        return std::expected<Texture2D2, std::string>{std::in_place, m_stateCache, id};
+        return std::expected<Texture2D2, std::string>{std::in_place, m_stateCache, id, m_internalFormat, m_width, m_height, m_format, m_type};
     }
 }
