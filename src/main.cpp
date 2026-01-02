@@ -7,6 +7,7 @@
 #include <cstdlib>
 
 #include "42runConfig.h"
+#include "stb_image.h"
 #include "tiny_gltf.h"
 
 import std;
@@ -179,6 +180,8 @@ auto start() -> std::expected<void, std::string>
 
 auto main() -> int
 {
+    stbi_set_flip_vertically_on_load(true);
+
     auto e_result = start();
     if (!e_result)
     {
