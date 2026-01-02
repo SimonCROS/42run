@@ -45,7 +45,7 @@ struct DirectionalLight {
 };
 
 const float c_MinRoughness = 0.04;
-const float c_MinMetallic = 0.04;
+const float c_MinMetallic = 0.00;
 const uint c_Shininess = 5;
 
 mat3 getTBNFromDerivatives(vec3 N, vec3 pos, vec2 uv) {
@@ -84,10 +84,12 @@ vec3 getNormal()
     }
 
 #ifdef HAS_NORMALMAP
-    vec3 finalNormal = texture(u_normalMap, v_texCoords[u_normalTexCoordIndex]).rgb;
-    finalNormal = finalNormal * 2.0 - 1.0; // make it [-1, 1]
-    finalNormal = normalize(TBN * finalNormal);
-    finalNormal *= vec3(u_normalScale, u_normalScale, 1.0);
+    vec3 tangentNormal = texture(u_normalMap, v_texCoords[u_normalTexCoordIndex]).rgb;
+    tangentNormal = (tangentNormal * 2.0) - 1.0; // make it [-1, 1]
+    tangentNormal *= u_normalScale;
+    tangentNormal = normalize(tangentNormal);
+
+    vec3 finalNormal = normalize(TBN * tangentNormal);
 #else
     // The tbn matrix is linearly interpolated, so we need to re-normalize
     vec3 finalNormal = normalize(TBN[2].xyz);
@@ -97,46 +99,6 @@ vec3 getNormal()
     // finalNormal *= (2.0 * float(gl_FrontFacing) - 1.0);
 
     return finalNormal;
-}
-
-float distributionGGX(vec3 N, vec3 H, float roughness)
-{
-    float a      = roughness*roughness;
-    float a2     = a*a;
-    float NdotH  = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
-
-    float num   = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return num / denom;
-}
-
-float geometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
-
-    float num   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return num / denom;
-}
-
-float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2  = geometrySchlickGGX(NdotV, roughness);
-    float ggx1  = geometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
-}
-
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 vec3 calcPBRDirectionalLight(
@@ -202,8 +164,6 @@ void main()
     float dist = length(u_cameraPosition - v_position);
     float fogFactor = max(0, dist - 30) * 0.05;
     fogFactor *= fogFactor;
-    if (fogFactor >= 1)
-        discard;
 
     // The albedo may be defined from a base texture or a flat color
     vec4 baseColor = u_baseColorFactor;
@@ -211,9 +171,6 @@ void main()
     baseColor *= texture(u_baseColorTexture, v_texCoords[u_baseColorTexCoordIndex]);
 #endif
     baseColor *= v_color0;
-
-    if(baseColor.a < 0.1)
-        discard;
 
     float roughness = u_roughnessFactor;
     float metallic = u_metallicFactor;
@@ -250,38 +207,11 @@ void main()
 #ifdef HAS_EMISSIVEMAP
     vec3 emissive = texture(u_emissiveMap, v_texCoords[u_emissiveTexCoordIndex]).rgb;
 #else
-    vec3 emissive = baseColor.rgb;
+    vec3 emissive = vec3(0.0);
 #endif
     emissive *= u_emissiveFactor;
     result += emissive;
 
-    /*{
-        // Base reflectivity for non-metals (typical dielectric value)
-        float baseReflectivity = 0.04;
-
-        // Interpolate between non-metal and full metal reflectivity
-        float F0 = mix(baseReflectivity, 1.0, metallic);
-
-        // Approximate Fresnel-Schlick as a function of roughness
-        float fresnel = F0 + (1.0 - F0) * pow(1.0 - roughness, 5.0);
-
-        // Adjust reflectance based on roughness (rougher surfaces reflect less)
-        float roughnessEffect = 1.0 - roughness;
-
-        // Combine factors
-        float reflectance = fresnel * roughnessEffect;
-
-        // Ensure the result is in the [0, 1] range
-        vec3 I = normalize(v_position - u_cameraPosition);
-        vec3 R = reflect(I, normalize(v_Normal));
-        result += vec3(texture(u_cubemap, R).rgb);
-    }*/
-
     result = mix(result, vec3(u_fogColor), fogFactor);
-    /*if (result.r > 1 || result.g > 1 || result.b > 1) {
-        f_color = vec4(1,0,0,1);
-        return;
-    }*/
-
     f_color = vec4(result, baseColor.a);
 }

@@ -34,6 +34,10 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
         {
             const auto & accessorRenderInfo = m_mesh.renderInfo().accessors[attribute.accessor];
 
+            glVertexAttrib4f(2, 1, 1, 1, 1);
+            glVertexAttrib2f(3, 0, 0);
+            glVertexAttrib2f(4, 0, 0);
+
             const int attributeLocation = static_cast<int>(attribute.type);
             if (attributeLocation != -1)
             {

@@ -19,7 +19,7 @@ void main()
     if (u_hdr)
         result = vec3(1.0) - exp(-hdrColor * u_exposure);
     else
-        result = pow(hdrColor, vec3(c_gammaInverse));
+        result = hdrColor;
 
     result = pow(result, vec3(c_gammaInverse));
     f_color = vec4(result, 1.0);

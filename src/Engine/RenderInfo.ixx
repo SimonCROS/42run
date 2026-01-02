@@ -87,15 +87,15 @@ export struct Material
 
 export enum class PrimitiveAttributeType
 {
-    Position,
-    Normal,
-    Color0,
-    TexCoord0,
-    TexCoord1,
-    Tangent,
-    Joints0,
-    Weights0,
-    Invalid,
+    Position = 0,
+    Normal = 1,
+    Color0 = 2,
+    TexCoord0 = 3,
+    TexCoord1 = 4,
+    Tangent = 5,
+    Joints0 = 6,
+    Weights0 = 7,
+    Invalid = -1,
 };
 
 export struct PrimitiveAttribute
