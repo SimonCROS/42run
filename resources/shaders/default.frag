@@ -101,64 +101,6 @@ vec3 getNormal()
     return finalNormal;
 }
 
-vec3 calcPBRDirectionalLight(
-    vec3 N,             // Normal (world space)
-    vec3 V,             // View direction (normalized, world space)
-    vec3 L,             // Light direction (normalized, world space, points TO light)
-    vec3 albedo,        // Base color (non-metal: diffuse, metal: reflective tint)
-    float metallic,     // 0 = dielectric, 1 = metal
-    float roughness,    // 0 = smooth, 1 = rough
-    vec3 lightColor     // Light radiance (RGB color * intensity)
-) {
-    // Clamp roughness to prevent division issues
-    roughness = clamp(roughness, 0.05, 1.0);
-
-    // Half vector
-    vec3 H = normalize(V + L);
-
-    // Fresnel reflectance at normal incidence
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
-
-    // ----- Cook-Torrance BRDF -----
-
-    // Normal Distribution Function (GGX)
-    float a      = roughness * roughness;
-    float a2     = a * a;
-    float NdotH  = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
-
-    float denomNDF = (NdotH2 * (a2 - 1.0) + 1.0);
-    float D = a2 / (PI * denomNDF * denomNDF);
-
-    // Geometry function (Smith, Schlick-GGX)
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-
-    float k = (roughness + 1.0);
-    k = (k * k) / 8.0;
-
-    float G_V = NdotV / (NdotV * (1.0 - k) + k);
-    float G_L = NdotL / (NdotL * (1.0 - k) + k);
-    float G = G_V * G_L;
-
-    // Fresnel term (Schlick approximation)
-    float HdotV = max(dot(H, V), 0.0);
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - HdotV, 5.0);
-
-    // Final specular term
-    vec3 specular = (D * G * F) / max(4.0 * NdotL * NdotV, 0.001);
-
-    // Diffuse term (Lambert) — no diffuse for metals
-    vec3 kS = F;
-    vec3 kD = (1.0 - kS) * (1.0 - metallic);
-    vec3 diffuse = kD * albedo / PI;
-
-    // Final light contribution
-    vec3 result = (diffuse + specular) * lightColor * NdotL;
-
-    return result;
-}
-
 void main()
 {
     float dist = length(u_cameraPosition - v_position);
@@ -201,7 +143,7 @@ void main()
 
     // 4. Sample IBL (Cubemap)
     // Irradiance: Blurry map for diffuse (High mip level)
-    vec3 irradiance = textureLod(u_cubemap, N, 8).rgb;
+    vec3 irradiance = textureLod(u_irradianceCubemap, N, 4.0).rgb;
     // Prefilter: Sharp-to-blurry map for reflections based on roughness
     vec3 prefilteredColor = textureLod(u_cubemap, R, roughness * 4.0).rgb;
 

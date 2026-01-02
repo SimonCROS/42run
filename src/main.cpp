@@ -88,7 +88,20 @@ auto start() -> std::expected<void, std::string>
     const auto eqProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
     *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/equirectangular_to_cubemap.frag"), ShaderFlags::None);
-    *engine.getShaderManager().reloadAllShaders();
+
+    const auto irradianceProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
+    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/irradiance.frag"), ShaderFlags::None);
+
+    *engine.getShaderManager().getOrCreateShaderProgram(
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.vert"),
+    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"), ShaderFlags::None);
+
+    if (const auto && e_result = engine.getShaderManager().reloadAllShaders(); !e_result)
+    {
+        return std::unexpected(std::move(e_result).error());
+    }
+
     auto e_hdrImage = Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr");
     if (!e_hdrImage)
     {
@@ -100,19 +113,17 @@ auto start() -> std::expected<void, std::string>
     auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(512).build();
     *cubemap2Texture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
 
-    *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.vert"),
-    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"), ShaderFlags::None);
-    *engine.getShaderManager().reloadAllShaders();
+    auto irradianceMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(512).build();
+    *irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap2Texture);
 
     {
         auto& object = engine.instantiate();
-        object.addComponent<SkyboxRenderer>(engine, cubemap2Texture);
+        object.addComponent<SkyboxRenderer>(engine, irradianceMap);
     }
 
     {
         auto & object = engine.instantiate();
-        object.addComponent<MeshRenderer>(*e_spheresMesh, cubemap2Texture);
+        object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap);
     }
 
     {
