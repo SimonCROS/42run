@@ -21,7 +21,7 @@ static auto instantiatePlaneTwoTables(Engine& engine, OpenGL::Cubemap2& cubemapT
     // Floor
     auto& object = engine.instantiate();
     object.transform().setTranslation({0, 0, 5});
-    object.addComponent<MeshRenderer>(floorMesh, cubemapTexture);
+    //object.addComponent<MeshRenderer>(floorMesh, cubemapTexture);
 
     {
         // Desk
@@ -29,7 +29,7 @@ static auto instantiatePlaneTwoTables(Engine& engine, OpenGL::Cubemap2& cubemapT
         subObject.transform().scale(0.004f);
         subObject.transform().setTranslation({-2, 0, 5});
         subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-        subObject.addComponent<MeshRenderer>(deskMesh, cubemapTexture);
+        //subObject.addComponent<MeshRenderer>(deskMesh, cubemapTexture);
         subObject.setParent(object);
     }
 
@@ -39,7 +39,7 @@ static auto instantiatePlaneTwoTables(Engine& engine, OpenGL::Cubemap2& cubemapT
         subObject.transform().scale(0.004f);
         subObject.transform().setTranslation({2, 0, 2});
         subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-        subObject.addComponent<MeshRenderer>(deskMesh, cubemapTexture);
+        //subObject.addComponent<MeshRenderer>(deskMesh, cubemapTexture);
         subObject.setParent(object);
     }
     return object;

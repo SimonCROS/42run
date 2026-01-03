@@ -54,36 +54,13 @@ auto start() -> std::expected<void, std::string>
     const SlotSetIndex defaultFragIdx = *engine.getShaderManager().getOrAddShaderFile(
         RESOURCE_PATH"shaders/default.frag");
 
-    (void) *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
-
-    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
+    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres_smooth.glb", true);
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
 
-    if (const auto && e_result = e_spheresMesh->get().prepareShaderPrograms(
-        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
-    {
-        return e_result;
-    }
-
-    if (const auto && e_result = engine.getShaderManager().reloadAllShaders(); !e_result)
-    {
-        return e_result;
-    }
-
-    // const std::vector<std::string> faces
-    // {
-    //     RESOURCE_PATH"textures/skybox/posx.jpg",
-    //     RESOURCE_PATH"textures/skybox/negx.jpg",
-    //     RESOURCE_PATH"textures/skybox/posy.jpg",
-    //     RESOURCE_PATH"textures/skybox/negy.jpg",
-    //     RESOURCE_PATH"textures/skybox/posz.jpg",
-    //     RESOURCE_PATH"textures/skybox/negz.jpg",
-    // };
-    //
-    // auto cubemapTexture = Cubemap::Create(faces);
+    *engine.getShaderManager().getOrCreateShaderProgram(
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.vert"),
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
 
     const auto eqProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
@@ -97,9 +74,15 @@ auto start() -> std::expected<void, std::string>
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.vert"),
     *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"), ShaderFlags::None);
 
+    if (const auto && e_result = e_spheresMesh->get().prepareShaderPrograms(
+        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
+    {
+        return e_result;
+    }
+
     if (const auto && e_result = engine.getShaderManager().reloadAllShaders(); !e_result)
     {
-        return std::unexpected(std::move(e_result).error());
+        return e_result;
     }
 
     auto e_hdrImage = Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr");
@@ -123,7 +106,7 @@ auto start() -> std::expected<void, std::string>
 
     {
         auto & object = engine.instantiate();
-        object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap);
+        object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap, cubemap2Texture);
     }
 
     {
@@ -170,7 +153,7 @@ auto start() -> std::expected<void, std::string>
     //     auto& object = engine.instantiate();
     //     object.transform().scale(0.65f);
     //     auto& animator = object.addComponent<Animator>(*e_ancientMesh);
-    //     auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, cubemapTexture);
+    //     auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, irradianceMap, cubemap2Texture);
     //     object.addComponent<PlayerController>();
     //     meshRenderer.setAnimator(animator);
     //     animator.setAnimation(0);

@@ -33,7 +33,8 @@ uniform float u_metallicFactor;
 uniform float u_roughnessFactor;
 uniform float u_normalScale;
 uniform vec3 u_emissiveFactor;
-uniform samplerCube u_cubemap;
+uniform samplerCube u_irradianceMap;
+uniform samplerCube u_prefilterMap;
 
 uniform vec3 u_cameraPosition;
 uniform vec3 u_sunDirection;
@@ -143,9 +144,9 @@ void main()
 
     // 4. Sample IBL (Cubemap)
     // Irradiance: Blurry map for diffuse (High mip level)
-    vec3 irradiance = textureLod(u_irradianceCubemap, N, 4.0).rgb;
+    vec3 irradiance = texture(u_irradianceMap, N).rgb;
     // Prefilter: Sharp-to-blurry map for reflections based on roughness
-    vec3 prefilteredColor = textureLod(u_cubemap, R, roughness * 4.0).rgb;
+    vec3 prefilteredColor = textureLod(u_prefilterMap, R, roughness * 4.0).rgb;
 
     // 5. Calculate Diffuse/Specular contributions
     vec3 kD = (1.0 - F) * (1.0 - metallic);
