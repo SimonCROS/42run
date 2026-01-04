@@ -7,7 +7,7 @@ layout (location = 0) out vec4 f_color;
 uniform samplerCube u_cubemap;
 uniform float u_roughness;
 
-const float c_maxHdrValue = 50.0;
+const float c_maxHdrValue = 20.0;
 
 const float PI = 3.14159265359;
 
@@ -71,14 +71,14 @@ void main()
     vec3 R = N;
     vec3 V = R;
 
-    const uint SAMPLE_COUNT = 1024u;
+    uint sampleCount = uint(32.0 + (4096.0 - 32.0) * pow(u_roughness, 2.0));
     vec3 prefilteredColor = vec3(0.0);
     float totalWeight = 0.0;
 
-    for(uint i = 0u; i < SAMPLE_COUNT; ++i)
+    for(uint i = 0u; i < sampleCount; ++i)
     {
         // generates a sample vector that's biased towards the preferred alignment direction (importance sampling).
-        vec2 Xi = Hammersley(i, SAMPLE_COUNT);
+        vec2 Xi = Hammersley(i, sampleCount);
         vec3 H = ImportanceSampleGGX(Xi, N, u_roughness);
         vec3 L  = normalize(2.0 * dot(V, H) * H - V);
 
@@ -89,15 +89,15 @@ void main()
             float D   = DistributionGGX(N, H, u_roughness);
             float NdotH = max(dot(N, H), 0.0);
             float HdotV = max(dot(H, V), 0.0);
-            float pdf = D * NdotH / (4.0 * HdotV) + 0.0001;
+            float pdf = D * NdotH / ((4.0 * HdotV) + 0.0001);
 
             float resolution = 512.0; // resolution of source cubemap (per face)
             float saTexel  = 4.0 * PI / (6.0 * resolution * resolution);
-            float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
+            float saSample = 1.0 / (float(sampleCount) * pdf + 0.0001);
 
             float mipLevel = u_roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
 
-            vec3 sampleColor = texture(u_cubemap, L, mipLevel).rgb;
+            vec3 sampleColor = textureLod(u_cubemap, L, mipLevel).rgb;
             sampleColor = min(sampleColor, vec3(c_maxHdrValue));
 
             prefilteredColor += sampleColor * NdotL;
@@ -105,7 +105,7 @@ void main()
         }
     }
 
-    prefilteredColor = prefilteredColor / totalWeight;
+    prefilteredColor = prefilteredColor / (totalWeight + 0.0001);
 
     f_color = vec4(prefilteredColor, 1.0);
 }

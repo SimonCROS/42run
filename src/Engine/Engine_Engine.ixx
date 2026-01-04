@@ -221,3 +221,106 @@ public:
         return *it->second;
     }
 };
+
+// TODO move
+export void * bufferOffset(const size_t offset)
+{
+    return reinterpret_cast<void *>(offset);
+}
+
+// TODO move
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+unsigned int cubeVAO = 0;
+unsigned int cubeVBO;
+
+// TODO move
+static constexpr float quadStrip[] = {
+    // x, y, z, u, v
+    -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+    1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+};
+
+// TODO move
+static constexpr GLfloat cubeStrip[] = {
+    -0.5f, 0.5f, 0.5f,     // Front-top-left
+    0.5f, 0.5f, 0.5f,      // Front-top-right
+    -0.5f, -0.5f, 0.5f,    // Front-bottom-left
+    0.5f, -0.5f, 0.5f,     // Front-bottom-right
+    0.5f, -0.5f, -0.5f,    // Back-bottom-right
+    0.5f, 0.5f, 0.5f,      // Front-top-right
+    0.5f, 0.5f, -0.5f,     // Back-top-right
+    -0.5f, 0.5f, 0.5f,     // Front-top-left
+    -0.5f, 0.5f, -0.5f,    // Back-top-left
+    -0.5f, -0.5f, 0.5f,    // Front-bottom-left
+    -0.5f, -0.5f, -0.5f,   // Back-bottom-left
+    0.5f, -0.5f, -0.5f,    // Back-bottom-right
+    -0.5f, 0.5f, -0.5f,    // Back-top-left
+    0.5f, 0.5f, -0.5f      // Back-top-right
+};
+
+// TODO move
+export void renderQuad()
+{
+    constexpr size_t stride = 5;
+
+    if (quadVAO == 0)
+    {
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadStrip), &quadStrip, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(0,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            stride * sizeof(float),
+            nullptr);
+        glVertexAttribPointer(1,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            stride * sizeof(float),
+            bufferOffset(3 * sizeof(float)));
+    }
+
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, std::size(quadStrip) / stride);
+    glBindVertexArray(0);
+}
+
+export void renderCube()
+{
+    constexpr size_t stride = 3;
+
+    if (cubeVAO == 0)
+    {
+        glGenVertexArrays(1, &cubeVAO);
+        glGenBuffers(1, &cubeVBO);
+
+        glBindVertexArray(cubeVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeStrip), &cubeStrip, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(0,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            stride * sizeof(float),
+            nullptr);
+    }
+
+    glBindVertexArray(cubeVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, std::size(cubeStrip) / stride);
+    glBindVertexArray(0);
+}

@@ -11,23 +11,6 @@ module OpenGL.Cubemap2;
 import OpenGL;
 import Engine;
 
-static constexpr GLfloat cubeStrip[] = {
-    -0.5f, 0.5f, 0.5f,     // Front-top-left
-    0.5f, 0.5f, 0.5f,      // Front-top-right
-    -0.5f, -0.5f, 0.5f,    // Front-bottom-left
-    0.5f, -0.5f, 0.5f,     // Front-bottom-right
-    0.5f, -0.5f, -0.5f,    // Back-bottom-right
-    0.5f, 0.5f, 0.5f,      // Front-top-right
-    0.5f, 0.5f, -0.5f,     // Back-top-right
-    -0.5f, 0.5f, 0.5f,     // Front-top-left
-    -0.5f, 0.5f, -0.5f,    // Back-top-left
-    -0.5f, -0.5f, 0.5f,    // Front-bottom-left
-    -0.5f, -0.5f, -0.5f,   // Back-bottom-left
-    0.5f, -0.5f, -0.5f,    // Back-bottom-right
-    -0.5f, 0.5f, -0.5f,    // Back-top-left
-    0.5f, 0.5f, -0.5f      // Back-top-right
-};
-
 namespace OpenGL
 {
     auto CubemapBuilder::build() const -> std::expected<Cubemap2, std::string>
@@ -94,16 +77,6 @@ namespace OpenGL
 
         equirectangular.bind(GL_TEXTURE0);
 
-        // TODO optimize ? (unit_cube generic)
-        GLuint cubeVao, cubeVbo;
-        glGenVertexArrays(1, &cubeVao);
-        glGenBuffers(1, &cubeVbo);
-        glBindVertexArray(cubeVao);
-        glBindBuffer(GL_ARRAY_BUFFER, cubeVbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeStrip), cubeStrip, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-
         for (unsigned int i = 0; i < 6; ++i)
         {
             converter.setMat4("u_projectionView", captureProjection * captureViews[i]);
@@ -113,14 +86,12 @@ namespace OpenGL
                                    m_id,
                                    0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, std::size(cubeStrip) / 3);
+            renderCube();
         }
 
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-        glDeleteBuffers(1, &cubeVbo);
-        glDeleteVertexArrays(1, &cubeVao);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteFramebuffers(1, &captureFBO);
         glEnable(GL_DEPTH_TEST);
@@ -128,6 +99,7 @@ namespace OpenGL
         return {};
     }
 
+    // TODO change to from shader because cubemap can be mapped outside the function
     auto Cubemap2::fromCubemap(ShaderProgram & converter, const Cubemap2& cubemap, const GLint level) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
@@ -153,16 +125,6 @@ namespace OpenGL
 
         cubemap.bind(GL_TEXTURE0);
 
-        // TODO optimize ? (unit_cube generic)
-        GLuint cubeVao, cubeVbo;
-        glGenVertexArrays(1, &cubeVao);
-        glGenBuffers(1, &cubeVbo);
-        glBindVertexArray(cubeVao);
-        glBindBuffer(GL_ARRAY_BUFFER, cubeVbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeStrip), cubeStrip, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-
         // ------------ TMP ------------
         float roughness = (float)level / (float)(5 - 1);
         converter.setFloat("u_roughness", roughness);
@@ -177,11 +139,9 @@ namespace OpenGL
                                    m_id,
                                    level);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, std::size(cubeStrip) / 3);
+            renderCube();
         }
 
-        glDeleteBuffers(1, &cubeVbo);
-        glDeleteVertexArrays(1, &cubeVao);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteFramebuffers(1, &captureFBO);
         glEnable(GL_DEPTH_TEST);

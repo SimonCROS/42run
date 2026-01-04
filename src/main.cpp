@@ -53,17 +53,21 @@ auto start() -> std::expected<void, std::string>
 
     // TODO safe
     const SlotSetIndex defaultVertIdx = *engine.getShaderManager().getOrAddShaderFile(
-        RESOURCE_PATH"shaders/default.vert");
+        RESOURCE_PATH"shaders/pbr.vert");
     const SlotSetIndex defaultFragIdx = *engine.getShaderManager().getOrAddShaderFile(
-        RESOURCE_PATH"shaders/default.frag");
+        RESOURCE_PATH"shaders/pbr.frag");
 
-    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
+    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres_smooth.glb", true);
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
 
     *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.vert"),
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"),
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
+
+    const auto brdfProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"),
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/brdf.frag"), ShaderFlags::None);
 
     const auto eqProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
@@ -97,21 +101,27 @@ auto start() -> std::expected<void, std::string>
     {
         return std::unexpected(std::move(e_hdrImage).error());
     }
+
+    const GLuint cubemapSize = 512;
+
     auto hdrTexture = *OpenGL::Texture2D2::builder(stateCache.get()).fromImage(*e_hdrImage, GL_RGB32F).build();
     std::println("{}", *e_hdrImage);
     std::println("{}", hdrTexture);
-    auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(512).build();
+    auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
     *cubemap2Texture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
 
-    auto irradianceMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(512).build();
+    auto irradianceMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
     *irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap2Texture, 0);
 
-    auto prefilterMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(512).withFiltering(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR).build();
+    auto prefilterMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).withFiltering(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR).build();
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 0);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 1);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 2);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 3);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 4);
+
+    // auto brdfTexture = *OpenGL::Texture2D2::builder(stateCache.get()).withDimensions(cubemapSize, cubemapSize).build();
+    // brdfTexture.fromShader(brdfTexture);
 
     {
         auto& object = engine.instantiate();

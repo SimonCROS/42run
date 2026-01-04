@@ -6,7 +6,7 @@ layout (location = 0) out vec4 f_color;
 
 uniform samplerCube u_cubemap;
 
-const float c_maxHdrValue = 50.0;
+const float c_maxHdrValue = 20.0;
 
 const float PI = 3.14159265359;
 

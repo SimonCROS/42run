@@ -14,11 +14,6 @@ import Engine;
 import Engine.RenderInfo;
 import OpenGL;
 
-static void * bufferOffset(const size_t offset)
-{
-    return reinterpret_cast<void *>(offset);
-}
-
 auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::mat4 & transform) -> void
 {
     const auto & meshRenderInfo = m_mesh.renderInfo().meshes[meshIndex];
@@ -56,8 +51,8 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
         // TODO have a default material instead of getting a default shader here when no material
         const auto programIdx = primitiveRenderInfo.material >= 0 ? m_mesh.renderInfo().materials[primitiveRenderInfo.material].programIndex :
-            *engine.getShaderManager().getOrCreateShaderProgram(*engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/default.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/default.frag"), ShaderFlags::None);
+            *engine.getShaderManager().getOrCreateShaderProgram(*engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.vert"),
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.frag"), ShaderFlags::None);
         auto & program = engine.getShaderManager().getProgram(programIdx);
         engine.useProgram(program);
 
