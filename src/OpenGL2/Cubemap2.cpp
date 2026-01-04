@@ -40,17 +40,20 @@ namespace OpenGL
         if (m_stateCache->setBoundTexture(id))
             glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 
-        for (GLuint i = 0; i < 6; ++i)
+        for (GLuint l = 0; l < 5; ++l)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                         0,
-                         m_internalFormat,
-                         m_size,
-                         m_size,
-                         0,
-                         m_format,
-                         m_type,
-                         m_faceData[i]);
+            for (GLuint i = 0; i < 6; ++i)
+            {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                             l,
+                             m_internalFormat,
+                             m_size >> l,
+                             m_size >> l,
+                             0,
+                             m_format,
+                             m_type,
+                             m_faceData[i]);
+            }
         }
 
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, m_minFilter);
@@ -58,6 +61,7 @@ namespace OpenGL
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 4);
 
         return std::expected<Cubemap2, std::string>{std::in_place, m_stateCache, id, m_size};
     }
@@ -65,6 +69,9 @@ namespace OpenGL
     auto Cubemap2::fromEquirectangular(ShaderProgram & converter, const Texture2D2& equirectangular) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
 
         glDisable(GL_DEPTH_TEST);
         glGenFramebuffers(1, &captureFBO);
@@ -121,14 +128,14 @@ namespace OpenGL
         return {};
     }
 
-    auto Cubemap2::fromCubemap(ShaderProgram & converter, const OpenGL::Cubemap2& cubemap) -> std::expected<void, std::string>
+    auto Cubemap2::fromCubemap(ShaderProgram & converter, const Cubemap2& cubemap, const GLint level) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
 
         glDisable(GL_DEPTH_TEST);
         glGenFramebuffers(1, &captureFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-        glViewport(0, 0, m_size, m_size);
+        glViewport(0, 0, m_size >> level, m_size >> level);
 
         const std::array<glm::mat4, 6> captureViews = {
             glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
@@ -156,6 +163,11 @@ namespace OpenGL
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
 
+        // ------------ TMP ------------
+        float roughness = (float)level / (float)(5 - 1);
+        converter.setFloat("u_roughness", roughness);
+        // ------------ TMP ------------
+
         for (unsigned int i = 0; i < 6; ++i)
         {
             converter.setMat4("u_projectionView", captureProjection * captureViews[i]);
@@ -163,13 +175,10 @@ namespace OpenGL
                                    GL_COLOR_ATTACHMENT0,
                                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                                    m_id,
-                                   0);
+                                   level);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, std::size(cubeStrip) / 3);
         }
-
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
-        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
         glDeleteBuffers(1, &cubeVbo);
         glDeleteVertexArrays(1, &cubeVao);

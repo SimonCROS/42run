@@ -34,6 +34,8 @@ Engine::Engine(Window && window) noexcept : m_window(std::move(window))
 
     const bool hasDebugOutput = GLAD_GL_KHR_debug || GLAD_GL_ARB_debug_output;
 
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     int flags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
     glEnable(GL_DEPTH_TEST);

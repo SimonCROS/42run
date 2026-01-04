@@ -85,7 +85,7 @@ export namespace OpenGL
             -> std::expected<void, std::string>;
 
         [[nodiscard]]
-        auto fromCubemap(ShaderProgram & converter, const Cubemap2& cubemap)
+        auto fromCubemap(ShaderProgram & converter, const Cubemap2& cubemap, GLint level)
             -> std::expected<void, std::string>;
 
         [[nodiscard]]

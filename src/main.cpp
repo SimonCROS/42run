@@ -24,12 +24,15 @@ import Utility.SlotSet;
 
 class Rotator : public Component
 {
+private:
+    glm::vec3 m_axis;
+
 public:
-    explicit Rotator(Object& object) : Component(object) {  }
+    explicit Rotator(Object& object, const glm::vec3 axis) : Component(object), m_axis(axis) {  }
 
     auto onUpdate(Engine& engine) -> void override
     {
-        object().transform().rotate(glm::quat(glm::vec3(0.0f, 0.0f, glm::radians(0.2f))));
+        object().transform().rotate(glm::quat(m_axis * glm::radians(0.2f)));
     }
 };
 
@@ -54,7 +57,7 @@ auto start() -> std::expected<void, std::string>
     const SlotSetIndex defaultFragIdx = *engine.getShaderManager().getOrAddShaderFile(
         RESOURCE_PATH"shaders/default.frag");
 
-    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres_smooth.glb", true);
+    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
 
@@ -69,6 +72,10 @@ auto start() -> std::expected<void, std::string>
     const auto irradianceProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
     *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/irradiance.frag"), ShaderFlags::None);
+
+    const auto prefilterProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
+    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/prefilter.frag"), ShaderFlags::None);
 
     *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.vert"),
@@ -97,7 +104,14 @@ auto start() -> std::expected<void, std::string>
     *cubemap2Texture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
 
     auto irradianceMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(512).build();
-    *irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap2Texture);
+    *irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap2Texture, 0);
+
+    auto prefilterMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(512).withFiltering(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR).build();
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 0);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 1);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 2);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 3);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 4);
 
     {
         auto& object = engine.instantiate();
@@ -106,7 +120,7 @@ auto start() -> std::expected<void, std::string>
 
     {
         auto & object = engine.instantiate();
-        object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap, cubemap2Texture);
+        object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap, prefilterMap);
     }
 
     {
