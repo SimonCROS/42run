@@ -60,8 +60,10 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
         engine.bindCubemap(0, m_irradianceMap.id());
         engine.bindCubemap(1, m_prefilterMap.id());
+        engine.bindTexture(2, m_brdfLUT.id());
         program.setInt("u_irradianceMap", 0);
         program.setInt("u_prefilterMap", 1);
+        program.setInt("u_brdfLUT", 2);
 
         if (primitiveRenderInfo.material >= 0)
         {
@@ -73,14 +75,14 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
             if (material.pbr.baseColorTexture.index >= 0)
             {
                 engine.bindTexture(2, m_mesh.texture(material.pbr.baseColorTexture.index));
-                program.setInt("u_baseColorTexture", 2);
+                program.setInt("u_baseColorTexture", 3);
                 program.setUint("u_baseColorTexCoordIndex", material.pbr.baseColorTexture.texCoord);
             }
 
             if (material.pbr.metallicRoughnessTexture.index >= 0)
             {
                 engine.bindTexture(3, m_mesh.texture(material.pbr.metallicRoughnessTexture.index));
-                program.setInt("u_metallicRoughnessMap", 3);
+                program.setInt("u_metallicRoughnessMap", 4);
                 program.setUint("u_metallicRoughnessTexCoordIndex",
                                 material.pbr.metallicRoughnessTexture.texCoord);
             }
@@ -88,14 +90,14 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
             if (material.normalTexture.index >= 0)
             {
                 engine.bindTexture(4, m_mesh.texture(material.normalTexture.index));
-                program.setInt("u_normalMap", 4);
+                program.setInt("u_normalMap", 5);
                 program.setUint("u_normalTexCoordIndex", material.normalTexture.texCoord);
             }
 
             if (material.emissiveTexture.index >= 0)
             {
                 engine.bindTexture(5, m_mesh.texture(material.emissiveTexture.index));
-                program.setInt("u_emissiveMap", 5);
+                program.setInt("u_emissiveMap", 6);
                 program.setUint("u_emissiveTexCoordIndex", material.emissiveTexture.texCoord);
             }
 

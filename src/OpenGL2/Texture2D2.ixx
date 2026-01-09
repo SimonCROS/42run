@@ -11,6 +11,7 @@ import std;
 import glToString;
 import OpenGL.StateCache;
 import Image;
+import ShaderProgram;
 
 export namespace OpenGL
 {
@@ -101,6 +102,9 @@ export namespace OpenGL
         constexpr auto format() const noexcept -> GLenum { return m_format; }
         [[nodiscard]]
         constexpr auto type() const noexcept -> GLenum { return m_type; }
+
+        [[nodiscard]]
+        auto fromShader(ShaderProgram & converter) -> std::expected<void, std::string>;
     };
 }
 

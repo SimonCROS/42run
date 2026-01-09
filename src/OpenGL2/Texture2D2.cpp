@@ -6,6 +6,8 @@ module;
 #include "glad/gl.h"
 
 module OpenGL.Texture2D2;
+import ShaderProgram;
+import Engine;
 
 namespace OpenGL
 {
@@ -35,4 +37,33 @@ namespace OpenGL
 
         return std::expected<Texture2D2, std::string>{std::in_place, m_stateCache, id, m_internalFormat, m_width, m_height, m_format, m_type};
     }
+
+    auto Texture2D2::fromShader(ShaderProgram & converter) -> std::expected<void, std::string>
+        {
+            GLuint captureFBO;
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, m_id);
+
+            glDisable(GL_DEPTH_TEST);
+            glGenFramebuffers(1, &captureFBO);
+            glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+            glViewport(0, 0, m_width, m_height);
+
+            glUseProgram(converter.id()); // Bad way to use
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                   GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D,
+                                   m_id,
+                                   0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            renderQuad();
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDeleteFramebuffers(1, &captureFBO);
+            glEnable(GL_DEPTH_TEST);
+
+            return {};
+        }
 }

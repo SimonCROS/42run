@@ -35,6 +35,7 @@ uniform float u_normalScale;
 uniform vec3 u_emissiveFactor;
 uniform samplerCube u_irradianceMap;
 uniform samplerCube u_prefilterMap;
+uniform sampler2D   u_brdfLUT;
 
 uniform vec3 u_cameraPosition;
 uniform vec3 u_sunDirection;
@@ -142,6 +143,7 @@ void main()
     // 3. Fresnel (Schlick roughness approximation)
     vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
 
+    vec2 envBRDF = texture(u_brdfLUT, vec2(NdotV, roughness)).rg;
     // 4. Sample IBL (Cubemap)
     // Irradiance: Blurry map for diffuse (High mip level)
     vec3 irradiance = texture(u_irradianceMap, N).rgb;
@@ -152,7 +154,7 @@ void main()
     vec3 kD = (1.0 - F) * (1.0 - metallic);
 
     vec3 diffuse = kD * irradiance * baseColor.rgb;
-    vec3 specular = prefilteredColor * F; // Scale reflection by Fresnel!
+    vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
     // 6. Final Ambient Term
     vec3 ambient = (diffuse + specular) * ao;

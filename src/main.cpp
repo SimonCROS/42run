@@ -120,8 +120,8 @@ auto start() -> std::expected<void, std::string>
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 3);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 4);
 
-    // auto brdfTexture = *OpenGL::Texture2D2::builder(stateCache.get()).withDimensions(cubemapSize, cubemapSize).build();
-    // brdfTexture.fromShader(brdfTexture);
+    auto brdfTexture = *OpenGL::Texture2D2::builder(stateCache.get()).withDimensions(cubemapSize, cubemapSize).withFormat(GL_RG16F, GL_RG, hdrTexture.type()).build();
+    *brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx));
 
     {
         auto& object = engine.instantiate();
@@ -130,7 +130,7 @@ auto start() -> std::expected<void, std::string>
 
     {
         auto & object = engine.instantiate();
-        object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap, prefilterMap);
+        object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap, prefilterMap, brdfTexture);
     }
 
     {
