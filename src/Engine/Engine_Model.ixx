@@ -40,22 +40,5 @@ public:
                                              const SlotSetIndex vertexShaderFile,
                                              const SlotSetIndex fragmentShaderFile)
         -> std::expected<void, std::string>
-    {
-        auto & renderInfo = m_renderInfo;
-        for (int i = 0; i < renderInfo.materialsCount; ++i)
-        {
-            auto & material = renderInfo.materials[i];
-
-            const auto e_result = manager.
-                    getOrCreateShaderProgram(vertexShaderFile, fragmentShaderFile, material.shaderFlags);
-            if (!e_result)
-            {
-                return std::unexpected(std::move(e_result).error());
-            }
-
-            material.programIndex = *e_result;
-        }
-
-        return {};
-    }
+    ;
 };

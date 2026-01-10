@@ -324,7 +324,7 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
                     }
                     else if (attributeName == "JOINTS_0")
                     {
-                        vertexArrayFlags |= VertexArrayHasSkin;
+                        vertexArrayFlags |= VertexArrayHasJoints;
                         type = PrimitiveAttributeType::Joints0;
                     }
                     else if (attributeName == "WEIGHTS_0")
@@ -413,4 +413,42 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
     return {
         std::move(textures), std::move(animations), std::move(renderInfo)
     };
+}
+
+auto Model::prepareShaderPrograms(ShaderManager & manager, const SlotSetIndex vertexShaderFile,
+    const SlotSetIndex fragmentShaderFile) -> std::expected<void, std::string> {
+    auto & renderInfo = m_renderInfo;
+    for (int meshIdx = 0; meshIdx < renderInfo.meshesCount; ++meshIdx)
+    {
+        auto & mesh = renderInfo.meshes[meshIdx];
+        for (int primitiveIdx = 0; primitiveIdx < mesh.primitivesCount; ++primitiveIdx)
+        {
+            auto & primitive = mesh.primitives[primitiveIdx];
+
+            ShaderFlags shaderFlags = [&renderInfo, &primitive]()
+            {
+                if (primitive.material == -1)
+                {
+                    return ShaderFlags::None;
+                }
+                return renderInfo.materials[primitive.material].shaderFlags;
+            }();
+
+            if ((primitive.vertexArrayFlags & VertexArrayHasJoints) == VertexArrayHasJoints)
+            {
+                shaderFlags |= ShaderFlags::HasSkin;
+            }
+
+            const auto e_result = manager.
+                    getOrCreateShaderProgram(vertexShaderFile, fragmentShaderFile, shaderFlags);
+            if (!e_result)
+            {
+                return std::unexpected(std::move(e_result).error());
+            }
+
+            primitive.programIndex = *e_result;
+        }
+    }
+
+    return {};
 }

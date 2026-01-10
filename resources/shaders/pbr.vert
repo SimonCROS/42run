@@ -7,7 +7,7 @@ layout (location = 2) in vec4 a_color0;
 layout (location = 3) in vec2 a_texCoords0;
 layout (location = 4) in vec2 a_texCoords1;
 layout (location = 5) in vec4 a_tangent;
-layout (location = 6) in vec4 a_joint;
+layout (location = 6) in ivec4 a_joint;
 layout (location = 7) in vec4 a_weight;
 
 layout (location = 0) out vec3 v_position;

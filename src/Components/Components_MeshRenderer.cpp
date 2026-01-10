@@ -4,7 +4,6 @@
 
 module;
 
-#include "42runConfig.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "glad/gl.h"
 
@@ -25,13 +24,15 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
         auto & vertexArray = engine.getVertexArray(primitiveRenderInfo.vertexArrayFlags);
         engine.bindVertexArray(vertexArray);
 
+        glVertexAttrib3f(1, 0, 0, 0); // Normal
+        glVertexAttrib4f(2, 1, 1, 1, 1); // Color0
+        glVertexAttrib2f(3, 0, 0); // TexCoord0
+        glVertexAttrib2f(4, 0, 0); // TexCoord1
+        glVertexAttrib4f(5, 0, 0, 0, 0); // Tangent
+
         for (const auto & attribute: primitiveRenderInfo.attributes)
         {
             const auto & accessorRenderInfo = m_mesh.renderInfo().accessors[attribute.accessor];
-
-            glVertexAttrib4f(2, 1, 1, 1, 1);
-            glVertexAttrib2f(3, 0, 0);
-            glVertexAttrib2f(4, 0, 0);
 
             const int attributeLocation = static_cast<int>(attribute.type);
             if (attributeLocation != -1)
@@ -49,11 +50,7 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
             }
         }
 
-        // TODO have a default material instead of getting a default shader here when no material
-        const auto programIdx = primitiveRenderInfo.material >= 0 ? m_mesh.renderInfo().materials[primitiveRenderInfo.material].programIndex :
-            *engine.getShaderManager().getOrCreateShaderProgram(*engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.frag"), ShaderFlags::None);
-        auto & program = engine.getShaderManager().getProgram(programIdx);
+        auto & program = engine.getShaderManager().getProgram(primitiveRenderInfo.programIndex);
         engine.useProgram(program);
 
         program.setMat4("u_transform", transform);
@@ -74,14 +71,14 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
             if (material.pbr.baseColorTexture.index >= 0)
             {
-                engine.bindTexture(2, m_mesh.texture(material.pbr.baseColorTexture.index));
+                engine.bindTexture(3, m_mesh.texture(material.pbr.baseColorTexture.index));
                 program.setInt("u_baseColorTexture", 3);
                 program.setUint("u_baseColorTexCoordIndex", material.pbr.baseColorTexture.texCoord);
             }
 
             if (material.pbr.metallicRoughnessTexture.index >= 0)
             {
-                engine.bindTexture(3, m_mesh.texture(material.pbr.metallicRoughnessTexture.index));
+                engine.bindTexture(4, m_mesh.texture(material.pbr.metallicRoughnessTexture.index));
                 program.setInt("u_metallicRoughnessMap", 4);
                 program.setUint("u_metallicRoughnessTexCoordIndex",
                                 material.pbr.metallicRoughnessTexture.texCoord);
@@ -89,14 +86,14 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
 
             if (material.normalTexture.index >= 0)
             {
-                engine.bindTexture(4, m_mesh.texture(material.normalTexture.index));
+                engine.bindTexture(5, m_mesh.texture(material.normalTexture.index));
                 program.setInt("u_normalMap", 5);
                 program.setUint("u_normalTexCoordIndex", material.normalTexture.texCoord);
             }
 
             if (material.emissiveTexture.index >= 0)
             {
-                engine.bindTexture(5, m_mesh.texture(material.emissiveTexture.index));
+                engine.bindTexture(6, m_mesh.texture(material.emissiveTexture.index));
                 program.setInt("u_emissiveMap", 6);
                 program.setUint("u_emissiveTexCoordIndex", material.emissiveTexture.texCoord);
             }

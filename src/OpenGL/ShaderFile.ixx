@@ -2,6 +2,10 @@
 // Created by scros on 11/29/25.
 //
 
+module;
+
+#include "42runConfig.h"
+
 export module ShaderFile;
 import std;
 import ShaderFlags;
@@ -85,9 +89,6 @@ public:
             defines += "#define HAS_SKIN\n";
 
         auto copy = m_code;
-        if (defines.empty())
-            return copy;
-
         copy.insert(afterVersionIndex, defines);
         return copy;
     }

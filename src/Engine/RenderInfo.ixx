@@ -78,8 +78,6 @@ export struct Material
     NormalTextureInfo normalTexture;
     TextureInfo emissiveTexture;
     glm::vec3 emissiveFactor;
-    SlotSetIndex programIndex;
-    SlotSetIndex skinnedProgramIndex;
     ShaderFlags shaderFlags{ShaderFlags::None};
     bool doubleSided;
     bool blend; // based on alphaMode, it's a boolean because MASK is not supported
@@ -111,6 +109,7 @@ export struct PrimitiveRenderInfo
     int mode{-1};
     AccessorIndex indices{-1};
     VertexArrayFlags vertexArrayFlags{VertexArrayHasNone};
+    SlotSetIndex programIndex;
 };
 
 export struct MeshRenderInfo

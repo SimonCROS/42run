@@ -20,7 +20,7 @@ export enum VertexArrayFlags : unsigned char
     VertexArrayHasTexCoord0 = 1 << 3,
     VertexArrayHasTexCoord1 = 1 << 4,
     VertexArrayHasTangents = 1 << 5,
-    VertexArrayHasSkin = 1 << 6,
+    VertexArrayHasJoints = 1 << 6,
     VertexArrayHasWeights0 = 1 << 7,
 };
 
@@ -55,11 +55,10 @@ public:
             glEnableVertexAttribArray(4);
         if (flags & VertexArrayHasTangents)
             glEnableVertexAttribArray(5);
-        if (flags & VertexArrayHasSkin)
-        {
+        if (flags & VertexArrayHasJoints)
             glEnableVertexAttribArray(6);
+        if (flags & VertexArrayHasWeights0)
             glEnableVertexAttribArray(7);
-        }
 
         return {flags, id};
     }

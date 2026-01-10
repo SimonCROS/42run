@@ -57,9 +57,15 @@ auto start() -> std::expected<void, std::string>
     const SlotSetIndex defaultFragIdx = *engine.getShaderManager().getOrAddShaderFile(
         RESOURCE_PATH"shaders/pbr.frag");
 
-    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres_smooth.glb", true);
+    stbi_set_flip_vertically_on_load(false);
+    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
+
+    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
+    if (!e_ancientMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
+    stbi_set_flip_vertically_on_load(true);
 
     *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"),
@@ -86,6 +92,12 @@ auto start() -> std::expected<void, std::string>
     *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"), ShaderFlags::None);
 
     if (const auto && e_result = e_spheresMesh->get().prepareShaderPrograms(
+        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
+    {
+        return e_result;
+    }
+
+    if (const auto && e_result = e_ancientMesh->get().prepareShaderPrograms(
         engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
     {
         return e_result;
@@ -128,22 +140,22 @@ auto start() -> std::expected<void, std::string>
         object.addComponent<SkyboxRenderer>(engine, irradianceMap);
     }
 
-    {
-        auto & object = engine.instantiate();
-        object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap, prefilterMap, brdfTexture);
-    }
-
-    {
-        // Camera
-        auto& object = engine.instantiate();
-        object.transform().setTranslation({0, 20, 0});
-        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-90.0f), glm::radians(0.0f), glm::radians(0.0f))));
-
-        const auto & camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
-        engine.setCamera(camera);
-        // object.addComponent<Rotator>();
-        object.addComponent<CameraController>(glm::vec3(0, 0, 0), 20);
-    }
+    // {
+    //     auto & object = engine.instantiate();
+    //     object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap, prefilterMap, brdfTexture);
+    // }
+    //
+    // {
+    //     // Camera
+    //     auto& object = engine.instantiate();
+    //     object.transform().setTranslation({0, 20, 0});
+    //     object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-90.0f), glm::radians(0.0f), glm::radians(0.0f))));
+    //
+    //     const auto & camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
+    //     engine.setCamera(camera);
+    //     // object.addComponent<Rotator>();
+    //     object.addComponent<CameraController>(glm::vec3(0, 0, 0), 20);
+    // }
 
     // auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
     // if (!e_floorMesh)
@@ -159,12 +171,6 @@ auto start() -> std::expected<void, std::string>
     // // TODO safe
     // (void)e_deskMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
     //
-    // auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
-    // if (!e_ancientMesh)
-    //     return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
-    //
-    // // TODO safe
-    // (void)e_ancientMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
 
     // // TODO safe
     // (void)engine.getShaderManager().reloadAllShaders();
@@ -172,34 +178,34 @@ auto start() -> std::expected<void, std::string>
     // auto& map = engine.instantiate();
     // map.addComponent<MapController>(cubemapTexture);
 
-    // {
-    //     // Ancient
-    //     auto& object = engine.instantiate();
-    //     object.transform().scale(0.65f);
-    //     auto& animator = object.addComponent<Animator>(*e_ancientMesh);
-    //     auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, irradianceMap, cubemap2Texture);
-    //     object.addComponent<PlayerController>();
-    //     meshRenderer.setAnimator(animator);
-    //     animator.setAnimation(0);
-    // }
-    //
-    // {
-    //     // Camera
-    //     auto& object = engine.instantiate();
-    //     object.transform().setTranslation({0, 3, -3.5});
-    //     object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-15.0f), glm::radians(180.0f), 0)));
-    //
-    //     const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
-    //     engine.setCamera(camera);
-    // }
+    {
+        // Ancient
+        auto& object = engine.instantiate();
+        object.transform().scale(60.0f);
+        auto& animator = object.addComponent<Animator>(*e_ancientMesh);
+        auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, irradianceMap, prefilterMap, brdfTexture);
+        // object.addComponent<PlayerController>();
+        meshRenderer.setAnimator(animator);
+        animator.setAnimation(0);
+    }
+
+    {
+        // Camera
+        auto& object = engine.instantiate();
+        object.transform().setTranslation({0, 3, -3.5});
+        object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-15.0f), glm::radians(180.0f), 0)));
+
+        object.addComponent<CameraController>(glm::vec3(0, 1, 0), 2);
+
+        const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
+        engine.setCamera(camera);
+    }
 
     return engine.run();
 }
 
 auto main() -> int
 {
-    stbi_set_flip_vertically_on_load(true);
-
     auto e_result = start();
     if (!e_result)
     {
