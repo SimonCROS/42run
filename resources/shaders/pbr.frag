@@ -39,16 +39,11 @@ uniform sampler2D   u_brdfLUT;
 
 uniform vec3 u_cameraPosition;
 uniform vec3 u_sunDirection;
-uniform vec4 u_fogColor;
 
 struct DirectionalLight {
     vec3 direction;
     vec3 color;
 };
-
-const float c_MinRoughness = 0.04;
-const float c_MinMetallic = 0.00;
-const uint c_Shininess = 5;
 
 mat3 getTBNFromDerivatives(vec3 N, vec3 pos, vec2 uv) {
     vec3 dp1 = dFdx(pos);
@@ -103,12 +98,13 @@ vec3 getNormal()
     return finalNormal;
 }
 
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
 void main()
 {
-    float dist = length(u_cameraPosition - v_position);
-    float fogFactor = max(0, dist - 30) * 0.05;
-    fogFactor *= fogFactor;
-
     // The albedo may be defined from a base texture or a flat color
     vec4 baseColor = u_baseColorFactor;
 #ifdef HAS_BASECOLORMAP
@@ -126,8 +122,6 @@ void main()
     roughness *= mrSample.g;
     metallic *= mrSample.b;
 #endif
-    roughness = clamp(roughness, c_MinRoughness, 1.0);
-    metallic = clamp(metallic, c_MinMetallic, 1.0);
 
     // 1. Setup Vectors
     vec3 normal = getNormal();
@@ -168,6 +162,5 @@ void main()
     result += emissive;
 #endif
 
-    result = mix(result, vec3(u_fogColor), fogFactor);
     f_color = vec4(result, baseColor.a);
 }
