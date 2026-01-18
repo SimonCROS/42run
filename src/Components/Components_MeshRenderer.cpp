@@ -41,12 +41,30 @@ auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::m
                     GL_ARRAY_BUFFER,
                     *m_mesh.renderInfo().bufferViews[accessorRenderInfo.bufferView].glBuffer);
 
-                glVertexAttribPointer(attributeLocation,
-                                      accessorRenderInfo.componentCount,
-                                      accessorRenderInfo.componentType,
-                                      accessorRenderInfo.normalized,
-                                      accessorRenderInfo.byteStride,
-                                      bufferOffset(accessorRenderInfo.byteOffset));
+                const bool isInteger = (accessorRenderInfo.componentType == GL_UNSIGNED_SHORT ||
+                                        accessorRenderInfo.componentType == GL_UNSIGNED_BYTE ||
+                                        accessorRenderInfo.componentType == GL_SHORT ||
+                                        accessorRenderInfo.componentType == GL_BYTE ||
+                                        accessorRenderInfo.componentType == GL_UNSIGNED_INT ||
+                                        accessorRenderInfo.componentType == GL_INT);
+
+                if (isInteger && !accessorRenderInfo.normalized)
+                {
+                    glVertexAttribIPointer(attributeLocation,
+                                           accessorRenderInfo.componentCount,
+                                           accessorRenderInfo.componentType,
+                                           accessorRenderInfo.byteStride,
+                                           bufferOffset(accessorRenderInfo.byteOffset));
+                }
+                else
+                {
+                    glVertexAttribPointer(attributeLocation,
+                                          accessorRenderInfo.componentCount,
+                                          accessorRenderInfo.componentType,
+                                          accessorRenderInfo.normalized,
+                                          accessorRenderInfo.byteStride,
+                                          bufferOffset(accessorRenderInfo.byteOffset));
+                }
             }
         }
 
@@ -208,7 +226,8 @@ void MeshRenderer::onRender(Engine & engine)
 
         for (auto & program: engine.getShaderManager().getPrograms())
         {
-            if ((engine.getShaderManager().getShader(program.vertexShaderIdx()).flags() & ShaderFlags::HasSkin) == ShaderFlags::HasSkin)
+            if ((engine.getShaderManager().getShader(program.vertexShaderIdx()).flags() & ShaderFlags::HasSkin) ==
+                ShaderFlags::HasSkin)
             {
                 program.setUniformBlock("JointMatrices", uniformBlockBinding);
             }

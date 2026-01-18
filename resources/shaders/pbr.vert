@@ -2,12 +2,11 @@
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
-// layout (location = 2) in vec3 a_color0;
 layout (location = 2) in vec4 a_color0;
 layout (location = 3) in vec2 a_texCoords0;
 layout (location = 4) in vec2 a_texCoords1;
 layout (location = 5) in vec4 a_tangent;
-layout (location = 6) in ivec4 a_joint;
+layout (location = 6) in uvec4 a_joint;
 layout (location = 7) in vec4 a_weight;
 
 layout (location = 0) out vec3 v_position;
@@ -31,10 +30,10 @@ void main()
 {
 #ifdef HAS_SKIN
     mat4 skinMatrix =
-        a_weight.x * u_jointMatrix[int(a_joint.x)] +
-        a_weight.y * u_jointMatrix[int(a_joint.y)] +
-        a_weight.z * u_jointMatrix[int(a_joint.z)] +
-        a_weight.w * u_jointMatrix[int(a_joint.w)];
+        a_weight.x * u_jointMatrix[a_joint.x] +
+        a_weight.y * u_jointMatrix[a_joint.y] +
+        a_weight.z * u_jointMatrix[a_joint.z] +
+        a_weight.w * u_jointMatrix[a_joint.w];
 #endif
 
     gl_Position =
