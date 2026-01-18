@@ -106,7 +106,7 @@ public:
         m_vbo = vertexBuffer;
     }
 
-    auto onPostRender(Engine& engine) -> void override
+    auto onRender(Engine& engine) -> void override
     {
         renderSkybox(engine);
     }

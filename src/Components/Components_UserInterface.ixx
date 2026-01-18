@@ -20,7 +20,7 @@ export struct ImguiWindowData
     int s_frame_x = 8;
     int s_frame_y = 8;
     int s_frame_width = 230;
-    int s_frame_height = 132;
+    int s_frame_height = 150;
 };
 
 export class InterfaceBlock

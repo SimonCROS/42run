@@ -27,10 +27,12 @@ private:
                                  AccessorIndex accessorIdx) -> AnimationSampler::OutputBuffer;
 
 public:
-    Animation(const float duration,
+    Animation(const std::string & name,
+              const float duration,
               std::vector<AnimationChannel> && channels,
               std::vector<AnimationSampler> && samplers)
-        : m_duration(duration),
+        : m_name(name),
+          m_duration(duration),
           m_channels(std::move(channels)),
           m_samplers(std::move(samplers)) {}
 

@@ -39,7 +39,6 @@ void ImguiSingleton::onPostRender(Engine& engine)
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-
 auto ImguiSingleton::initializeImGui(const Window& window) -> void
 {
     IMGUI_CHECKVERSION();

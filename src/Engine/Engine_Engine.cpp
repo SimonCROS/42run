@@ -157,6 +157,8 @@ auto Engine::run() -> std::expected<void, std::string>
             program.setMat4("u_projectionView", pvMat);
         }
 
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
@@ -168,15 +170,6 @@ auto Engine::run() -> std::expected<void, std::string>
             if (object.isActive())
             {
                 object.render(*this);
-            }
-        }
-
-        for (SlotSet<Object>::SizeType objectIdx = 0; objectIdx < m_objects.size(); ++objectIdx)
-        {
-            Object & object = m_objects[objectIdx];
-            if (object.isActive())
-            {
-                object.postRender(*this);
             }
         }
 
@@ -194,6 +187,16 @@ auto Engine::run() -> std::expected<void, std::string>
         program.setBool("u_hdr", true);
         program.setFloat("u_exposure", 1.0f);
         renderQuad();
+
+        for (SlotSet<Object>::SizeType objectIdx = 0; objectIdx < m_objects.size(); ++objectIdx)
+        {
+            Object & object = m_objects[objectIdx];
+            if (object.isActive())
+            {
+                object.postRender(*this);
+            }
+        }
+
         m_currentBoundVertexArray = 0;
         m_currentBoundArrayBuffer = 0;
 

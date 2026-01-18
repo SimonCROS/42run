@@ -97,7 +97,7 @@ auto start() -> std::expected<void, std::string>
     if (!e_spheresMesh)
         return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
 
-    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
+    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/character.glb", true);
     if (!e_ancientMesh)
         return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
 
@@ -193,6 +193,11 @@ auto start() -> std::expected<void, std::string>
 
     {
         auto & object = engine.instantiate();
+        object.addComponent<ImguiSingleton>(engine.getWindow());
+    }
+
+    {
+        auto & object = engine.instantiate();
         object.addComponent<SkyboxRenderer>(engine, irradianceMap);
     }
 
@@ -219,11 +224,15 @@ auto start() -> std::expected<void, std::string>
     {
         // Ancient
         auto & object = engine.instantiate();
-        object.transform().scale(60.0f);
         auto & animator = object.addComponent<Animator>(*e_ancientMesh);
         auto & meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, irradianceMap, prefilterMap,
                                                                 brdfTexture);
+        auto & ui = object.addComponent<UserInterface>("Character");
+        ui.addBlock<DisplayInterfaceBlock>(1);
+        ui.addBlock<AnimationInterfaceBlock>(2);
+
         // object.addComponent<PlayerController>();
+        // object.addComponent<Rotator>(glm::vec3(0.0f, 1.0f, 0.0f));
         meshRenderer.setAnimator(animator);
         animator.setAnimation(0);
     }
