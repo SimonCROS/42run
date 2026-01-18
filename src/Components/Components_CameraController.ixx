@@ -43,7 +43,7 @@ public:
     auto onUpdate(Engine & engine) -> void override
     {
         const Controls controls = engine.controls();
-        const float delta = engine.frameInfo().deltaTime.count();
+        const float delta = engine.frameInfo().realDeltaTime.count();
 
         if (controls.isPressed(GLFW_KEY_P) && !m_lastUpdateReloadShader)
         {
@@ -76,7 +76,7 @@ public:
             m_yaw = 0;
             m_distance = 5;
         }
-        m_distance = std::clamp(m_distance, 1.0f, 20.0f);
+        m_distance = std::clamp(m_distance, 0.1f, 100.0f);
 
         const auto rotation = glm::quat(glm::vec3(m_pitch, m_yaw, 0.0f));
 

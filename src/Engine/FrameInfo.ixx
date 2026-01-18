@@ -8,7 +8,10 @@ import Time;
 
 export struct FrameInfo
 {
-    uint64_t frameCount;
-    DurationType time;
-    DurationType deltaTime;
+    uint64_t frameCount{0};
+    DurationType realTime{};
+    DurationType realDeltaTime{};
+    DurationType time{};
+    DurationType deltaTime{};
+    float timeScale{1.0f};
 };

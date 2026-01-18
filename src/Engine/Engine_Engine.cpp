@@ -126,6 +126,7 @@ auto Engine::run() -> std::expected<void, std::string>
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     auto previousTime = m_start;
+    bool timeScaleKeyPressed = false;
     while (m_window.update())
     {
         for (auto & object: m_objects)
@@ -182,7 +183,7 @@ auto Engine::run() -> std::expected<void, std::string>
         // TODO cache
         const auto programIdx = *m_shaderManager.getOrCreateShaderProgram(
             *m_shaderManager.getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"),
-*m_shaderManager.getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
+            *m_shaderManager.getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
         auto & program = m_shaderManager.getProgram(programIdx);
         useProgram(program);
         bindTexture(0, colorBuffer);
@@ -196,8 +197,36 @@ auto Engine::run() -> std::expected<void, std::string>
 
         const auto newTime = ClockType::now();
         ++m_currentFrameInfo.frameCount;
-        m_currentFrameInfo.time = newTime - m_start;
-        m_currentFrameInfo.deltaTime = newTime - previousTime;
+
+        if (controls().isPressed(GLFW_KEY_UP))
+        {
+            if (!timeScaleKeyPressed)
+            {
+                m_currentFrameInfo.timeScale += 0.1f;
+            }
+            timeScaleKeyPressed = true;
+        }
+        else if (controls().isPressed(GLFW_KEY_DOWN))
+        {
+            if (!timeScaleKeyPressed)
+            {
+                m_currentFrameInfo.timeScale -= 0.1f;
+            }
+            timeScaleKeyPressed = true;
+        }
+        else
+        {
+            timeScaleKeyPressed = false;
+        }
+
+        m_currentFrameInfo.timeScale = std::clamp(m_currentFrameInfo.timeScale, 0.0f, 3.0f);
+
+        m_currentFrameInfo.realDeltaTime = newTime - previousTime;
+        m_currentFrameInfo.realTime += m_currentFrameInfo.realDeltaTime;
+
+        m_currentFrameInfo.deltaTime = (newTime - previousTime) * m_currentFrameInfo.timeScale;
+        m_currentFrameInfo.time += m_currentFrameInfo.deltaTime;
+
         previousTime = newTime;
     }
 
