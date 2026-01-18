@@ -25,8 +25,7 @@ static auto makeGlBuffer(Engine & engine, const Buffer * buffers, BufferView & b
 
         glGenBuffers(1, &glBuffer);
         engine.bindBuffer(bufferView.target, glBuffer);
-        glBufferData(bufferView.target, bufferView.byteLength, &buffer.data.at(0) + bufferView.byteOffset,
-                     GL_STATIC_DRAW);
+        glBufferData(bufferView.target, bufferView.byteLength, &buffer.data.at(bufferView.byteOffset), GL_STATIC_DRAW);
 
         bufferView.glBuffer = glBuffer;
         return glBuffer;
@@ -192,7 +191,6 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
             bufferViewRenderInfo.target = bufferView.target;
             bufferViewRenderInfo.byteOffset = bufferView.byteOffset;
             bufferViewRenderInfo.byteLength = static_cast<GLsizeiptr>(bufferView.byteLength);
-            bufferViewRenderInfo.byteStride = bufferView.byteStride;
         }
     }
 
@@ -416,7 +414,8 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
 }
 
 auto Model::prepareShaderPrograms(ShaderManager & manager, const SlotSetIndex vertexShaderFile,
-    const SlotSetIndex fragmentShaderFile) -> std::expected<void, std::string> {
+                                  const SlotSetIndex fragmentShaderFile) -> std::expected<void, std::string>
+{
     auto & renderInfo = m_renderInfo;
     for (int meshIdx = 0; meshIdx < renderInfo.meshesCount; ++meshIdx)
     {

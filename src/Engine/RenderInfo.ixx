@@ -34,7 +34,6 @@ export struct BufferView
     int target;
     size_t byteOffset{0};
     GLsizeiptr byteLength{0};
-    size_t byteStride{0};
 };
 
 export struct AccessorRenderInfo
