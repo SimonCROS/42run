@@ -5,7 +5,6 @@
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec3 v_normal;
 layout (location = 2) in vec4 v_tangent;
-// layout (location = 4) in vec3 v_color0;
 layout (location = 4) in vec4 v_color0;
 layout (location = 5) in vec2 v_texCoords[2];
 

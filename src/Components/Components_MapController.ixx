@@ -15,7 +15,7 @@ export class MapController final : public Component
 private:
     static constexpr float BaseSpeed = 2;
     static constexpr float MaxSpeed = 20;
-    static constexpr int MinMovingSegments = 4;
+    static constexpr int MinMovingSegments = 5;
     static constexpr float TMPSegmentSize = 20;
     static constexpr DurationType TimeToReachMaxSpeed = std::chrono::duration_cast<DurationType>(
         std::chrono::seconds(120));

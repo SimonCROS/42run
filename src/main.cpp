@@ -28,9 +28,9 @@ private:
     glm::vec3 m_axis;
 
 public:
-    explicit Rotator(Object& object, const glm::vec3 axis) : Component(object), m_axis(axis) {  }
+    explicit Rotator(Object & object, const glm::vec3 axis) : Component(object), m_axis(axis) {}
 
-    auto onUpdate(Engine& engine) -> void override
+    auto onUpdate(Engine & engine) -> void override
     {
         object().transform().rotate(glm::quat(m_axis * glm::radians(0.2f)));
     }
@@ -51,21 +51,16 @@ auto start() -> std::expected<void, std::string>
     auto stateCache = std::make_shared<OpenGL::StateCache>();
     auto engine = Engine::Create(*std::move(e_window));
 
+
+    // ********************************
+    // Init shaders
     // TODO safe
+    // ********************************
+
     const SlotSetIndex defaultVertIdx = *engine.getShaderManager().getOrAddShaderFile(
         RESOURCE_PATH"shaders/pbr.vert");
     const SlotSetIndex defaultFragIdx = *engine.getShaderManager().getOrAddShaderFile(
         RESOURCE_PATH"shaders/pbr.frag");
-
-    stbi_set_flip_vertically_on_load(false);
-    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
-    if (!e_spheresMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
-
-    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
-    if (!e_ancientMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
-    stbi_set_flip_vertically_on_load(true);
 
     *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"),
@@ -77,19 +72,48 @@ auto start() -> std::expected<void, std::string>
 
     const auto eqProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
-    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/equirectangular_to_cubemap.frag"), ShaderFlags::None);
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/equirectangular_to_cubemap.frag"),
+        ShaderFlags::None);
 
     const auto irradianceProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
-    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/irradiance.frag"), ShaderFlags::None);
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/irradiance.frag"), ShaderFlags::None);
 
     const auto prefilterProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
-    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/prefilter.frag"), ShaderFlags::None);
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/prefilter.frag"), ShaderFlags::None);
 
     *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.vert"),
-    *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"), ShaderFlags::None);
+        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"), ShaderFlags::None);
+
+
+    // ********************************
+    // Init models
+    // ********************************
+
+    stbi_set_flip_vertically_on_load(false);
+    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
+    if (!e_spheresMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
+
+    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/ancient.glb", true);
+    if (!e_ancientMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
+
+    auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
+    if (!e_floorMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
+
+    auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
+    if (!e_deskMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_deskMesh).error());
+    stbi_set_flip_vertically_on_load(true);
+
+
+    // ********************************
+    // Prepare shaders for models
+    // ********************************
 
     if (const auto && e_result = e_spheresMesh->get().prepareShaderPrograms(
         engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
@@ -103,10 +127,32 @@ auto start() -> std::expected<void, std::string>
         return e_result;
     }
 
+    if (const auto && e_result = e_floorMesh->get().prepareShaderPrograms(
+        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
+    {
+        return e_result;
+    }
+
+    if (const auto && e_result = e_deskMesh->get().prepareShaderPrograms(
+        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
+    {
+        return e_result;
+    }
+
+
+    // ********************************
+    // Compile and link shaders
+    // ********************************
+
     if (const auto && e_result = engine.getShaderManager().reloadAllShaders(); !e_result)
     {
         return e_result;
     }
+
+
+    // ********************************
+    // Prepare IBL
+    // ********************************
 
     auto e_hdrImage = Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr");
     if (!e_hdrImage)
@@ -119,24 +165,34 @@ auto start() -> std::expected<void, std::string>
     auto hdrTexture = *OpenGL::Texture2D2::builder(stateCache.get()).fromImage(*e_hdrImage, GL_RGB32F).build();
     std::println("{}", *e_hdrImage);
     std::println("{}", hdrTexture);
-    auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
+    auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(
+        hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
     *cubemap2Texture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
 
-    auto irradianceMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
+    auto irradianceMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(
+        hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
     *irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap2Texture, 0);
 
-    auto prefilterMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).withFiltering(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR).build();
+    auto prefilterMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(
+        hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).withFiltering(
+        GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR).build();
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 0);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 1);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 2);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 3);
     *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 4);
 
-    auto brdfTexture = *OpenGL::Texture2D2::builder(stateCache.get()).withDimensions(cubemapSize, cubemapSize).withFormat(GL_RG16F, GL_RG, hdrTexture.type()).build();
+    auto brdfTexture = *OpenGL::Texture2D2::builder(stateCache.get()).withDimensions(cubemapSize, cubemapSize).
+            withFormat(GL_RG16F, GL_RG, hdrTexture.type()).build();
     *brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx));
 
+
+    // ********************************
+    // Manually create the scene
+    // ********************************
+
     {
-        auto& object = engine.instantiate();
+        auto & object = engine.instantiate();
         object.addComponent<SkyboxRenderer>(engine, irradianceMap);
     }
 
@@ -157,33 +213,16 @@ auto start() -> std::expected<void, std::string>
     //     object.addComponent<CameraController>(glm::vec3(0, 0, 0), 20);
     // }
 
-    auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
-    if (!e_floorMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
-
-    // TODO safe
-    (void)e_floorMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
-
-    auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
-    if (!e_deskMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_deskMesh).error());
-
-    // TODO safe
-    (void)e_deskMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
-
-
-    // TODO safe
-    (void)engine.getShaderManager().reloadAllShaders();
-
-    auto& map = engine.instantiate();
+    auto & map = engine.instantiate();
     map.addComponent<MapController>(irradianceMap, prefilterMap, brdfTexture);
 
     {
         // Ancient
-        auto& object = engine.instantiate();
+        auto & object = engine.instantiate();
         object.transform().scale(60.0f);
-        auto& animator = object.addComponent<Animator>(*e_ancientMesh);
-        auto& meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, irradianceMap, prefilterMap, brdfTexture);
+        auto & animator = object.addComponent<Animator>(*e_ancientMesh);
+        auto & meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, irradianceMap, prefilterMap,
+                                                                brdfTexture);
         // object.addComponent<PlayerController>();
         meshRenderer.setAnimator(animator);
         animator.setAnimation(0);
@@ -191,15 +230,20 @@ auto start() -> std::expected<void, std::string>
 
     {
         // Camera
-        auto& object = engine.instantiate();
+        auto & object = engine.instantiate();
         object.transform().setTranslation({0, 3, -3.5});
         object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-15.0f), glm::radians(180.0f), 0)));
 
         object.addComponent<CameraController>(glm::vec3(0, 1, 0), 2);
 
-        const auto& camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
+        const auto & camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
         engine.setCamera(camera);
     }
+
+
+    // ********************************
+    // Run game loop
+    // ********************************
 
     return engine.run();
 }

@@ -12,7 +12,6 @@ layout (location = 7) in vec4 a_weight;
 layout (location = 0) out vec3 v_position;
 layout (location = 1) out vec3 v_normal;
 layout (location = 2) out vec4 v_tangent;
-// layout (location = 4) out vec3 v_color0;
 layout (location = 4) out vec4 v_color0;
 layout (location = 5) out vec2 v_texCoords[2];
 
