@@ -13,22 +13,22 @@ target_sources(42run
         PUBLIC
         FILE_SET CXX_MODULES
         FILES
+                Components/Components.ixx
                 Components/Components_Animator.ixx
                 Components/Components_CameraController.ixx
                 Components/Components_ImguiSingleton.ixx
-                Components/Components.ixx
                 Components/Components_MapController.ixx
                 Components/Components_MeshRenderer.ixx
                 Components/Components_PlayerController.ixx
                 Components/Components_UserInterface.ixx
                 Components/Engine_Camera.ixx
                 Components/SkyboxRenderer.ixx
-                Engine/AnimationChannel.ixx
                 Engine/Animation.ixx
+                Engine/AnimationChannel.ixx
                 Engine/AnimationSampler.ixx
+                Engine/Engine.ixx
                 Engine/Engine_Component.ixx
                 Engine/Engine_Engine.ixx
-                Engine/Engine.ixx
                 Engine/Engine_Model.ixx
                 Engine/Engine_Object.ixx
                 Engine/Engine_ObjectsManager.ixx
@@ -36,38 +36,38 @@ target_sources(42run
                 Engine/FrameInfo.ixx
                 Engine/RenderInfo.ixx
                 Image.ixx
+                InterfaceBlocks/InterfaceBlocks.ixx
                 InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
                 InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
-                InterfaceBlocks/InterfaceBlocks.ixx
-                OpenGL2/glToString.ixx
-                OpenGL2/StateCache.ixx
-                OpenGL/Buffer/Buffer_Builder.ixx
                 OpenGL/Buffer/Buffer.ixx
-                OpenGL/Cubemap/Cubemap_Builder.ixx
+                OpenGL/Buffer/Buffer_Builder.ixx
                 OpenGL/Cubemap/Cubemap.ixx
+                OpenGL/Cubemap/Cubemap_Builder.ixx
+                OpenGL/OpenGL.ixx
                 OpenGL/OpenGL_Debug.ixx
                 OpenGL/OpenGL_IndicesBuffer.ixx
-                OpenGL/OpenGL.ixx
                 OpenGL/OpenGL_VertexArray.ixx
                 OpenGL/OpenGL_VertexBuffer.ixx
                 OpenGL/Program/Pipeline.ixx
                 OpenGL/Program/RenderPass.ixx
+                OpenGL/Shader.ixx
                 OpenGL/ShaderFile.ixx
                 OpenGL/ShaderFlags.ixx
-                OpenGL/Shader.ixx
                 OpenGL/ShaderManager.ixx
                 OpenGL/ShaderProgram.ixx
-                OpenGL/Texture2D/Texture2D_Builder.ixx
                 OpenGL/Texture2D/Texture2D.ixx
+                OpenGL/Texture2D/Texture2D_Builder.ixx
                 OpenGL/UniformValue.ixx
+                OpenGL2/StateCache.ixx
+                OpenGL2/glToString.ixx
                 Time.ixx
                 Utility/SlotSet.ixx
                 Utility/StridedIterator.ixx
                 Utility/StringUnorderedMap.ixx
                 Utility/Utility.ixx
+                Window/Window.ixx
                 Window/Window_Context.ixx
                 Window/Window_Controls.ixx
-                Window/Window.ixx
                 Window/Window_Window.ixx
         PRIVATE
                 Components/Components_Animator.cpp
@@ -84,13 +84,13 @@ target_sources(42run
                 Engine/Engine_Object.cpp
                 Engine/Engine_ObjectsManager.cpp
                 Engine/Engine_Transform.cpp
-                main.cpp
                 OpenGL/Buffer/Buffer.cpp
                 OpenGL/Cubemap/Cubemap.cpp
                 OpenGL/Texture2D/Texture2D.cpp
-                tiny_gltf_impl.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
+                main.cpp
+                tiny_gltf_impl.cpp
 )
 
 target_compile_definitions(42run PRIVATE
