@@ -39,12 +39,12 @@ target_sources(42run
                 InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
                 InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
                 InterfaceBlocks/InterfaceBlocks.ixx
-                OpenGL2/Buffer_Builder.ixx
-                OpenGL2/Buffer.ixx
                 OpenGL2/glToString.ixx
                 OpenGL2/StateCache.ixx
-                OpenGL/Cubemap_Builder.ixx
-                OpenGL/Cubemap.ixx
+                OpenGL/Buffer/Buffer_Builder.ixx
+                OpenGL/Buffer/Buffer.ixx
+                OpenGL/Cubemap/Cubemap_Builder.ixx
+                OpenGL/Cubemap/Cubemap.ixx
                 OpenGL/OpenGL_Debug.ixx
                 OpenGL/OpenGL_IndicesBuffer.ixx
                 OpenGL/OpenGL.ixx
@@ -57,8 +57,8 @@ target_sources(42run
                 OpenGL/Shader.ixx
                 OpenGL/ShaderManager.ixx
                 OpenGL/ShaderProgram.ixx
-                OpenGL/Texture2D_Builder.ixx
-                OpenGL/Texture2D.ixx
+                OpenGL/Texture2D/Texture2D_Builder.ixx
+                OpenGL/Texture2D/Texture2D.ixx
                 OpenGL/UniformValue.ixx
                 Time.ixx
                 Utility/SlotSet.ixx
@@ -85,9 +85,9 @@ target_sources(42run
                 Engine/Engine_ObjectsManager.cpp
                 Engine/Engine_Transform.cpp
                 main.cpp
-                OpenGL2/Buffer.cpp
-                OpenGL/Cubemap.cpp
-                OpenGL/Texture2D.cpp
+                OpenGL/Buffer/Buffer.cpp
+                OpenGL/Cubemap/Cubemap.cpp
+                OpenGL/Texture2D/Texture2D.cpp
                 tiny_gltf_impl.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp

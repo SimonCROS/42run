@@ -5,11 +5,11 @@
 module;
 #include "glad/gl.h"
 
-module OpenGL.Buffer2;
+module OpenGL.Buffer;
 
 namespace OpenGL
 {
-    auto BufferBuilder::build() const -> std::expected<Buffer2, std::string>
+    auto BufferBuilder::build() const -> std::expected<Buffer, std::string>
     {
         GLuint id;
         glGenBuffers(1, &id);
@@ -19,6 +19,6 @@ namespace OpenGL
 
         glBufferData(m_target, m_size, m_data, m_usage);
 
-        return std::expected<Buffer2, std::string>{std::in_place, m_stateCache, id, m_target};
+        return std::expected<Buffer, std::string>{std::in_place, m_stateCache, id, m_target};
     }
 }

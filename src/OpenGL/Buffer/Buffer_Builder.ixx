@@ -1,13 +1,13 @@
 module;
 #include "glad/gl.h"
 
-export module OpenGL.Buffer2:Builder;
+export module OpenGL.Buffer:Builder;
 import std;
 import OpenGL.StateCache;
 
 export namespace OpenGL
 {
-    class Buffer2;
+    class Buffer;
 
     class BufferBuilder
     {
@@ -51,6 +51,6 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto build() const -> std::expected<Buffer2, std::string>;
+        auto build() const -> std::expected<Buffer, std::string>;
     };
 }
