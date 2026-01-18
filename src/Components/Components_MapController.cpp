@@ -13,7 +13,7 @@ import :MeshRenderer;
 import Engine;
 import OpenGL;
 
-static auto instantiatePlaneTwoTables(Engine& engine, OpenGL::Cubemap2& cubemapTexture) -> Object&
+static auto instantiatePlaneTwoTables(Engine& engine, const OpenGL::Cubemap2& irradianceMap, const OpenGL::Cubemap2& prefilterMap, const OpenGL::Texture2D2& brdfLUT) -> Object&
 {
     auto& floorMesh = engine.getModel("floor")->get();
     auto& deskMesh = engine.getModel("desk")->get();
@@ -21,7 +21,7 @@ static auto instantiatePlaneTwoTables(Engine& engine, OpenGL::Cubemap2& cubemapT
     // Floor
     auto& object = engine.instantiate();
     object.transform().setTranslation({0, 0, 5});
-    //object.addComponent<MeshRenderer>(floorMesh, cubemapTexture);
+    object.addComponent<MeshRenderer>(floorMesh, irradianceMap, prefilterMap, brdfLUT);
 
     {
         // Desk
@@ -29,7 +29,7 @@ static auto instantiatePlaneTwoTables(Engine& engine, OpenGL::Cubemap2& cubemapT
         subObject.transform().scale(0.004f);
         subObject.transform().setTranslation({-2, 0, 5});
         subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-        //subObject.addComponent<MeshRenderer>(deskMesh, cubemapTexture);
+        subObject.addComponent<MeshRenderer>(deskMesh, irradianceMap, prefilterMap, brdfLUT);
         subObject.setParent(object);
     }
 
@@ -39,14 +39,10 @@ static auto instantiatePlaneTwoTables(Engine& engine, OpenGL::Cubemap2& cubemapT
         subObject.transform().scale(0.004f);
         subObject.transform().setTranslation({2, 0, 2});
         subObject.transform().setRotation(glm::quat({0, glm::radians(90.0f), 0}));
-        //subObject.addComponent<MeshRenderer>(deskMesh, cubemapTexture);
+        subObject.addComponent<MeshRenderer>(deskMesh, irradianceMap, prefilterMap, brdfLUT);
         subObject.setParent(object);
     }
     return object;
-}
-
-MapController::MapController(Object& object, OpenGL::Cubemap2& cubemapTexture): Component(object), m_cubemapTexture(cubemapTexture)
-{
 }
 
 auto MapController::onUpdate(Engine& engine) -> void
@@ -55,7 +51,7 @@ auto MapController::onUpdate(Engine& engine) -> void
     {
         for (int i = 0; i < 8; ++i)
         {
-            auto& segment = instantiatePlaneTwoTables(engine, m_cubemapTexture);
+            auto& segment = instantiatePlaneTwoTables(engine, m_irradianceMap, m_prefilterMap, m_brdfLUT);
             segment.setActive(false);
             m_segmentsPool.push(segment);
         }

@@ -8,6 +8,7 @@ import Engine;
 import OpenGL;
 import Time;
 import OpenGL.Cubemap2;
+import OpenGL.Texture2D2;
 
 export class MapController final : public Component
 {
@@ -22,7 +23,9 @@ private:
     std::queue<std::reference_wrapper<Object>> m_segmentsPool;
     std::deque<std::reference_wrapper<Object>> m_movingSegments;
 
-    OpenGL::Cubemap2& m_cubemapTexture;
+    const OpenGL::Cubemap2& m_irradianceMap;
+    const OpenGL::Cubemap2& m_prefilterMap;
+    const OpenGL::Texture2D2& m_brdfLUT;
 
     DurationType m_startTime{}; // TODO set in something like onStart
 
@@ -32,7 +35,8 @@ private:
     }
 
 public:
-    explicit MapController(Object& object, OpenGL::Cubemap2& cubemapTexture);
+    explicit MapController(Object& object, const OpenGL::Cubemap2& irradianceMap, const OpenGL::Cubemap2& prefilterMap, const OpenGL::Texture2D2& brdfLUT) :
+        Component(object), m_irradianceMap(irradianceMap), m_prefilterMap(prefilterMap), m_brdfLUT(brdfLUT) {}
 
     auto onUpdate(Engine& engine) -> void override;
 };

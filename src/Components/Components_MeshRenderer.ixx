@@ -33,9 +33,9 @@ private:
     bool m_displayed{true};
     GLenum m_polygonMode{GL_FILL};
     std::optional<std::reference_wrapper<const Animator>> m_animator;
-    OpenGL::Cubemap2& m_irradianceMap;
-    OpenGL::Cubemap2& m_prefilterMap;
-    OpenGL::Texture2D2& m_brdfLUT;
+    const OpenGL::Cubemap2& m_irradianceMap;
+    const OpenGL::Cubemap2& m_prefilterMap;
+    const OpenGL::Texture2D2& m_brdfLUT;
 
     std::vector<Node> m_nodes;
     std::vector<Skin> m_skins;
@@ -46,7 +46,7 @@ private:
     auto calculateJointMatrices(int skin, const glm::mat4& transform) -> void;
 
 public:
-    explicit MeshRenderer(Object& object, const Model& model, OpenGL::Cubemap2& irradianceMap, OpenGL::Cubemap2& prefilterMap, OpenGL::Texture2D2& brdfLUT) :
+    explicit MeshRenderer(Object& object, const Model& model, const OpenGL::Cubemap2& irradianceMap, const OpenGL::Cubemap2& prefilterMap, const OpenGL::Texture2D2& brdfLUT) :
         Component(object), m_mesh(model), m_irradianceMap(irradianceMap), m_prefilterMap(prefilterMap), m_brdfLUT(brdfLUT)
     {
         m_nodes.resize(m_mesh.renderInfo().nodesCount);

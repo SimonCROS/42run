@@ -157,26 +157,26 @@ auto start() -> std::expected<void, std::string>
     //     object.addComponent<CameraController>(glm::vec3(0, 0, 0), 20);
     // }
 
-    // auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
-    // if (!e_floorMesh)
-    //     return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
-    //
-    // // TODO safe
-    // (void)e_floorMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
-    //
-    // auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
-    // if (!e_deskMesh)
-    //     return std::unexpected("Failed to load model: " + std::move(e_deskMesh).error());
-    //
-    // // TODO safe
-    // (void)e_deskMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
-    //
+    auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
+    if (!e_floorMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
 
-    // // TODO safe
-    // (void)engine.getShaderManager().reloadAllShaders();
+    // TODO safe
+    (void)e_floorMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
 
-    // auto& map = engine.instantiate();
-    // map.addComponent<MapController>(cubemapTexture);
+    auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
+    if (!e_deskMesh)
+        return std::unexpected("Failed to load model: " + std::move(e_deskMesh).error());
+
+    // TODO safe
+    (void)e_deskMesh->get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx);
+
+
+    // TODO safe
+    (void)engine.getShaderManager().reloadAllShaders();
+
+    auto& map = engine.instantiate();
+    map.addComponent<MapController>(irradianceMap, prefilterMap, brdfTexture);
 
     {
         // Ancient
