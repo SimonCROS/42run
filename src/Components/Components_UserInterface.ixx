@@ -4,13 +4,10 @@
 
 module;
 
-#include <cstdint>
-#include <string>
-#include <memory>
-
 #include "imgui.h"
 
 export module Components:UserInterface;
+import std.compat;
 import Engine;
 import Utility;
 
@@ -51,7 +48,7 @@ protected:
     std::string m_name;
     ImguiWindowData m_windowData;
 
-    VectorMultiMap<float, std::unique_ptr<InterfaceBlock>> m_blocks;
+    std::flat_multimap<float, std::unique_ptr<InterfaceBlock>> m_blocks;
 
 public:
     explicit UserInterface(Object& object, const std::string_view& name = "default interface", const ImguiWindowData& windowData = {});

@@ -7,7 +7,6 @@ module;
 #include "glm/glm.hpp"
 
 export module Engine:Camera;
-
 import :Component;
 
 export enum ViewMode

@@ -4,13 +4,10 @@
 
 module;
 
-#include <vector>
-#include <cstdint>
-
 #include "imgui.h"
 
 export module InterfaceBlocks:AnimationInterfaceBlock;
-
+import std.compat;
 import Components;
 import Engine;
 
@@ -26,10 +23,10 @@ public:
     {
         m_animator = &interface.object().getComponent<Animator>()->get();
 
-        m_animationsNames.reserve(m_animator->mesh().model().animations.size() + 1);
+        m_animationsNames.reserve(m_animator->animations().size() + 1);
         m_animationsNames.push_back("-");
-        for (const auto& animation : m_animator->mesh().model().animations)
-            m_animationsNames.push_back(animation.name.c_str());
+        for (const auto& animation : m_animator->animations())
+            m_animationsNames.push_back(animation.name().c_str());
     }
 
     auto onDrawUI(uint16_t blockId, Engine& engine, UserInterface& interface) -> void override

@@ -4,17 +4,17 @@
 
 module;
 
-#include <optional>
-#include <vector>
-
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 export module Components:MeshRenderer;
+import std;
 import :Animator;
 import Engine;
 import OpenGL;
+import OpenGL.Cubemap2;
+import OpenGL.Texture2D2;
 
 export class MeshRenderer final : public Component
 {
@@ -29,11 +29,13 @@ private:
         std::vector<glm::mat4> jointMatrices;
     };
 
-    const Mesh& m_mesh;
+    const Model& m_mesh;
     bool m_displayed{true};
     GLenum m_polygonMode{GL_FILL};
     std::optional<std::reference_wrapper<const Animator>> m_animator;
-    ShaderProgram& m_program; // TODO Change
+    const OpenGL::Cubemap2& m_irradianceMap;
+    const OpenGL::Cubemap2& m_prefilterMap;
+    const OpenGL::Texture2D2& m_brdfLUT;
 
     std::vector<Node> m_nodes;
     std::vector<Skin> m_skins;
@@ -44,22 +46,19 @@ private:
     auto calculateJointMatrices(int skin, const glm::mat4& transform) -> void;
 
 public:
-    explicit MeshRenderer(Object& object, const Mesh& model, ShaderProgram& program) :
-        Component(object), m_mesh(model), m_program(program)
+    explicit MeshRenderer(Object& object, const Model& model, const OpenGL::Cubemap2& irradianceMap, const OpenGL::Cubemap2& prefilterMap, const OpenGL::Texture2D2& brdfLUT) :
+        Component(object), m_mesh(model), m_irradianceMap(irradianceMap), m_prefilterMap(prefilterMap), m_brdfLUT(brdfLUT)
     {
-        m_nodes.resize(m_mesh.model().nodes.size());
-        m_skins.resize(m_mesh.model().skins.size());
+        m_nodes.resize(m_mesh.renderInfo().nodesCount);
+        m_skins.resize(m_mesh.renderInfo().skinsCount);
 
         for (int i = 0; i < m_skins.size(); ++i)
-            m_skins[i].jointMatrices.resize(m_mesh.model().skins[i].joints.size());
-
-        // maybe make Create static function
-        auto e_prepareResult = m_mesh.prepareShaderPrograms(program);
-        if (!e_prepareResult)
-            throw std::runtime_error("Failed to prepare shader programs: " + e_prepareResult.error());
+        {
+            m_skins[i].jointMatrices.resize(m_mesh.renderInfo().skins[i].joints.size());
+        }
     }
 
-    [[nodiscard]] auto mesh() const -> const Mesh& { return m_mesh; }
+    [[nodiscard]] auto mesh() const -> const Model& { return m_mesh; }
 
     auto setAnimator(const Animator& animator) -> void { m_animator = animator; }
     auto unsetAnimator() -> void { m_animator = std::nullopt; }

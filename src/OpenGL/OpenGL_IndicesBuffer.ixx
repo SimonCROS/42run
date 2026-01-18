@@ -7,6 +7,7 @@ module;
 #include "glad/gl.h"
 
 export module OpenGL:IndicesBuffer;
+import std;
 
 export class IndicesBuffer
 {

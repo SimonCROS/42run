@@ -4,37 +4,30 @@
 
 module;
 
-#include <functional>
-#include <expected>
-
 #include "glad/gl.h"
 #include "tiny_gltf.h"
 
 export module Engine:Engine;
+import std;
 import :Component;
-import :FrameInfo;
 import :Object;
 import OpenGL;
 import Utility;
 import Window;
-
-// TMP
-export using ::ClockType;
-export using ::TimePoint;
-export using ::DurationType;
-// TMP
+import Engine.FrameInfo;
+import Time;
 
 export class Camera;
-export class Mesh;
+export class Model;
 
 export class Engine
 {
 public:
-    using ModelRef = std::reference_wrapper<Mesh>;
+    using ModelRef = std::reference_wrapper<Model>;
     using ObjectRef = std::reference_wrapper<Object>;
     using ShaderProgramVariantsRef = std::reference_wrapper<ShaderProgram>;
 
-    using ModelPtr = std::unique_ptr<Mesh>;
+    using ModelPtr = std::unique_ptr<Model>;
     using ShaderProgramPtr = std::unique_ptr<ShaderProgram>;
 
     static constexpr size_t MaxTextures = 8;
@@ -49,12 +42,14 @@ private:
     FrameInfo m_currentFrameInfo{};
 
     StringUnorderedMap<ModelPtr> m_models;
-    StringUnorderedMap<ShaderProgramPtr> m_shaders;
     SlotSet<Object> m_objects;
     std::unordered_map<VertexArrayFlags, VertexArray> m_vertexArrays;
 
+    ShaderManager m_shaderManager;
+
     bool m_doubleSided{false};
     bool m_blendEnabled{false};
+    bool m_depthMaskEnabled{true};
     GLenum m_polygonMode{GL_FILL};
     GLuint m_currentShaderProgram{0};
     GLuint m_currentTextures[MaxTextures]{};
@@ -63,15 +58,15 @@ private:
     GLuint m_currentBoundArrayBuffer{0};
     GLuint m_currentBoundArrayElementBuffer{0};
 
-    const Camera* m_camera{nullptr};
+    const Camera * m_camera{nullptr};
 
 public:
-    static auto Create(Window&& window) -> Engine;
+    static auto Create(Window && window) -> Engine;
 
-    explicit Engine(Window&& window) noexcept;
+    explicit Engine(Window && window) noexcept;
 
-    [[nodiscard]] auto getWindow() noexcept -> Window& { return m_window; }
-    [[nodiscard]] auto getWindow() const noexcept -> const Window& { return m_window; }
+    [[nodiscard]] auto getWindow() noexcept -> Window & { return m_window; }
+    [[nodiscard]] auto getWindow() const noexcept -> const Window & { return m_window; }
 
     [[nodiscard]] auto frameInfo() const noexcept -> FrameInfo { return m_currentFrameInfo; }
 
@@ -80,7 +75,7 @@ public:
     [[nodiscard]] auto isDoubleSided() const noexcept -> bool { return m_doubleSided; }
     [[nodiscard]] auto polygonMode() const noexcept -> GLenum { return m_polygonMode; }
 
-    auto run() -> void;
+    auto run() -> std::expected<void, std::string>;
 
     auto setDoubleSided(const bool value) -> void
     {
@@ -106,6 +101,15 @@ public:
         }
     }
 
+    auto setDepthMaskEnabled(const bool value) -> void
+    {
+        if (m_depthMaskEnabled != value)
+        {
+            m_depthMaskEnabled = value;
+            glDepthMask(value ? GL_TRUE : GL_FALSE);
+        }
+    }
+
     auto setPolygoneMode(const GLenum polygonMode) -> void
     {
         if (m_polygonMode != polygonMode)
@@ -115,16 +119,16 @@ public:
         }
     }
 
-    auto useProgram(const ShaderProgramInstance& program) -> void
+    auto useProgram(const ShaderProgram & program) -> void
     {
         if (m_currentShaderProgram != program.id())
         {
             m_currentShaderProgram = program.id();
-            program.use();
+            glUseProgram(m_currentShaderProgram);
         }
     }
 
-    auto bindVertexArray(const VertexArray& vertexArray) -> void
+    auto bindVertexArray(const VertexArray & vertexArray) -> void
     {
         if (m_currentBoundVertexArray != vertexArray.id())
         {
@@ -151,7 +155,7 @@ public:
         }
     }
 
-    auto bindTexture(const GLuint bindingIndex, const GLuint& texture) -> void
+    auto bindTexture(const GLuint bindingIndex, const GLuint & texture) -> void
     {
         assert(bindingIndex < MaxTextures);
         if (m_currentTextures[bindingIndex] != texture)
@@ -169,39 +173,47 @@ public:
         }
     }
 
-    auto getVertexArray(const VertexArrayFlags flags) -> VertexArray&
+    auto bindCubemap(const GLuint bindingIndex, const GLuint & texture) -> void
+    {
+        assert(bindingIndex < MaxTextures);
+        if (m_currentTextures[bindingIndex] != texture)
+        {
+            const GLenum target = GL_TEXTURE0 + bindingIndex;
+
+            if (m_currentBoundTextureTarget != target)
+            {
+                glActiveTexture(target);
+                m_currentBoundTextureTarget = target;
+            }
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+            m_currentTextures[bindingIndex] = texture;
+        }
+    }
+
+    auto getVertexArray(const VertexArrayFlags flags) -> VertexArray &
     {
         return m_vertexArrays[flags];
     }
 
     [[nodiscard]]
     auto
-    makeShaderVariants(const std::string_view& id, const std::string& vertPath, const std::string& fragPath)
-        -> std::expected<ShaderProgramVariantsRef, std::string>;
-
-    [[nodiscard]]
-    auto
-    loadModel(const std::string_view& id, const std::string& path, bool binary)
+    loadModel(const std::string_view & id, const std::string & path, bool binary)
         -> std::expected<ModelRef, std::string>;
 
     [[nodiscard]]
     auto
     instantiate()
-        -> Object&;
+        -> Object &;
 
-    auto setCamera(const Camera& camera) -> void { m_camera = &camera; }
+    [[nodiscard]] auto getCamera() const noexcept -> const Camera * { return m_camera; }
+    auto setCamera(const Camera & camera) -> void { m_camera = &camera; }
 
-    auto objects() -> SlotSet<Object>& { return m_objects; }
+    [[nodiscard]] auto objects() -> SlotSet<Object> & { return m_objects; }
 
-    auto getShaderProgram(const std::string_view& id) const -> std::optional<std::reference_wrapper<ShaderProgram>>
-    {
-        const auto it = m_shaders.find(id);
-        if (it == m_shaders.end())
-            return std::nullopt;
-        return *it->second;
-    }
+    [[nodiscard]] auto getShaderManager() -> ShaderManager & { return m_shaderManager; }
 
-    auto getModel(const std::string_view& id) const -> std::optional<std::reference_wrapper<Mesh>>
+    [[nodiscard]] auto getModel(const std::string_view & id) const -> std::optional<std::reference_wrapper<Model> >
     {
         const auto it = m_models.find(id);
         if (it == m_models.end())
@@ -209,3 +221,106 @@ public:
         return *it->second;
     }
 };
+
+// TODO move
+export void * bufferOffset(const size_t offset)
+{
+    return reinterpret_cast<void *>(offset);
+}
+
+// TODO move
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+unsigned int cubeVAO = 0;
+unsigned int cubeVBO;
+
+// TODO move
+static constexpr float quadStrip[] = {
+    // x, y, z, u, v
+    -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+    1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+};
+
+// TODO move
+static constexpr GLfloat cubeStrip[] = {
+    -0.5f, 0.5f, 0.5f,     // Front-top-left
+    0.5f, 0.5f, 0.5f,      // Front-top-right
+    -0.5f, -0.5f, 0.5f,    // Front-bottom-left
+    0.5f, -0.5f, 0.5f,     // Front-bottom-right
+    0.5f, -0.5f, -0.5f,    // Back-bottom-right
+    0.5f, 0.5f, 0.5f,      // Front-top-right
+    0.5f, 0.5f, -0.5f,     // Back-top-right
+    -0.5f, 0.5f, 0.5f,     // Front-top-left
+    -0.5f, 0.5f, -0.5f,    // Back-top-left
+    -0.5f, -0.5f, 0.5f,    // Front-bottom-left
+    -0.5f, -0.5f, -0.5f,   // Back-bottom-left
+    0.5f, -0.5f, -0.5f,    // Back-bottom-right
+    -0.5f, 0.5f, -0.5f,    // Back-top-left
+    0.5f, 0.5f, -0.5f      // Back-top-right
+};
+
+// TODO move
+export void renderQuad()
+{
+    constexpr size_t stride = 5;
+
+    if (quadVAO == 0)
+    {
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadStrip), &quadStrip, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(0,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            stride * sizeof(float),
+            nullptr);
+        glVertexAttribPointer(1,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            stride * sizeof(float),
+            bufferOffset(3 * sizeof(float)));
+    }
+
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, std::size(quadStrip) / stride);
+    glBindVertexArray(0);
+}
+
+export void renderCube()
+{
+    constexpr size_t stride = 3;
+
+    if (cubeVAO == 0)
+    {
+        glGenVertexArrays(1, &cubeVAO);
+        glGenBuffers(1, &cubeVBO);
+
+        glBindVertexArray(cubeVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeStrip), &cubeStrip, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(0,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            stride * sizeof(float),
+            nullptr);
+    }
+
+    glBindVertexArray(cubeVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, std::size(cubeStrip) / stride);
+    glBindVertexArray(0);
+}

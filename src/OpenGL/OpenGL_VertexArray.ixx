@@ -4,14 +4,11 @@
 
 module;
 
-#include <glad/gl.h>
-#include <string_view>
-#include <utility>
-
+#include "glad/gl.h"
 #include "Utility/EnumHelpers.h"
 
 export module OpenGL:VertexArray;
-
+import std;
 import Utility;
 
 export enum VertexArrayFlags : unsigned char
@@ -23,7 +20,8 @@ export enum VertexArrayFlags : unsigned char
     VertexArrayHasTexCoord0 = 1 << 3,
     VertexArrayHasTexCoord1 = 1 << 4,
     VertexArrayHasTangents = 1 << 5,
-    VertexArrayHasSkin = 1 << 6,
+    VertexArrayHasJoints = 1 << 6,
+    VertexArrayHasWeights0 = 1 << 7,
 };
 
 export
@@ -36,17 +34,6 @@ export class VertexArray
 private:
     VertexArrayFlags m_flags{VertexArrayHasNone};
     GLuint m_id{0};
-
-    static inline const StringUnorderedMap<int> attributeLocations{
-        {"POSITION", 0},
-        {"NORMAL", 1},
-        {"COLOR_0", 2},
-        {"TEXCOORD_0", 3},
-        {"TEXCOORD_1", 4},
-        {"TANGENT", 5},
-        {"JOINTS_0", 6},
-        {"WEIGHTS_0", 7},
-    };
 
 public:
     static auto Create(VertexArrayFlags flags) -> VertexArray
@@ -68,11 +55,10 @@ public:
             glEnableVertexAttribArray(4);
         if (flags & VertexArrayHasTangents)
             glEnableVertexAttribArray(5);
-        if (flags & VertexArrayHasSkin)
-        {
+        if (flags & VertexArrayHasJoints)
             glEnableVertexAttribArray(6);
+        if (flags & VertexArrayHasWeights0)
             glEnableVertexAttribArray(7);
-        }
 
         return {flags, id};
     }
@@ -109,10 +95,4 @@ public:
     }
 
     [[nodiscard]] auto id() const -> GLuint { return m_id; }
-
-    [[nodiscard]] static auto getAttributeLocation(const std::string_view& attribute) -> GLint
-    {
-        const auto it = attributeLocations.find(attribute);
-        return (it != attributeLocations.cend()) ? it->second : -1;
-    }
 };

@@ -8,13 +8,14 @@ module;
 #include "glm/gtc/quaternion.hpp"
 
 export module Engine:Transform;
+import std;
 
 export class Object;
 
 export class Transform
 {
 private:
-    Object& m_object;
+    std::reference_wrapper<Object> m_object;
     glm::vec3 m_translation{};
     glm::quat m_rotation = glm::identity<glm::quat>();
     glm::vec3 m_scale{1.0f};
@@ -45,5 +46,13 @@ public:
         mat *= glm::mat4_cast(m_rotation);
         mat = glm::scale(mat, m_scale);
         return mat;
+    }
+
+    friend auto swap(Transform& a, Transform& b) noexcept -> void
+    {
+        std::swap(a.m_object, b.m_object);
+        std::swap(a.m_translation, b.m_translation);
+        std::swap(a.m_rotation, b.m_rotation);
+        std::swap(a.m_scale, b.m_scale);
     }
 };

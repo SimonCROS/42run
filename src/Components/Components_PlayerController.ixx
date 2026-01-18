@@ -2,13 +2,10 @@
 // Created by Simon Cros on 2/20/25.
 //
 
-module;
-
-#include <chrono>
-
 export module Components:PlayerController;
-
+import std;
 import Engine;
+import Time;
 
 export class PlayerController final : public Component
 {

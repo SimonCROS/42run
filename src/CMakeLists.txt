@@ -1,58 +1,83 @@
-add_executable(42run
-        tiny_gltf_impl.cpp
-        Utility/EnumHelpers.h
+add_executable(42run)
+
+target_compile_features(42run PUBLIC
+        cxx_std_23
 )
+
+target_compile_options(42run PRIVATE -fsanitize=address -g3)
+target_link_options(42run PRIVATE -fsanitize=address -g3)
 
 target_sources(42run
         PUBLIC
-                FILE_SET CXX_MODULES
-                FILES
-                        Utility/Utility.ixx
-                        Utility/Utility_SlotSet.ixx
-                        Utility/Utility_StridedIterator.ixx
-                        Utility/Utility_StringUnorderedMap.ixx
-                        Utility/Utility_VectorMultiMap.ixx
-                        Window/Window.ixx
-                        Window/Window_Context.ixx
-                        Window/Window_Controls.ixx
-                        Window/Window_Window.ixx
-                        OpenGL/OpenGL.ixx
-                        OpenGL/OpenGL_Debug.ixx
-                        OpenGL/OpenGL_IndicesBuffer.ixx
-                        OpenGL/OpenGL_Pipeline.ixx
-                        OpenGL/OpenGL_Shader.ixx
-                        OpenGL/OpenGL_ShaderProgram.ixx
-                        OpenGL/OpenGL_ShaderProgramInstance.ixx
-                        OpenGL/OpenGL_VertexArray.ixx
-                        OpenGL/OpenGL_VertexBuffer.ixx
-                        Components/Components.ixx
-                        Components/Components_Animator.ixx
-                        Components/Components_CameraController.ixx
-                        Components/Components_ImguiSingleton.ixx
-                        Components/Components_MapController.ixx
-                        Components/Components_MeshRenderer.ixx
-                        Components/Components_PlayerController.ixx
-                        Components/Components_UserInterface.ixx
-                        Components/Engine_Camera.ixx
-                        Engine/Engine.ixx
-                        Engine/Engine_Animation.ixx
-                        Engine/Engine_AnimationSampler.ixx
-                        Engine/Engine_Component.ixx
-                        Engine/Engine_Engine.ixx
-                        Engine/Engine_FrameInfo.ixx
-                        Engine/Engine_Mesh.ixx
-                        Engine/Engine_Object.ixx
-                        Engine/Engine_ObjectsManager.ixx
-                        Engine/Engine_Transform.ixx
-                        InterfaceBlocks/InterfaceBlocks.ixx
-                        InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
-                        InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
+                Utility/EnumHelpers.h
+        PUBLIC
+        FILE_SET CXX_MODULES
+        FILES
+                Utility/Utility.ixx
+                Utility/SlotSet.ixx
+                Utility/StridedIterator.ixx
+                Utility/StringUnorderedMap.ixx
+                Window/Window.ixx
+                Window/Window_Context.ixx
+                Window/Window_Controls.ixx
+                Window/Window_Window.ixx
+                OpenGL/OpenGL.ixx
+                OpenGL/OpenGL_Debug.ixx
+                OpenGL/Cubemap.ixx
+                OpenGL/OpenGL_IndicesBuffer.ixx
+                OpenGL/OpenGL_VertexArray.ixx
+                OpenGL/OpenGL_VertexBuffer.ixx
+                OpenGL/Shader.ixx
+                OpenGL/ShaderFile.ixx
+                OpenGL/ShaderFlags.ixx
+                OpenGL/ShaderManager.ixx
+                OpenGL/ShaderProgram.ixx
+                OpenGL/UniformValue.ixx
+                OpenGL/Program/Pipeline.ixx
+                OpenGL/Program/RenderPass.ixx
+                OpenGL/Texture2D.ixx
+                Components/Components.ixx
+                Components/Components_Animator.ixx
+                Components/Components_CameraController.ixx
+                Components/Components_ImguiSingleton.ixx
+                Components/Components_MapController.ixx
+                Components/Components_MeshRenderer.ixx
+                Components/Components_PlayerController.ixx
+                Components/Components_UserInterface.ixx
+                Components/SkyboxRenderer.ixx
+                Components/Engine_Camera.ixx
+                Engine/AnimationChannel.ixx
+                Engine/AnimationSampler.ixx
+                Engine/Engine.ixx
+                Engine/Animation.ixx
+                Engine/Engine_Component.ixx
+                Engine/Engine_Engine.ixx
+                Engine/FrameInfo.ixx
+                Engine/Engine_Model.ixx
+                Engine/Engine_Object.ixx
+                Engine/Engine_ObjectsManager.ixx
+                Engine/Engine_Transform.ixx
+                InterfaceBlocks/InterfaceBlocks.ixx
+                InterfaceBlocks/InterfaceBlocks_AnimationInterfaceBlock.ixx
+                InterfaceBlocks/InterfaceBlocks_DisplayInterfaceBlock.ixx
+                Image.ixx
+                OpenGL2/glToString.ixx
+                OpenGL2/StateCache.ixx
+                OpenGL2/Texture2D2.ixx
+                OpenGL2/Texture2D2_Builder.ixx
+                OpenGL2/Cubemap2.ixx
+                OpenGL2/Cubemap2_Builder.ixx
+                OpenGL2/Buffer.ixx
+                OpenGL2/Buffer_Builder.ixx
+                Engine/RenderInfo.ixx
+                Time.ixx
         PRIVATE
                 main.cpp
+                tiny_gltf_impl.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
-                OpenGL/OpenGL_ShaderProgram.cpp
-                OpenGL/OpenGL_ShaderProgramInstance.cpp
+                OpenGL/Cubemap.cpp
+                OpenGL/Texture2D.cpp
                 Components/Components_Animator.cpp
                 Components/Components_ImguiSingleton.cpp
                 Components/Components_MapController.cpp
@@ -60,13 +85,16 @@ target_sources(42run
                 Components/Components_PlayerController.cpp
                 Components/Components_UserInterface.cpp
                 Components/Engine_Camera.cpp
-                Engine/Engine_Animation.cpp
-                Engine/Engine_AnimationSampler.cpp
+                Engine/Animation.cpp
+                Engine/AnimationSampler.cpp
                 Engine/Engine_Engine.cpp
-                Engine/Engine_Mesh.cpp
+                Engine/Engine_Model.cpp
                 Engine/Engine_Object.cpp
                 Engine/Engine_ObjectsManager.cpp
                 Engine/Engine_Transform.cpp
+                OpenGL2/Texture2D2.cpp
+                OpenGL2/Cubemap2.cpp
+                OpenGL2/Buffer.cpp
 )
 
 target_compile_definitions(42run PRIVATE
@@ -75,6 +103,10 @@ target_compile_definitions(42run PRIVATE
         TINYGLTF_NO_STB_IMAGE_WRITE
         TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
         TINYGLTF_USE_CPP14
+        STBI_ONLY_JPEG
+        STBI_ONLY_PNG
+        STBI_ONLY_TGA
+        STBI_ONLY_HDR
 )
 
 target_link_libraries(42run PRIVATE

@@ -4,101 +4,128 @@
 
 module;
 
-#include <iostream>
-
 #include "glm/gtc/type_ptr.hpp"
 #include "glad/gl.h"
-#include "tiny_gltf.h"
 
 module Components;
+import std;
 import Engine;
+import Engine.RenderInfo;
 import OpenGL;
 
-static void* bufferOffset(const size_t offset)
+auto MeshRenderer::renderMesh(Engine & engine, const int meshIndex, const glm::mat4 & transform) -> void
 {
-    return reinterpret_cast<void*>(offset);
-}
+    const auto & meshRenderInfo = m_mesh.renderInfo().meshes[meshIndex];
 
-auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::mat4& transform) -> void
-{
-    const auto& mesh = m_mesh.model().meshes[meshIndex];
-    const auto& meshRenderInfo = m_mesh.renderInfo().meshes[meshIndex];
-
-    for (int p = 0; p < mesh.primitives.size(); ++p)
+    for (int p = 0; p < meshRenderInfo.primitivesCount; ++p)
     {
-        const auto& primitive = mesh.primitives[p];
-        const auto& primitiveRenderInfo = meshRenderInfo.primitives[p];
+        const auto & primitiveRenderInfo = meshRenderInfo.primitives[p];
 
-        auto& program = m_program.getProgram(primitiveRenderInfo.shaderFlags);
-        engine.useProgram(program);
-
-        auto& vertexArray = engine.getVertexArray(primitiveRenderInfo.vertexArrayFlags);
+        auto & vertexArray = engine.getVertexArray(primitiveRenderInfo.vertexArrayFlags);
         engine.bindVertexArray(vertexArray);
 
-        for (const auto& [attribute, accessorIndex] : primitive.attributes)
-        {
-            const auto& accessor = m_mesh.model().accessors[accessorIndex];
-            const auto& accessorRenderInfo = m_mesh.renderInfo().accessors[accessorIndex];
+        glVertexAttrib3f(1, 0, 0, 0); // Normal
+        glVertexAttrib4f(2, 1, 1, 1, 1); // Color0
+        glVertexAttrib2f(3, 0, 0); // TexCoord0
+        glVertexAttrib2f(4, 0, 0); // TexCoord1
+        glVertexAttrib4f(5, 0, 0, 0, 0); // Tangent
 
-            const int attributeLocation = VertexArray::getAttributeLocation(attribute);
+        for (const auto & attribute: primitiveRenderInfo.attributes)
+        {
+            const auto & accessorRenderInfo = m_mesh.renderInfo().accessors[attribute.accessor];
+
+            const int attributeLocation = static_cast<int>(attribute.type);
             if (attributeLocation != -1)
             {
-                engine.bindBuffer(GL_ARRAY_BUFFER, accessorRenderInfo.glBuffer);
-                glVertexAttribPointer(attributeLocation,
-                                      accessorRenderInfo.componentCount,
-                                      accessor.componentType,
-                                      accessor.normalized,
-                                      accessorRenderInfo.byteStride,
-                                      bufferOffset(accessorRenderInfo.byteOffsetFromBufferView));
+                engine.bindBuffer(
+                    GL_ARRAY_BUFFER,
+                    *m_mesh.renderInfo().bufferViews[accessorRenderInfo.bufferView].glBuffer);
+
+                const bool isInteger = (accessorRenderInfo.componentType == GL_UNSIGNED_SHORT ||
+                                        accessorRenderInfo.componentType == GL_UNSIGNED_BYTE ||
+                                        accessorRenderInfo.componentType == GL_SHORT ||
+                                        accessorRenderInfo.componentType == GL_BYTE ||
+                                        accessorRenderInfo.componentType == GL_UNSIGNED_INT ||
+                                        accessorRenderInfo.componentType == GL_INT);
+
+                if (isInteger && !accessorRenderInfo.normalized)
+                {
+                    glVertexAttribIPointer(attributeLocation,
+                                           accessorRenderInfo.componentCount,
+                                           accessorRenderInfo.componentType,
+                                           accessorRenderInfo.byteStride,
+                                           bufferOffset(accessorRenderInfo.byteOffset));
+                }
+                else
+                {
+                    glVertexAttribPointer(attributeLocation,
+                                          accessorRenderInfo.componentCount,
+                                          accessorRenderInfo.componentType,
+                                          accessorRenderInfo.normalized,
+                                          accessorRenderInfo.byteStride,
+                                          bufferOffset(accessorRenderInfo.byteOffset));
+                }
             }
         }
 
+        auto & program = engine.getShaderManager().getProgram(primitiveRenderInfo.programIndex);
+        engine.useProgram(program);
+
         program.setMat4("u_transform", transform);
 
-        if (primitive.material >= 0)
+        engine.bindCubemap(0, m_irradianceMap.id());
+        engine.bindCubemap(1, m_prefilterMap.id());
+        engine.bindTexture(2, m_brdfLUT.id());
+        program.setInt("u_irradianceMap", 0);
+        program.setInt("u_prefilterMap", 1);
+        program.setInt("u_brdfLUT", 2);
+
+        if (primitiveRenderInfo.material >= 0)
         {
-            const auto& material = m_mesh.model().materials[primitive.material];
+            const auto & material = m_mesh.renderInfo().materials[primitiveRenderInfo.material];
 
             engine.setDoubleSided(material.doubleSided);
-            engine.setBlendEnabled(material.alphaMode == "BLEND");
+            engine.setBlendEnabled(material.blend);
 
-            if (material.pbrMetallicRoughness.baseColorTexture.index >= 0)
+            if (material.pbr.baseColorTexture.index >= 0)
             {
-                engine.bindTexture(0, m_mesh.texture(material.pbrMetallicRoughness.baseColorTexture.index));
-                program.setInt("u_baseColorTexture", 0);
-                program.setUint("u_baseColorTexCoordIndex", material.pbrMetallicRoughness.baseColorTexture.texCoord);
+                engine.bindTexture(3, m_mesh.texture(material.pbr.baseColorTexture.index));
+                program.setInt("u_baseColorTexture", 3);
+                program.setUint("u_baseColorTexCoordIndex", material.pbr.baseColorTexture.texCoord);
             }
 
-            if (material.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
+            if (material.pbr.metallicRoughnessTexture.index >= 0)
             {
-                engine.bindTexture(1, m_mesh.texture(material.pbrMetallicRoughness.metallicRoughnessTexture.index));
-                program.setInt("u_metallicRoughnessMap", 1);
-                program.setUint("u_metallicRoughnessTexCoordIndex", material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord);
+                engine.bindTexture(4, m_mesh.texture(material.pbr.metallicRoughnessTexture.index));
+                program.setInt("u_metallicRoughnessMap", 4);
+                program.setUint("u_metallicRoughnessTexCoordIndex",
+                                material.pbr.metallicRoughnessTexture.texCoord);
             }
 
             if (material.normalTexture.index >= 0)
             {
-                engine.bindTexture(2, m_mesh.texture(material.normalTexture.index));
-                program.setInt("u_normalMap", 2);
+                engine.bindTexture(5, m_mesh.texture(material.normalTexture.index));
+                program.setInt("u_normalMap", 5);
                 program.setUint("u_normalTexCoordIndex", material.normalTexture.texCoord);
             }
 
             if (material.emissiveTexture.index >= 0)
             {
-                engine.bindTexture(3, m_mesh.texture(material.emissiveTexture.index));
-                program.setInt("u_emissiveMap", 3);
+                engine.bindTexture(6, m_mesh.texture(material.emissiveTexture.index));
+                program.setInt("u_emissiveMap", 6);
                 program.setUint("u_emissiveTexCoordIndex", material.emissiveTexture.texCoord);
             }
 
-            program.setVec4("u_baseColorFactor", glm::make_vec4(material.pbrMetallicRoughness.baseColorFactor.data()));
-            program.setFloat("u_metallicFactor", static_cast<float>(material.pbrMetallicRoughness.metallicFactor));
-            program.setFloat("u_roughnessFactor", static_cast<float>(material.pbrMetallicRoughness.roughnessFactor));
-            program.setFloat("u_normalScale", static_cast<float>(material.normalTexture.scale));
-            program.setVec3("u_emissiveFactor", glm::make_vec3(material.emissiveFactor.data()));
+            program.setVec4("u_baseColorFactor", material.pbr.baseColorFactor);
+            program.setFloat("u_metallicFactor", material.pbr.metallicFactor);
+            program.setFloat("u_roughnessFactor", material.pbr.roughnessFactor);
+            program.setFloat("u_normalScale", material.normalTexture.scale);
+            program.setVec3("u_emissiveFactor", material.emissiveFactor);
         }
         else
         {
             engine.setDoubleSided(false);
+            engine.setBlendEnabled(false);
             program.setVec4("u_baseColorFactor", glm::vec4(1));
             program.setFloat("u_metallicFactor", 1);
             program.setFloat("u_roughnessFactor", 1);
@@ -106,96 +133,73 @@ auto MeshRenderer::renderMesh(Engine& engine, const int meshIndex, const glm::ma
             program.setVec3("u_emissiveFactor", glm::vec3(0));
         }
 
-        assert(primitive.indices >= 0); // TODO handle non indexed primitives
+        assert(primitiveRenderInfo.indices >= 0); // TODO handle non indexed primitives
 
-        const auto& indexAccessor = m_mesh.model().accessors[primitive.indices];
-        const auto& indexAccessorRenderInfo = m_mesh.renderInfo().accessors[primitive.indices];
+        const auto & accessorRenderInfo = m_mesh.renderInfo().accessors[primitiveRenderInfo.indices];
 
-        engine.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexAccessorRenderInfo.glBuffer);
+        engine.bindBuffer(
+            GL_ELEMENT_ARRAY_BUFFER,
+            *m_mesh.renderInfo().bufferViews[accessorRenderInfo.bufferView].glBuffer);
 
-        glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessorRenderInfo.count), indexAccessor.componentType,
-                       bufferOffset(indexAccessorRenderInfo.byteOffsetFromBufferView));
+        glDrawElements(primitiveRenderInfo.mode,
+                       static_cast<GLsizei>(accessorRenderInfo.count),
+                       accessorRenderInfo.componentType,
+                       bufferOffset(accessorRenderInfo.byteOffset));
     }
 }
 
-auto MeshRenderer::renderNodeRecursive(Engine& engine, const int nodeIndex) -> void
+auto MeshRenderer::renderNodeRecursive(Engine & engine, const int nodeIndex) -> void
 {
-    const tinygltf::Node& node = m_mesh.model().nodes[nodeIndex];
+    const NodeRenderInfo & node = m_mesh.renderInfo().nodes[nodeIndex];
 
     if (node.mesh > -1)
         renderMesh(engine, node.mesh, m_nodes[nodeIndex].globalTransform);
-    for (const auto childIndex : node.children)
-        renderNodeRecursive(engine, childIndex);
+    for (int i = 0; i < node.childrenCount; ++i)
+        renderNodeRecursive(engine, node.children[i]);
 }
 
 auto MeshRenderer::calculateGlobalTransformsRecursive(const int nodeIndex, glm::mat4 transform) -> void
 {
-    const tinygltf::Node& node = m_mesh.model().nodes[nodeIndex];
+    const NodeRenderInfo & node = m_mesh.renderInfo().nodes[nodeIndex];
 
-    // TODO Precalculate matrix or trs
-    if (!node.matrix.empty())
+    if (const auto * mat = std::get_if<glm::mat4>(&node.transform))
     {
-        transform *= glm::mat4(node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
-                               node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
-                               node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
-                               node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]);
+        transform *= *mat;
     }
     else
     {
-        const auto& tr = m_animator.has_value()
-                             ? m_animator->get().nodeTransform(nodeIndex)
-                             : Animator::AnimatedTransform{};
+        const auto & trs = std::get<TRS>(node.transform);
+        const auto & animTRS = m_animator.has_value()
+                                   ? m_animator->get().nodeTransform(nodeIndex)
+                                   : Animator::AnimatedTransform{};
 
-        if (tr.translation.has_value())
-            transform = glm::translate(transform, *tr.translation);
-        else if (!node.translation.empty())
-            transform = glm::translate(
-                transform, glm::vec3(node.translation[0], node.translation[1], node.translation[2]));
-
-        if (tr.rotation.has_value())
-            transform *= glm::mat4_cast(*tr.rotation);
-        else if (!node.rotation.empty())
-            transform *= glm::mat4_cast(glm::quat(node.rotation[3], node.rotation[0], node.rotation[1],
-                                                  node.rotation[2]));
-
-        if (tr.scale.has_value())
-            transform = glm::scale(transform, *tr.scale);
-        else if (!node.scale.empty())
-            transform = glm::scale(transform, glm::vec3(node.scale[0], node.scale[1], node.scale[2]));
+        transform = glm::translate(transform, animTRS.translation.has_value() ? *animTRS.translation : trs.translation);
+        transform *= glm::mat4_cast(animTRS.rotation.has_value() ? *animTRS.rotation : trs.rotation);
+        transform = glm::scale(transform, animTRS.scale.has_value() ? *animTRS.scale : trs.scale);
     }
 
     m_nodes[nodeIndex].globalTransform = transform;
 
-    for (const auto childIndex : node.children)
-        calculateGlobalTransformsRecursive(childIndex, transform);
+    for (int i = 0; i < node.childrenCount; ++i)
+        calculateGlobalTransformsRecursive(node.children[i], transform);
 }
 
-auto MeshRenderer::calculateJointMatrices(const int skinIndex, const glm::mat4& transform) -> void
+auto MeshRenderer::calculateJointMatrices(const int skinIndex, const glm::mat4 & transform) -> void
 {
-    const auto& gltfSkin = m_mesh.model().skins[skinIndex];
-    const auto& gltfJoints = gltfSkin.joints;
-    auto& jointMatrices = m_skins[skinIndex].jointMatrices;
+    const auto & skin = m_mesh.renderInfo().skins[skinIndex];
+    auto & jointMatrices = m_skins[skinIndex].jointMatrices;
 
-    glm::mat4 globalInverseTransform;
-    if (gltfSkin.skeleton > -1)
-        globalInverseTransform = glm::inverse(m_nodes[gltfSkin.skeleton].globalTransform);
-    else
-        globalInverseTransform = transform;
+    const glm::mat4 globalInverseTransform = glm::inverse(transform);
 
-    if (gltfSkin.inverseBindMatrices != -1)
+    for (int i = 0; i < skin.joints.size(); ++i)
     {
-        for (int i = 0; i < gltfJoints.size(); ++i)
-            jointMatrices[i] = globalInverseTransform * m_nodes[gltfJoints[i]].globalTransform * m_mesh.renderInfo().
-                skins[skinIndex].inverseBindMatrices[i];
-    }
-    else
-    {
-        for (int i = 0; i < gltfJoints.size(); ++i)
-            jointMatrices[i] = globalInverseTransform * m_nodes[gltfJoints[i]].globalTransform;
+        jointMatrices[i] = globalInverseTransform
+                           * m_nodes[skin.joints[i]].globalTransform
+                           * skin.inverseBindMatrices[i];
     }
 }
 
-void MeshRenderer::onRender(Engine& engine)
+void MeshRenderer::onRender(Engine & engine)
 {
     if (!displayed())
         return;
@@ -205,10 +209,14 @@ void MeshRenderer::onRender(Engine& engine)
 
     const auto globalTransform = object().worldTransform();
 
-    for (const auto nodeIndex : m_mesh.model().scenes[m_mesh.model().defaultScene].nodes)
-        calculateGlobalTransformsRecursive(nodeIndex, globalTransform);
+    const auto & renderInfo = m_mesh.renderInfo();
 
-    for (int skinIndex = 0; skinIndex < m_mesh.model().skins.size(); ++skinIndex)
+    for (int i = 0; i < renderInfo.rootNodesCount; ++i)
+    {
+        calculateGlobalTransformsRecursive(renderInfo.rootNodes[i], globalTransform);
+    }
+
+    for (int skinIndex = 0; skinIndex < renderInfo.skinsCount; ++skinIndex)
     {
         calculateJointMatrices(skinIndex, globalTransform);
 
@@ -216,11 +224,12 @@ void MeshRenderer::onRender(Engine& engine)
         const GLuint uniformBlockBinding = skinIndex;
         glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlockBinding, jointsUBO);
 
-        for (auto& program : m_program.programs)
+        for (auto & program: engine.getShaderManager().getPrograms())
         {
-            if (program.first & ShaderHasSkin)
+            if ((engine.getShaderManager().getShader(program.vertexShaderIdx()).flags() & ShaderFlags::HasSkin) ==
+                ShaderFlags::HasSkin)
             {
-                program.second->setUniformBlock("JointMatrices", uniformBlockBinding);
+                program.setUniformBlock("JointMatrices", uniformBlockBinding);
             }
         }
 
@@ -231,6 +240,8 @@ void MeshRenderer::onRender(Engine& engine)
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
-    for (const auto nodeIndex : m_mesh.model().scenes[m_mesh.model().defaultScene].nodes)
-        renderNodeRecursive(engine, nodeIndex);
+    for (int i = 0; i < renderInfo.rootNodesCount; ++i)
+    {
+        renderNodeRecursive(engine, renderInfo.rootNodes[i]);
+    }
 }

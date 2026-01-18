@@ -4,11 +4,10 @@
 
 module;
 
-#include <iostream>
-
 #include "glad/gl.h"
 
 export module OpenGL:Debug;
+import std;
 
 export auto glDebugOutput(GLenum source,
                    GLenum type,

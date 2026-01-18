@@ -4,10 +4,10 @@
 
 module;
 
-#include <cassert>
 #include "glm/glm.hpp"
 
 module Engine;
+import std;
 
 auto Object::willUpdate(Engine& engine) -> void
 {
@@ -40,10 +40,10 @@ auto Object::markDirty() -> void
         m_dirty = true;
 
         auto child = m_firstChildIndex;
-        while (child != ObjectNoneIndex)
+        while (child != SlotSetIndex::invalid())
         {
-            m_engine.objects()[child].markDirty();
-            child = m_engine.objects()[child].m_nextSiblingIndex;
+            m_engine.get().objects()[child].markDirty();
+            child = m_engine.get().objects()[child].m_nextSiblingIndex;
         }
     }
 }
@@ -52,9 +52,9 @@ auto Object::updateWorldTransformIfDirty() -> void
 {
     if (m_dirty)
     {
-        if (m_parentIndex != ObjectNoneIndex)
+        if (m_parentIndex != SlotSetIndex::invalid())
         {
-            auto& parent = m_engine.objects()[m_parentIndex];
+            auto& parent = m_engine.get().objects()[m_parentIndex];
             parent.updateWorldTransformIfDirty();
             m_worldTransform = parent.m_worldTransform * m_transform.trs();
         }
@@ -74,10 +74,10 @@ auto Object::setActiveFromParent(const bool active) -> void
     if (m_isActive) // stop propagation if already disabled
     {
         auto child = m_firstChildIndex;
-        while (child != ObjectNoneIndex)
+        while (child != SlotSetIndex::invalid())
         {
-            m_engine.objects()[child].setActiveFromParent(active);
-            child = m_engine.objects()[child].m_nextSiblingIndex;
+            m_engine.get().objects()[child].setActiveFromParent(active);
+            child = m_engine.get().objects()[child].m_nextSiblingIndex;
         }
     }
 }
@@ -89,35 +89,35 @@ auto Object::setActive(const bool active) -> void
         m_isActive = active;
 
         auto child = m_firstChildIndex;
-        while (child != ObjectNoneIndex)
+        while (child != SlotSetIndex::invalid())
         {
-            m_engine.objects()[child].setActiveFromParent(active);
-            child = m_engine.objects()[child].m_nextSiblingIndex;
+            m_engine.get().objects()[child].setActiveFromParent(active);
+            child = m_engine.get().objects()[child].m_nextSiblingIndex;
         }
     }
 }
 
 auto Object::unsetParentInternal(const bool recursiveUpdate) -> void
 {
-    if (m_parentIndex == ObjectNoneIndex)
+    if (m_parentIndex == SlotSetIndex::invalid())
         return;
 
-    auto* prevNextPtr = &m_engine.objects()[m_parentIndex].m_firstChildIndex;
+    auto* prevNextPtr = &m_engine.get().objects()[m_parentIndex].m_firstChildIndex;
     auto current = *prevNextPtr;
 
-    while (current != ObjectNoneIndex)
+    while (current != SlotSetIndex::invalid())
     {
         if (current == index)
         {
             *prevNextPtr = m_nextSiblingIndex;
             break;
         }
-        prevNextPtr = &m_engine.objects()[current].m_nextSiblingIndex;
-        current = m_engine.objects()[current].m_nextSiblingIndex;
+        prevNextPtr = &m_engine.get().objects()[current].m_nextSiblingIndex;
+        current = m_engine.get().objects()[current].m_nextSiblingIndex;
     }
 
-    m_parentIndex = ObjectNoneIndex;
-    m_nextSiblingIndex = ObjectNoneIndex;
+    m_parentIndex = SlotSetIndex::invalid();
+    m_nextSiblingIndex = SlotSetIndex::invalid();
 
     if (recursiveUpdate)
     {

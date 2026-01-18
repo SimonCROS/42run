@@ -4,13 +4,10 @@
 
 module;
 
-#include <string_view>
-#include <cstdint>
-
 #include "imgui_impl_opengl3.h"
 
 module Components;
-
+import std.compat;
 import Engine;
 
 UserInterface::UserInterface(Object& object, const std::string_view& name, const ImguiWindowData& windowData)
@@ -30,9 +27,9 @@ auto UserInterface::onUpdate(Engine& engine) -> void
 
     ImGui::Begin(m_name.c_str());
     uint16_t index = 0;
-    for (const auto& entry : m_blocks)
+    for (auto & block: m_blocks | std::views::values)
     {
-        entry.value->onDrawUI(index, engine, *this);
+        block->onDrawUI(index, engine, *this);
         if (index < m_blocks.size() - 1)
             InterfaceBlock::addSeparator();
         ++index;

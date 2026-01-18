@@ -4,7 +4,6 @@
 
 export module Utility;
 
-export import :SlotSet;
-export import :StridedIterator;
-export import :StringUnorderedMap;
-export import :VectorMultiMap;
+export import Utility.SlotSet;
+export import Utility.StridedIterator;
+export import Utility.StringUnorderedMap;
