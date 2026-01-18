@@ -2,6 +2,9 @@
 // Created by Simon Cros on 2/19/25.
 //
 
+module;
+#include <cassert>
+
 export module Utility.SlotSet;
 import std.compat;
 
@@ -30,29 +33,6 @@ export struct SlotSetIndex
     [[nodiscard]] constexpr auto isValid() const noexcept -> bool { return *this != invalid(); }
 };
 
-struct SlotSetValueIndex
-{
-    int32_t value = -1;
-
-    static constexpr auto invalid() -> SlotSetValueIndex { return {}; }
-
-    constexpr SlotSetValueIndex() = default;
-
-    constexpr SlotSetValueIndex(const SlotSetValueIndex &) = default;
-
-    constexpr SlotSetValueIndex(SlotSetValueIndex &&) = default;
-
-    constexpr SlotSetValueIndex & operator=(const SlotSetValueIndex &) = default;
-
-    constexpr SlotSetValueIndex & operator=(SlotSetValueIndex &&) = default;
-
-    constexpr explicit SlotSetValueIndex(const int32_t index) : value(index) {}
-
-    constexpr auto operator==(const SlotSetValueIndex & other) const -> bool = default;
-
-    constexpr auto operator<=>(const SlotSetValueIndex & other) const -> std::strong_ordering = default;
-};
-
 template<class T>
 concept Indexed = requires(T a)
 {
@@ -69,10 +49,11 @@ public:
     using Value = T;
 
     using ValueContainer = std::deque<Value>;
-    using Iterator = typename ValueContainer::iterator;
-    using ConstIterator = typename ValueContainer::const_iterator;
+    using SizeType = ValueContainer::size_type;
+    using Iterator = ValueContainer::iterator;
+    using ConstIterator = ValueContainer::const_iterator;
 
-    using SlotContainer = std::deque<SlotSetValueIndex>;
+    using SlotContainer = std::vector<SizeType>;
     using FreeSlotContainer = std::priority_queue<SlotSetIndex>;
 
 private:
@@ -87,7 +68,7 @@ public:
         requires std::constructible_from<Value, Args...> || std::move_constructible<T>
     auto emplace(Args &&... args) -> Value &
     {
-        const SlotSetValueIndex valueIndex = SlotSetValueIndex(m_values.size());
+        const SizeType valueIndex = m_values.size();
         SlotSetIndex slotIndex;
         if (m_freeSlots.empty())
         {
@@ -113,11 +94,10 @@ public:
             return false;
         }
 
-        const SlotSetValueIndex valueIndex = m_slots[index.value];
-        const SlotSetValueIndex lastValueIndex = SlotSetValueIndex(m_values.size() - 1);
+        const SizeType valueIndex = m_slots[index.value];
+        const SizeType lastValueIndex = m_values.size() - 1;
 
         m_freeSlots.emplace(index.value);
-        m_slots[index.value] = SlotSetValueIndex::invalid();
         if (valueIndex != lastValueIndex)
         {
             const auto & last = m_values[lastValueIndex];
@@ -128,20 +108,32 @@ public:
         return true;
     }
 
-    [[nodiscard]] auto size() -> typename ValueContainer::size_type { return m_values.size(); }
+    [[nodiscard]] auto size() -> ValueContainer::size_type { return m_values.size(); }
 
     [[nodiscard]] auto begin() -> Iterator { return m_values.begin(); }
-    [[nodiscard]] auto end() -> Iterator { return m_values.end(); }
     [[nodiscard]] auto begin() const -> ConstIterator { return m_values.begin(); }
+    [[nodiscard]] auto end() -> Iterator { return m_values.end(); }
     [[nodiscard]] auto end() const -> ConstIterator { return m_values.end(); }
+
+    [[nodiscard]] auto operator[](const SizeType index) -> Value &
+    {
+        return m_values[index];
+    }
+
+    [[nodiscard]] auto operator[](const SizeType index) const -> const Value &
+    {
+        return m_values[index];
+    }
 
     [[nodiscard]] auto operator[](const SlotSetIndex index) -> Value &
     {
-        return m_values[m_slots[index.value].value];
+        assert(index.isValid());
+        return m_values[m_slots[index.value]];
     }
 
     [[nodiscard]] auto operator[](const SlotSetIndex index) const -> const Value &
     {
-        return m_values[m_slots[index.value].value];
+        assert(index.isValid());
+        return m_values[m_slots[index.value]];
     }
 };
