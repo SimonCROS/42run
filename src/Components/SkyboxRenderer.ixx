@@ -11,7 +11,7 @@ export module Components:SkyboxRenderer;
 import std;
 import Engine;
 import OpenGL;
-import OpenGL.Cubemap2;
+import OpenGL.Cubemap;
 import Utility.SlotSet;
 
 export class SkyboxRenderer : public Component
@@ -64,7 +64,7 @@ export class SkyboxRenderer : public Component
 private:
     VertexArray m_vao;
     GLuint m_vbo;
-    OpenGL::Cubemap2& m_cubemap;
+    OpenGL::Cubemap& m_cubemap;
 
     void renderSkybox(Engine& engine)
     {
@@ -90,7 +90,7 @@ private:
     }
 
 public:
-    SkyboxRenderer(Object& object, Engine& engine, OpenGL::Cubemap2& cubemap) :
+    SkyboxRenderer(Object& object, Engine& engine, OpenGL::Cubemap& cubemap) :
         Component(object),
         m_cubemap(cubemap)
     {

@@ -13,9 +13,9 @@ import :MeshRenderer;
 import Engine;
 import OpenGL;
 
-static auto instantiatePlaneTwoTables(Engine & engine, const OpenGL::Cubemap2 & irradianceMap,
-                                      const OpenGL::Cubemap2 & prefilterMap,
-                                      const OpenGL::Texture2D2 & brdfLUT) -> Object &
+static auto instantiatePlaneTwoTables(Engine & engine, const OpenGL::Cubemap & irradianceMap,
+                                      const OpenGL::Cubemap & prefilterMap,
+                                      const OpenGL::Texture2D & brdfLUT) -> Object &
 {
     auto & floorMesh = engine.getModel("floor")->get();
     auto & deskMesh = engine.getModel("desk")->get();

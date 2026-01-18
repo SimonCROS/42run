@@ -5,7 +5,7 @@
 module;
 #include "glad/gl.h"
 
-export module OpenGL.Texture2D2:Builder;
+export module OpenGL.Texture2D:Builder;
 import std;
 import glToString;
 import OpenGL.StateCache;
@@ -65,7 +65,7 @@ constexpr bool isIntegerInternalFormat(const GLint internalFormat)
 
 export namespace OpenGL
 {
-    class Texture2D2;
+    class Texture2D;
 
     class Texture2DBuilder
     {
@@ -166,6 +166,6 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto build() const -> std::expected<Texture2D2, std::string>;
+        auto build() const -> std::expected<Texture2D, std::string>;
     };
 }

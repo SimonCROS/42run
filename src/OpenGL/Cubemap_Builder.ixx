@@ -5,7 +5,7 @@
 module;
 #include "glad/gl.h"
 
-export module OpenGL.Cubemap2:Builder;
+export module OpenGL.Cubemap:Builder;
 import std.compat;
 import glToString;
 import OpenGL.StateCache;
@@ -13,7 +13,7 @@ import Image;
 
 export namespace OpenGL
 {
-    class Cubemap2;
+    class Cubemap;
 
     class CubemapBuilder
     {
@@ -96,6 +96,6 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto build() const -> std::expected<Cubemap2, std::string>;
+        auto build() const -> std::expected<Cubemap, std::string>;
     };
 }

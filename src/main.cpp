@@ -18,8 +18,8 @@ import Window;
 import Image;
 import OpenGL;
 import OpenGL.StateCache;
-import OpenGL.Texture2D2;
-import OpenGL.Cubemap2;
+import OpenGL.Texture2D;
+import OpenGL.Cubemap;
 import Utility.SlotSet;
 
 class Rotator : public Component
@@ -162,27 +162,27 @@ auto start() -> std::expected<void, std::string>
 
     const GLuint cubemapSize = 512;
 
-    auto hdrTexture = *OpenGL::Texture2D2::builder(stateCache.get()).fromImage(*e_hdrImage, GL_RGB32F).build();
+    auto hdrTexture = *OpenGL::Texture2D::builder(stateCache.get()).fromImage(*e_hdrImage, GL_RGB32F).build();
     std::println("{}", *e_hdrImage);
     std::println("{}", hdrTexture);
-    auto cubemap2Texture = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(
+    auto CubemapTexture = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
         hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
-    *cubemap2Texture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
+    *CubemapTexture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
 
-    auto irradianceMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(
+    auto irradianceMap = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
         hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
-    *irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap2Texture, 0);
+    *irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), CubemapTexture, 0);
 
-    auto prefilterMap = *OpenGL::Cubemap2::builder(stateCache.get()).withFormat(
+    auto prefilterMap = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
         hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).withFiltering(
         GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR).build();
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 0);
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 1);
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 2);
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 3);
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap2Texture, 4);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 0);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 1);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 2);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 3);
+    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 4);
 
-    auto brdfTexture = *OpenGL::Texture2D2::builder(stateCache.get()).withDimensions(cubemapSize, cubemapSize).
+    auto brdfTexture = *OpenGL::Texture2D::builder(stateCache.get()).withDimensions(cubemapSize, cubemapSize).
             withFormat(GL_RG16F, GL_RG, hdrTexture.type()).build();
     *brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx));
 

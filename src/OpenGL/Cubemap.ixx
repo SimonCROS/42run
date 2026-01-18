@@ -5,18 +5,18 @@
 module;
 #include "glad/gl.h"
 
-export module OpenGL.Cubemap2;
+export module OpenGL.Cubemap;
 export import :Builder;
 import std;
 import glToString;
 import OpenGL;
 import OpenGL.StateCache;
 import Image;
-import OpenGL.Texture2D2;
+import OpenGL.Texture2D;
 
 export namespace OpenGL
 {
-    class Cubemap2
+    class Cubemap
     {
     private:
         StateCache* m_stateCache;
@@ -24,28 +24,28 @@ export namespace OpenGL
         GLsizei m_size;
 
     public:
-        Cubemap2() = delete;
+        Cubemap() = delete;
 
-        explicit Cubemap2(std::nullptr_t) noexcept : m_stateCache(nullptr), m_id(0), m_size(0)
+        explicit Cubemap(std::nullptr_t) noexcept : m_stateCache(nullptr), m_id(0), m_size(0)
         {
         }
 
-        explicit Cubemap2(StateCache* stateCache, const GLuint id, const GLsizei size) noexcept
+        explicit Cubemap(StateCache* stateCache, const GLuint id, const GLsizei size) noexcept
             : m_stateCache(stateCache), m_id(id), m_size(size)
         {
         }
 
-        Cubemap2(const Cubemap2&) = delete;
-        auto operator=(const Cubemap2&) -> Cubemap2& = delete;
+        Cubemap(const Cubemap&) = delete;
+        auto operator=(const Cubemap&) -> Cubemap& = delete;
 
-        Cubemap2(Cubemap2&& other) noexcept
+        Cubemap(Cubemap&& other) noexcept
             : m_stateCache(std::exchange(other.m_stateCache, nullptr)),
               m_id(std::exchange(other.m_id, 0)),
               m_size(std::exchange(other.m_size, 0))
         {
         }
 
-        auto operator=(Cubemap2&& other) noexcept -> Cubemap2&
+        auto operator=(Cubemap&& other) noexcept -> Cubemap&
         {
             if (this != &other)
             {
@@ -56,7 +56,7 @@ export namespace OpenGL
             return *this;
         }
 
-        ~Cubemap2() noexcept
+        ~Cubemap() noexcept
         {
             if (m_id != 0)
             {
@@ -81,11 +81,11 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto fromEquirectangular(ShaderProgram & converter, const Texture2D2& equirectangular)
+        auto fromEquirectangular(ShaderProgram & converter, const Texture2D& equirectangular)
             -> std::expected<void, std::string>;
 
         [[nodiscard]]
-        auto fromCubemap(ShaderProgram & converter, const Cubemap2& cubemap, GLint level)
+        auto fromCubemap(ShaderProgram & converter, const Cubemap& cubemap, GLint level)
             -> std::expected<void, std::string>;
 
         [[nodiscard]]
@@ -97,7 +97,7 @@ export namespace OpenGL
 }
 
 export template <>
-struct std::formatter<OpenGL::Cubemap2>
+struct std::formatter<OpenGL::Cubemap>
 {
     template <class ParseContext>
     constexpr auto parse(ParseContext& ctx) -> typename ParseContext::iterator
@@ -106,10 +106,10 @@ struct std::formatter<OpenGL::Cubemap2>
     }
 
     template <class FormatContext>
-    auto format(const OpenGL::Cubemap2& obj, FormatContext& ctx) const -> typename FormatContext::iterator
+    auto format(const OpenGL::Cubemap& obj, FormatContext& ctx) const -> typename FormatContext::iterator
     {
         return std::format_to(ctx.out(),
-                              "Cubemap2{{id:{}}}",
+                              "Cubemap{{id:{}}}",
                               obj.id());
     }
 };

@@ -5,7 +5,7 @@
 module;
 #include "glad/gl.h"
 
-export module OpenGL.Texture2D2;
+export module OpenGL.Texture2D;
 export import :Builder;
 import std;
 import glToString;
@@ -15,7 +15,7 @@ import ShaderProgram;
 
 export namespace OpenGL
 {
-    class Texture2D2
+    class Texture2D
     {
     private:
         StateCache * m_stateCache;
@@ -27,9 +27,9 @@ export namespace OpenGL
         GLenum m_type;
 
     public:
-        Texture2D2() = delete;
+        Texture2D() = delete;
 
-        explicit Texture2D2(StateCache * stateCache,
+        explicit Texture2D(StateCache * stateCache,
                             const GLuint id,
                             const GLint internalFormat,
                             const GLsizei width,
@@ -40,11 +40,11 @@ export namespace OpenGL
               m_width(width), m_height(height), m_format(format), m_type(type)
         {}
 
-        Texture2D2(const Texture2D2 &) = delete;
+        Texture2D(const Texture2D &) = delete;
 
-        auto operator=(const Texture2D2 &) -> Texture2D2 & = delete;
+        auto operator=(const Texture2D &) -> Texture2D & = delete;
 
-        Texture2D2(Texture2D2 && other) noexcept
+        Texture2D(Texture2D && other) noexcept
             : m_stateCache(std::exchange(other.m_stateCache, nullptr))
               , m_id(std::exchange(other.m_id, 0))
               , m_internalFormat(std::exchange(other.m_internalFormat, 0))
@@ -54,7 +54,7 @@ export namespace OpenGL
               , m_type(std::exchange(other.m_type, 0))
         {}
 
-        auto operator=(Texture2D2 && other) noexcept -> Texture2D2 &
+        auto operator=(Texture2D && other) noexcept -> Texture2D &
         {
             std::swap(m_stateCache, other.m_stateCache);
             std::swap(m_id, other.m_id);
@@ -66,7 +66,7 @@ export namespace OpenGL
             return *this;
         }
 
-        ~Texture2D2() noexcept
+        ~Texture2D() noexcept
         {
             if (m_id != 0)
             {
@@ -109,7 +109,7 @@ export namespace OpenGL
 }
 
 export template<>
-struct std::formatter<OpenGL::Texture2D2>
+struct std::formatter<OpenGL::Texture2D>
 {
     template<class ParseContext>
     constexpr auto parse(ParseContext & ctx) -> typename ParseContext::iterator
@@ -118,10 +118,10 @@ struct std::formatter<OpenGL::Texture2D2>
     }
 
     template<class FormatContext>
-    auto format(const OpenGL::Texture2D2 & obj, FormatContext & ctx) const -> typename FormatContext::iterator
+    auto format(const OpenGL::Texture2D & obj, FormatContext & ctx) const -> typename FormatContext::iterator
     {
         return std::format_to(ctx.out(),
-                              "Texture2D2{{id:{},internalFormat:{},width:{},height:{},format:{},type:{}}}",
+                              "Texture2D{{id:{},internalFormat:{},width:{},height:{},format:{},type:{}}}",
                               obj.id(),
                               glFormatToString(obj.internalFormat()),
                               obj.width(),

@@ -13,8 +13,8 @@ import std;
 import :Animator;
 import Engine;
 import OpenGL;
-import OpenGL.Cubemap2;
-import OpenGL.Texture2D2;
+import OpenGL.Cubemap;
+import OpenGL.Texture2D;
 
 export class MeshRenderer final : public Component
 {
@@ -33,9 +33,9 @@ private:
     bool m_displayed{true};
     GLenum m_polygonMode{GL_FILL};
     std::optional<std::reference_wrapper<const Animator>> m_animator;
-    const OpenGL::Cubemap2& m_irradianceMap;
-    const OpenGL::Cubemap2& m_prefilterMap;
-    const OpenGL::Texture2D2& m_brdfLUT;
+    const OpenGL::Cubemap& m_irradianceMap;
+    const OpenGL::Cubemap& m_prefilterMap;
+    const OpenGL::Texture2D& m_brdfLUT;
 
     std::vector<Node> m_nodes;
     std::vector<Skin> m_skins;
@@ -46,7 +46,7 @@ private:
     auto calculateJointMatrices(int skin, const glm::mat4& transform) -> void;
 
 public:
-    explicit MeshRenderer(Object& object, const Model& model, const OpenGL::Cubemap2& irradianceMap, const OpenGL::Cubemap2& prefilterMap, const OpenGL::Texture2D2& brdfLUT) :
+    explicit MeshRenderer(Object& object, const Model& model, const OpenGL::Cubemap& irradianceMap, const OpenGL::Cubemap& prefilterMap, const OpenGL::Texture2D& brdfLUT) :
         Component(object), m_mesh(model), m_irradianceMap(irradianceMap), m_prefilterMap(prefilterMap), m_brdfLUT(brdfLUT)
     {
         m_nodes.resize(m_mesh.renderInfo().nodesCount);

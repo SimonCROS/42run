@@ -5,13 +5,13 @@
 module;
 #include "glad/gl.h"
 
-module OpenGL.Texture2D2;
+module OpenGL.Texture2D;
 import ShaderProgram;
 import Engine;
 
 namespace OpenGL
 {
-    auto Texture2DBuilder::build() const -> std::expected<Texture2D2, std::string>
+    auto Texture2DBuilder::build() const -> std::expected<Texture2D, std::string>
     {
         GLuint id;
         glGenTextures(1, &id);
@@ -35,10 +35,10 @@ namespace OpenGL
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_minFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_magFilter);
 
-        return std::expected<Texture2D2, std::string>{std::in_place, m_stateCache, id, m_internalFormat, m_width, m_height, m_format, m_type};
+        return std::expected<Texture2D, std::string>{std::in_place, m_stateCache, id, m_internalFormat, m_width, m_height, m_format, m_type};
     }
 
-    auto Texture2D2::fromShader(ShaderProgram & converter) -> std::expected<void, std::string>
+    auto Texture2D::fromShader(ShaderProgram & converter) -> std::expected<void, std::string>
         {
             GLuint captureFBO;
 

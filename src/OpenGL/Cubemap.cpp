@@ -7,13 +7,13 @@ module;
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-module OpenGL.Cubemap2;
+module OpenGL.Cubemap;
 import OpenGL;
 import Engine;
 
 namespace OpenGL
 {
-    auto CubemapBuilder::build() const -> std::expected<Cubemap2, std::string>
+    auto CubemapBuilder::build() const -> std::expected<Cubemap, std::string>
     {
         GLuint id;
         glGenTextures(1, &id);
@@ -46,10 +46,10 @@ namespace OpenGL
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 4);
 
-        return std::expected<Cubemap2, std::string>{std::in_place, m_stateCache, id, m_size};
+        return std::expected<Cubemap, std::string>{std::in_place, m_stateCache, id, m_size};
     }
 
-    auto Cubemap2::fromEquirectangular(ShaderProgram & converter, const Texture2D2& equirectangular) -> std::expected<void, std::string>
+    auto Cubemap::fromEquirectangular(ShaderProgram & converter, const Texture2D& equirectangular) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
 
@@ -100,7 +100,7 @@ namespace OpenGL
     }
 
     // TODO change to from shader because cubemap can be mapped outside the function
-    auto Cubemap2::fromCubemap(ShaderProgram & converter, const Cubemap2& cubemap, const GLint level) -> std::expected<void, std::string>
+    auto Cubemap::fromCubemap(ShaderProgram & converter, const Cubemap& cubemap, const GLint level) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
 
