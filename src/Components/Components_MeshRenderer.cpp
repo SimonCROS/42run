@@ -171,11 +171,7 @@ auto MeshRenderer::calculateJointMatrices(const int skinIndex, const glm::mat4 &
     const auto & skin = m_mesh.renderInfo().skins[skinIndex];
     auto & jointMatrices = m_skins[skinIndex].jointMatrices;
 
-    glm::mat4 globalInverseTransform;
-    if (skin.skeleton > -1)
-        globalInverseTransform = glm::inverse(m_nodes[skin.skeleton].globalTransform);
-    else
-        globalInverseTransform = transform;
+    const glm::mat4 globalInverseTransform = glm::inverse(transform);
 
     for (int i = 0; i < skin.joints.size(); ++i)
     {
