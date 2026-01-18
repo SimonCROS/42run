@@ -23,7 +23,6 @@ target_sources(42run
                 Window/Window_Window.ixx
                 OpenGL/OpenGL.ixx
                 OpenGL/OpenGL_Debug.ixx
-                OpenGL/Cubemap.ixx
                 OpenGL/OpenGL_IndicesBuffer.ixx
                 OpenGL/OpenGL_VertexArray.ixx
                 OpenGL/OpenGL_VertexBuffer.ixx
@@ -35,7 +34,6 @@ target_sources(42run
                 OpenGL/UniformValue.ixx
                 OpenGL/Program/Pipeline.ixx
                 OpenGL/Program/RenderPass.ixx
-                OpenGL/Texture2D.ixx
                 Components/Components.ixx
                 Components/Components_Animator.ixx
                 Components/Components_CameraController.ixx
@@ -76,8 +74,6 @@ target_sources(42run
                 tiny_gltf_impl.cpp
                 Window/Window_Context.cpp
                 Window/Window_Window.cpp
-                OpenGL/Cubemap.cpp
-                OpenGL/Texture2D.cpp
                 Components/Components_Animator.cpp
                 Components/Components_ImguiSingleton.cpp
                 Components/Components_MapController.cpp

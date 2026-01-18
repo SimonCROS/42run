@@ -5,9 +5,7 @@
 export module OpenGL;
 
 export import :Debug;
-export import :Cubemap;
 export import :IndicesBuffer;
-export import :Texture2D;
 export import :VertexArray;
 export import :VertexBuffer;
 
