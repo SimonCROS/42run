@@ -129,16 +129,18 @@ auto Engine::run() -> std::expected<void, std::string>
     bool timeScaleKeyPressed = false;
     while (m_window.update())
     {
-        for (auto & object: m_objects)
+        for (SlotSet<Object>::SizeType objectIdx = 0; objectIdx < m_objects.size(); ++objectIdx)
         {
+            Object & object = m_objects[objectIdx];
             if (object.isActive())
             {
                 object.willUpdate(*this);
             }
         }
 
-        for (auto & object: m_objects)
+        for (SlotSet<Object>::SizeType objectIdx = 0; objectIdx < m_objects.size(); ++objectIdx)
         {
+            Object & object = m_objects[objectIdx];
             if (object.isActive())
             {
                 object.update(*this);
@@ -160,16 +162,18 @@ auto Engine::run() -> std::expected<void, std::string>
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (auto & object: m_objects)
+        for (SlotSet<Object>::SizeType objectIdx = 0; objectIdx < m_objects.size(); ++objectIdx)
         {
+            Object & object = m_objects[objectIdx];
             if (object.isActive())
             {
                 object.render(*this);
             }
         }
 
-        for (auto & object: m_objects)
+        for (SlotSet<Object>::SizeType objectIdx = 0; objectIdx < m_objects.size(); ++objectIdx)
         {
+            Object & object = m_objects[objectIdx];
             if (object.isActive())
             {
                 object.postRender(*this);
