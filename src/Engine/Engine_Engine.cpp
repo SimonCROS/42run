@@ -252,7 +252,7 @@ auto Engine::loadModel(const std::string_view & id, const std::string & path,
                           : m_loader.LoadASCIIFromFile(&rawModel, &err, &warn, path);
 
     if (!loadResult)
-        return std::unexpected(std::move(err));
+        return std::unexpected("failed to load model: " + std::move(err));
 
     if (!warn.empty())
         std::cout << "[WARN] " << warn << std::endl;
@@ -282,7 +282,7 @@ auto Engine::loadModel(const std::string_view & id, const std::string & path,
     auto [it, inserted] = m_models.try_emplace(std::string(id), std::make_unique<Model>(std::move(model)));
 
     if (!inserted)
-        return std::unexpected("A model with the same id already exist");
+        return std::unexpected("failed to load model: a model with the same id already exist");
 
     return *it->second;
 }

@@ -22,6 +22,26 @@ import OpenGL.Texture2D;
 import OpenGL.Cubemap;
 import Utility.SlotSet;
 
+#define CONCAT_IMPL(x, y) x##y
+#define CONCAT(x, y) CONCAT_IMPL(x, y)
+#define UNIQUE_NAME(prefix) CONCAT(prefix, __LINE__)
+
+#define TRY(expression) \
+    do { \
+        if (auto UNIQUE_NAME(_expected_) = (expression); !UNIQUE_NAME(_expected_)) \
+        { \
+            return std::unexpected(std::move(UNIQUE_NAME(_expected_)).error()); \
+        } \
+    } while (0)
+
+#define TRY_V(type, variable, expression) \
+    auto UNIQUE_NAME(_expected_) = (expression); \
+    if (!UNIQUE_NAME(_expected_)) \
+    { \
+        return std::unexpected(std::move(UNIQUE_NAME(_expected_)).error()); \
+    } \
+    type variable = std::move(UNIQUE_NAME(_expected_)).value()
+
 class Rotator : public Component
 {
 private:
@@ -40,27 +60,19 @@ auto start() -> std::expected<void, std::string>
 {
     std::cout << "42run " << FTRUN_VERSION_MAJOR << "." << FTRUN_VERSION_MINOR << std::endl;
 
-    auto e_window_context = WindowContext::Create(4, 1);
-    if (!e_window_context)
-        return std::unexpected("Failed to create window context: " + std::move(e_window_context).error());
-
-    auto e_window = Window::Create(WIDTH, HEIGHT, "42run");
-    if (!e_window)
-        return std::unexpected("Failed to create window: " + std::move(e_window).error());
+    TRY_V(auto, windowContext, WindowContext::Create(4, 1));
+    TRY_V(auto, window, Window::Create(WIDTH, HEIGHT, "42run"));
 
     auto stateCache = std::make_shared<OpenGL::StateCache>();
-    auto engine = Engine::Create(*std::move(e_window));
-
+    auto engine = Engine::Create(std::move(window));
 
     // ********************************
     // Init shaders
     // TODO safe
     // ********************************
 
-    const SlotSetIndex defaultVertIdx = *engine.getShaderManager().getOrAddShaderFile(
-        RESOURCE_PATH"shaders/pbr.vert");
-    const SlotSetIndex defaultFragIdx = *engine.getShaderManager().getOrAddShaderFile(
-        RESOURCE_PATH"shaders/pbr.frag");
+    TRY_V(const SlotSetIndex, defaultVertIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.vert"));
+    TRY_V(const SlotSetIndex, defaultFragIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.frag"));
 
     *engine.getShaderManager().getOrCreateShaderProgram(
         *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"),
@@ -93,21 +105,10 @@ auto start() -> std::expected<void, std::string>
     // ********************************
 
     stbi_set_flip_vertically_on_load(false);
-    auto e_spheresMesh = engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true);
-    if (!e_spheresMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_spheresMesh).error());
-
-    auto e_ancientMesh = engine.loadModel("ancient", RESOURCE_PATH"models/character.glb", true);
-    if (!e_ancientMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_ancientMesh).error());
-
-    auto e_floorMesh = engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true);
-    if (!e_floorMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_floorMesh).error());
-
-    auto e_deskMesh = engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true);
-    if (!e_deskMesh)
-        return std::unexpected("Failed to load model: " + std::move(e_deskMesh).error());
+    TRY_V(auto, spheresMesh, engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true));
+    TRY_V(auto, ancientMesh, engine.loadModel("ancient", RESOURCE_PATH"models/character.glb", true));
+    TRY_V(auto, floorMesh, engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true));
+    TRY_V(auto, deskMesh, engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true));
     stbi_set_flip_vertically_on_load(true);
 
 
@@ -115,55 +116,27 @@ auto start() -> std::expected<void, std::string>
     // Prepare shaders for models
     // ********************************
 
-    if (const auto && e_result = e_spheresMesh->get().prepareShaderPrograms(
-        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
-    {
-        return e_result;
-    }
-
-    if (const auto && e_result = e_ancientMesh->get().prepareShaderPrograms(
-        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
-    {
-        return e_result;
-    }
-
-    if (const auto && e_result = e_floorMesh->get().prepareShaderPrograms(
-        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
-    {
-        return e_result;
-    }
-
-    if (const auto && e_result = e_deskMesh->get().prepareShaderPrograms(
-        engine.getShaderManager(), defaultVertIdx, defaultFragIdx); !e_result)
-    {
-        return e_result;
-    }
-
+    TRY(spheresMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx));
+    TRY(ancientMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx));
+    TRY(floorMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx));
+    TRY(deskMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx));
 
     // ********************************
     // Compile and link shaders
     // ********************************
 
-    if (const auto && e_result = engine.getShaderManager().reloadAllShaders(); !e_result)
-    {
-        return e_result;
-    }
-
+    TRY(engine.getShaderManager().reloadAllShaders());
 
     // ********************************
     // Prepare IBL
     // ********************************
 
-    auto e_hdrImage = Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr");
-    if (!e_hdrImage)
-    {
-        return std::unexpected(std::move(e_hdrImage).error());
-    }
+    TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
 
     const GLuint cubemapSize = 512;
 
-    auto hdrTexture = *OpenGL::Texture2D::builder(stateCache.get()).fromImage(*e_hdrImage, GL_RGB32F).build();
-    std::println("{}", *e_hdrImage);
+    auto hdrTexture = *OpenGL::Texture2D::builder(stateCache.get()).fromImage(hdrImage, GL_RGB32F).build();
+    std::println("{}", hdrImage);
     std::println("{}", hdrTexture);
     auto CubemapTexture = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
         hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
@@ -224,8 +197,8 @@ auto start() -> std::expected<void, std::string>
     {
         // Ancient
         auto & object = engine.instantiate();
-        auto & animator = object.addComponent<Animator>(*e_ancientMesh);
-        auto & meshRenderer = object.addComponent<MeshRenderer>(*e_ancientMesh, irradianceMap, prefilterMap,
+        auto & animator = object.addComponent<Animator>(ancientMesh);
+        auto & meshRenderer = object.addComponent<MeshRenderer>(ancientMesh, irradianceMap, prefilterMap,
                                                                 brdfTexture);
         auto & ui = object.addComponent<UserInterface>("Character");
         ui.addBlock<DisplayInterfaceBlock>(1);
