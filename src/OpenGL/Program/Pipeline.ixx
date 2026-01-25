@@ -4,12 +4,11 @@
 
 module;
 
-#include <glad/gl.h>
-
-#include "glm/glm.hpp"
+#include "glad/gl.h"
 
 export module OpenGL.Pipeline;
 import std;
+import glm;
 
 using Extent2D = glm::vec<2, GLsizei>;
 

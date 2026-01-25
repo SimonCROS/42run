@@ -4,10 +4,9 @@
 
 module;
 #include "glad/gl.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 
 module OpenGL.Cubemap;
+import glm;
 import OpenGL;
 import Engine;
 

@@ -3,7 +3,6 @@
 //
 
 #include "glad/gl.h"
-#include "glm/glm.hpp"
 #include <cstdlib>
 
 #include "42runConfig.h"
@@ -11,6 +10,7 @@
 #include "tiny_gltf.h"
 
 import std;
+import glm;
 import Components;
 import Engine;
 import InterfaceBlocks;
@@ -21,26 +21,6 @@ import OpenGL.StateCache;
 import OpenGL.Texture2D;
 import OpenGL.Cubemap;
 import Utility.SlotSet;
-
-#define CONCAT_IMPL(x, y) x##y
-#define CONCAT(x, y) CONCAT_IMPL(x, y)
-#define UNIQUE_NAME(prefix) CONCAT(prefix, __LINE__)
-
-#define TRY(expression) \
-    do { \
-        if (auto UNIQUE_NAME(_expected_) = (expression); !UNIQUE_NAME(_expected_)) \
-        { \
-            return std::unexpected(std::move(UNIQUE_NAME(_expected_)).error()); \
-        } \
-    } while (0)
-
-#define TRY_V(type, variable, expression) \
-    auto UNIQUE_NAME(_expected_) = (expression); \
-    if (!UNIQUE_NAME(_expected_)) \
-    { \
-        return std::unexpected(std::move(UNIQUE_NAME(_expected_)).error()); \
-    } \
-    type variable = std::move(UNIQUE_NAME(_expected_)).value()
 
 class Rotator : public Component
 {

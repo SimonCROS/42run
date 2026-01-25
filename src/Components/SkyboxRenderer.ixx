@@ -5,10 +5,10 @@
 module;
 #include "42runConfig.h"
 #include "glad/gl.h"
-#include "glm/glm.hpp"
 
 export module Components:SkyboxRenderer;
 import std;
+import glm;
 import Engine;
 import OpenGL;
 import OpenGL.Cubemap;

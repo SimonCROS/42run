@@ -5,11 +5,10 @@
 module;
 
 #include "glad/gl.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 export module UniformValue;
 import std;
+import glm;
 
 export class UniformValue
 {
@@ -81,7 +80,7 @@ public:
         }
         else if constexpr (std::is_same_v<T, glm::mat4>)
         {
-            glUniformMatrix4fv(m_location, 1, GL_FALSE, glm::value_ptr(value));
+            glUniformMatrix4fv(m_location, 1, GL_FALSE, glm::gtc::value_ptr(value));
         }
     }
 };

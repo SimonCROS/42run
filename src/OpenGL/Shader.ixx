@@ -4,9 +4,6 @@
 
 module;
 
-#include <cassert>
-
-#include "Utility/EnumHelpers.h"
 #include "glad/gl.h"
 
 export module Shader;

@@ -4,13 +4,11 @@
 
 module;
 #include <algorithm>
-
-#include "glm/glm.hpp"
-#include "glm/gtc/quaternion.hpp"
 #include "GLFW/glfw3.h"
 
 export module Components:CameraController;
 import std;
+import glm;
 import Engine;
 import Window;
 

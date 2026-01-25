@@ -2,13 +2,9 @@
 // Created by Simon Cros on 1/17/25.
 //
 
-module;
-
-#include "glm/glm.hpp"
-#include "glm/gtc/quaternion.hpp"
-
 export module Engine:Transform;
 import std;
+import glm;
 
 export class Object;
 
@@ -43,7 +39,7 @@ public:
     {
         auto mat = glm::identity<glm::mat4>();
         mat = glm::translate(mat, m_translation);
-        mat *= glm::mat4_cast(m_rotation);
+        mat *= glm::gtc::mat4_cast(m_rotation);
         mat = glm::scale(mat, m_scale);
         return mat;
     }

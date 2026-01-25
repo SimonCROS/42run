@@ -4,11 +4,11 @@
 
 module;
 
-#include "glm/gtc/type_ptr.hpp"
 #include "glad/gl.h"
 
 module Components;
 import std;
+import glm;
 import Engine;
 import Engine.RenderInfo;
 import OpenGL;
@@ -174,7 +174,7 @@ auto MeshRenderer::calculateGlobalTransformsRecursive(const int nodeIndex, glm::
                                    : Animator::AnimatedTransform{};
 
         transform = glm::translate(transform, animTRS.translation.has_value() ? *animTRS.translation : trs.translation);
-        transform *= glm::mat4_cast(animTRS.rotation.has_value() ? *animTRS.rotation : trs.rotation);
+        transform *= glm::gtc::mat4_cast(animTRS.rotation.has_value() ? *animTRS.rotation : trs.rotation);
         transform = glm::scale(transform, animTRS.scale.has_value() ? *animTRS.scale : trs.scale);
     }
 

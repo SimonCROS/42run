@@ -7,11 +7,10 @@ module;
 #include "42runConfig.h"
 #include "tiny_gltf.h"
 #include "glad/gl.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 module Engine;
 import std;
+import glm;
 import OpenGL;
 import Utility;
 
@@ -353,7 +352,8 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
 
             material.pbr.baseColorTexture.index = gltfMaterial.pbrMetallicRoughness.baseColorTexture.index;
             material.pbr.baseColorTexture.texCoord = gltfMaterial.pbrMetallicRoughness.baseColorTexture.texCoord;
-            material.pbr.baseColorFactor = glm::make_vec4(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
+            material.pbr.baseColorFactor =
+                    glm::gtc::make_vec4(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
             material.pbr.metallicRoughnessTexture.index = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.
                     index;
             material.pbr.metallicRoughnessTexture.texCoord = gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.
@@ -365,7 +365,7 @@ auto Model::Create(Engine & engine, const tinygltf::Model & model) -> Model
             material.normalTexture.scale = static_cast<float>(gltfMaterial.normalTexture.scale);
             material.emissiveTexture.index = gltfMaterial.emissiveTexture.index;
             material.emissiveTexture.texCoord = gltfMaterial.emissiveTexture.texCoord;
-            material.emissiveFactor = glm::make_vec3(gltfMaterial.emissiveFactor.data());
+            material.emissiveFactor = glm::gtc::make_vec3(gltfMaterial.emissiveFactor.data());
             material.doubleSided = gltfMaterial.doubleSided;
             material.blend = gltfMaterial.alphaMode == "BLEND";
 

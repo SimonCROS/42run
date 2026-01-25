@@ -5,13 +5,11 @@
 module;
 
 #include "glad/gl.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 
 export module Engine.RenderInfo;
 
 import std;
+import glm;
 import OpenGL;
 import Utility.SlotSet;
 

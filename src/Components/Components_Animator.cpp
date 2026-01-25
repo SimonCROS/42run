@@ -4,7 +4,6 @@
 
 module;
 
-#include <cassert>
 #include "tiny_gltf.h"
 
 module Components;

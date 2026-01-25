@@ -6,12 +6,12 @@ module;
 
 #include "42runConfig.h"
 #include "glad/gl.h"
-#include "glm/glm.hpp"
 #include "tiny_gltf.h"
 #include "GLFW/glfw3.h"
 
 module Engine;
 import std;
+import glm;
 import OpenGL;
 import Window;
 

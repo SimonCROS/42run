@@ -2,15 +2,9 @@
 // Created by loumarti on 1/15/25.
 //
 
-module;
-
-#include "glm/glm.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_transform.hpp"
-
 module Engine;
 import :Transform;
+import glm;
 
 Camera::Camera(Object& object, const uint32_t width, const uint32_t height, const float fov) : Component(object), m_mode(COLOR)
 {

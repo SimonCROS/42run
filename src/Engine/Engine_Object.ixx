@@ -2,14 +2,11 @@
 // Created by Simon Cros on 1/29/25.
 //
 
-module;
-
-#include "glm/glm.hpp"
-
 export module Engine:Object;
-import std;
 import :Transform;
 import :Component;
+import std;
+import glm;
 import Utility;
 
 export class Engine;

@@ -5,7 +5,6 @@
 module;
 
 #include "glad/gl.h"
-#include "Utility/EnumHelpers.h"
 
 export module OpenGL:VertexArray;
 import std;

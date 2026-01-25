@@ -2,9 +2,6 @@
 // Created by Simon Cros on 2/19/25.
 //
 
-module;
-#include <cassert>
-
 export module Utility.SlotSet;
 import std.compat;
 

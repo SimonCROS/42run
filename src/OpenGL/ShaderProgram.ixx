@@ -5,14 +5,12 @@
 module;
 
 #include <version>
-#include <cassert>
 
 #include "glad/gl.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 export module ShaderProgram;
 import std;
+import glm;
 import Shader;
 import UniformValue;
 import Utility.SlotSet;

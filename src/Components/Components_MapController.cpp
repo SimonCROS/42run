@@ -2,14 +2,10 @@
 // Created by Simon Cros on 2/20/25.
 //
 
-module;
-
-#include "glm/glm.hpp"
-#include "glm/gtc/quaternion.hpp"
-
 module Components;
-import std;
 import :MeshRenderer;
+import std;
+import glm;
 import Engine;
 import OpenGL;
 

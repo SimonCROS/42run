@@ -2,12 +2,9 @@
 // Created by loumarti on 1/15/25.
 //
 
-module;
-
-#include "glm/glm.hpp"
-
 export module Engine:Camera;
 import :Component;
+import glm;
 
 export enum ViewMode
 {

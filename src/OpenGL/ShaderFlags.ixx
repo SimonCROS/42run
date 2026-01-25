@@ -2,10 +2,6 @@
 // Created by scros on 12/7/25.
 //
 
-module;
-
-#include "Utility/EnumHelpers.h"
-
 export module ShaderFlags;
 
 export enum class ShaderFlags : unsigned char

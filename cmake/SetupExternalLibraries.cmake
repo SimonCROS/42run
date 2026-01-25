@@ -52,8 +52,8 @@ FetchContent_MakeAvailable(tinygltf)
 FetchContent_Declare(
         glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG a532f5b1cf27d6a3c099437e6959cf7e398a0a67 #refs/tags/1.0.2
-        FIND_PACKAGE_ARGS 1.0.1 NAMES glm
+        GIT_TAG 8d1fd52e5ab5590e2c81768ace50c72bae28f2ed #refs/tags/1.0.3
+        FIND_PACKAGE_ARGS 1.0.3 NAMES glm
         EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(glm)

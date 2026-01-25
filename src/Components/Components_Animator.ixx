@@ -2,13 +2,9 @@
 // Created by Simon Cros on 29/01/2025.
 //
 
-module;
-
-#include "glm/glm.hpp"
-#include "glm/ext.hpp"
-
 export module Components:Animator;
 import std.compat;
+import glm;
 import Engine;
 import Engine.Animation;
 import Time;

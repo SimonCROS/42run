@@ -2,12 +2,9 @@
 // Created by Simon Cros on 1/29/25.
 //
 
-module;
-
-#include "glm/glm.hpp"
-
 module Engine;
 import std;
+import glm;
 
 auto Object::willUpdate(Engine& engine) -> void
 {

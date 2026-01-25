@@ -5,11 +5,9 @@
 module;
 
 #include "glad/gl.h"
-#include "glm/glm.hpp"
-#include "glm/detail/type_quat.hpp"
-#include "glm/ext.hpp"
 
 export module Engine.AnimationSampler;
+import glm;
 
 export class AnimationSampler
 {

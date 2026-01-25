@@ -4,7 +4,6 @@
 
 module;
 
-#include <cassert>
 #include "glad/gl.h"
 
 export module ShaderManager;
