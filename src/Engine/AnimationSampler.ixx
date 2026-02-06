@@ -7,6 +7,7 @@ module;
 #include "glad/gl.h"
 
 export module Engine.AnimationSampler;
+import std.compat;
 import glm;
 
 export class AnimationSampler

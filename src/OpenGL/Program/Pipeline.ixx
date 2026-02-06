@@ -24,7 +24,7 @@ public:
         glGenTextures(1, &colorBuffer);
         glBindTexture(GL_TEXTURE_2D, colorBuffer);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, extent.x,
-                     extent.y, 0, GL_RGBA, GL_FLOAT, NULL);
+                     extent.y, 0, GL_RGBA, GL_FLOAT, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -44,7 +44,7 @@ public:
             0,
             GL_DEPTH_COMPONENT,   // format
             GL_FLOAT,             // type (GL_UNSIGNED_BYTE ou GL_FLOAT selon besoin)
-            NULL
+            nullptr
         );
 
         // attach buffers

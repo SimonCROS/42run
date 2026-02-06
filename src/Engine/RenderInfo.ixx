@@ -8,7 +8,7 @@ module;
 
 export module Engine.RenderInfo;
 
-import std;
+import std.compat;
 import glm;
 import OpenGL;
 import Utility.SlotSet;
