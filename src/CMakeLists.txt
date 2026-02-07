@@ -27,6 +27,7 @@ target_sources(42run
                         Components/Components_UserInterface.ixx
                         Components/Engine_Camera.ixx
                         Components/SkyboxRenderer.ixx
+                        DataCache/DataCache.ixx
                         Engine/Animation.ixx
                         Engine/AnimationChannel.ixx
                         Engine/AnimationSampler.ixx
