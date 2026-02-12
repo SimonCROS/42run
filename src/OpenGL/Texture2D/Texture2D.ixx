@@ -76,6 +76,16 @@ export namespace OpenGL
             }
         }
 
+        static auto serialize(const Texture2D & cubemap) -> std::vector<std::byte>
+        {
+            return {};
+        }
+
+        static auto deserialize(const std::vector<std::byte> & data) -> std::expected<Texture2D, std::string>
+        {
+            return std::unexpected<std::string>("a");
+        }
+
         auto bind(const GLuint unit) const -> void
         {
             if (m_stateCache->setActiveTexture(unit))

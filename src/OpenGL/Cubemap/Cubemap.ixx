@@ -66,6 +66,16 @@ export namespace OpenGL
             }
         }
 
+        static auto serialize(const Cubemap & cubemap) -> std::vector<std::byte>
+        {
+            return {};
+        }
+
+        static auto deserialize(const std::vector<std::byte> & data) -> std::expected<Cubemap, std::string>
+        {
+            return std::unexpected<std::string>("a");
+        }
+
         auto bind(const GLuint unit) const -> void
         {
             if (m_stateCache->setActiveTexture(unit))

@@ -20,6 +20,7 @@ import OpenGL;
 import OpenGL.StateCache;
 import OpenGL.Texture2D;
 import OpenGL.Cubemap;
+import DataCache;
 import Utility.SlotSet;
 
 class Rotator : public Component
@@ -115,7 +116,11 @@ auto start() -> std::expected<void, std::string>
 
     const GLuint cubemapSize = 512;
 
-    auto hdrTexture = *OpenGL::Texture2D::builder(stateCache.get()).fromImage(hdrImage, GL_RGB32F).build();
+    TRY_V(auto, hdrTexture, DataCache::loadOrCreate<OpenGL::Texture2D>(std::filesystem::path("aaa/a.cubemap"), [&stateCache, &hdrImage]
+    {
+        return OpenGL::Texture2D::builder(stateCache.get()).fromImage(hdrImage, GL_RGB32F).build();
+    }));
+
     std::println("{}", hdrImage);
     std::println("{}", hdrTexture);
     auto CubemapTexture = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
