@@ -2,6 +2,9 @@
 // Created by scros on 2/7/26.
 //
 
+module;
+#include <cstdio>
+
 export module DataCache;
 import std;
 
@@ -107,7 +110,17 @@ public:
     requires std::invocable<F> && std::same_as<std::invoke_result_t<F>, std::expected<T, std::string>>
     static auto loadOrCreate(const std::filesystem::path & path, F&& generator) -> std::expected<T, std::string>
     {
-        return load<T>(path).or_else([&path, generator] -> std::optional<std::expected<T, std::string>>
+        return load<T>(path)
+        .and_then([&path](std::expected<T, std::string> result) -> std::optional<std::expected<T, std::string>>
+        {
+            if (result)
+            {
+                return result;
+            }
+
+            std::println(stderr, "Failed to deserialize {}: {}", path.c_str(), result.error());
+            return std::nullopt;
+        }).or_else([&path, generator] -> std::optional<std::expected<T, std::string>>
         {
             TRY_V(auto, data, generator());
             TRY(save<T>(path, data));

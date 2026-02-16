@@ -51,7 +51,7 @@ auto MapController::onUpdate(Engine & engine) -> void
         {
             auto & segment = instantiatePlaneTwoTables(engine, m_irradianceMap, m_prefilterMap, m_brdfLUT);
             segment.setActive(false);
-            m_segmentsPool.push(segment);
+            m_segmentsPool.emplace(segment);
         }
     }
 
@@ -75,6 +75,7 @@ auto MapController::onUpdate(Engine & engine) -> void
         if (front.transform().translation().z < -TMPSegmentSize)
         {
             m_movingSegments.pop_front();
+            front.setActive(false);
             m_segmentsPool.emplace(front);
         }
     }
