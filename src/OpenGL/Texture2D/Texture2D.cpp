@@ -45,40 +45,42 @@ namespace OpenGL
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_minFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_magFilter);
 
-        return std::expected<Texture2D, std::string>{std::in_place, m_stateCache, id, m_internalFormat, m_width, m_height, m_format, m_type};
+        return std::expected<Texture2D, std::string>{
+            std::in_place, m_stateCache, id, m_internalFormat, m_width, m_height
+        };
     }
 
-    auto Texture2D::fromRaw()
+    auto Texture2D::fromRaw(const GLenum format, const GLenum type, const void * const pixels) -> void
     {
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_format, m_type, nullptr);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, format, type, pixels);
     }
 
     auto Texture2D::fromShader(ShaderProgram & converter) -> std::expected<void, std::string>
-        {
-            GLuint captureFBO;
+    {
+        GLuint captureFBO;
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, m_id);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_id);
 
-            glDisable(GL_DEPTH_TEST);
-            glGenFramebuffers(1, &captureFBO);
-            glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-            glViewport(0, 0, m_width, m_height);
+        glDisable(GL_DEPTH_TEST);
+        glGenFramebuffers(1, &captureFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+        glViewport(0, 0, m_width, m_height);
 
-            glUseProgram(converter.id()); // Bad way to use
+        glUseProgram(converter.id()); // Bad way to use
 
-            glFramebufferTexture2D(GL_FRAMEBUFFER,
-                                   GL_COLOR_ATTACHMENT0,
-                                   GL_TEXTURE_2D,
-                                   m_id,
-                                   0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            renderQuad();
+        glFramebufferTexture2D(GL_FRAMEBUFFER,
+                               GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D,
+                               m_id,
+                               0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderQuad();
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glDeleteFramebuffers(1, &captureFBO);
-            glEnable(GL_DEPTH_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &captureFBO);
+        glEnable(GL_DEPTH_TEST);
 
-            return {};
-        }
+        return {};
+    }
 }

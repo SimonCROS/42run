@@ -75,9 +75,6 @@ export namespace OpenGL
         GLint m_internalFormat;
         GLsizei m_width;
         GLsizei m_height;
-        GLenum m_format;
-        GLenum m_type;
-        const void * m_data;
         GLint m_wrapS = GL_CLAMP_TO_EDGE;
         GLint m_wrapT = GL_CLAMP_TO_EDGE;
         GLint m_minFilter = GL_LINEAR;
@@ -89,44 +86,39 @@ export namespace OpenGL
               , m_internalFormat(0)
               , m_width(0)
               , m_height(0)
-              , m_format(0)
-              , m_type(0)
-              , m_data(nullptr)
         {}
 
-        [[nodiscard]]
-        auto fromImage(const Image & image, const GLint internalFormat) noexcept -> Texture2DBuilder &
-        {
-            m_internalFormat = internalFormat;
-            m_width = image.width();
-            m_height = image.height();
-            m_format = image.glFormat();
-            m_type = image.glType();
-            m_data = image.data();
-
-            if (!isBaseInternalFormat(internalFormat))
-            {
-                if (image.isHdr())
-                {
-                    if (!isFloatInternalFormat(internalFormat))
-                        std::println(
-                            "[Warning] HDR image data (float) is being uploaded to an integer internal format ({}). This will cause loss of precision and dynamic range.",
-                            glFormatToString(internalFormat));
-                }
-                else
-                {
-                    if (!isIntegerInternalFormat(internalFormat))
-                        std::println(
-                            "[Warning] LDR image data (byte) is being uploaded to a float internal format ({}). This wastes memory and bandwidth without increasing quality.",
-                            glFormatToString(internalFormat));
-                }
-            }
-
-            return *this;
-        }
+        // [[nodiscard]]
+        // auto fromImage(const Image & image, const GLint internalFormat) noexcept -> Texture2DBuilder &
+        // {
+        //     m_internalFormat = internalFormat;
+        //     m_width = image.width();
+        //     m_height = image.height();
+        //     m_data = image.data();
+        //
+        //     if (!isBaseInternalFormat(internalFormat))
+        //     {
+        //         if (image.isHdr())
+        //         {
+        //             if (!isFloatInternalFormat(internalFormat))
+        //                 std::println(
+        //                     "[Warning] HDR image data (float) is being uploaded to an integer internal format ({}). This will cause loss of precision and dynamic range.",
+        //                     glFormatToString(internalFormat));
+        //         }
+        //         else
+        //         {
+        //             if (!isIntegerInternalFormat(internalFormat))
+        //                 std::println(
+        //                     "[Warning] LDR image data (byte) is being uploaded to a float internal format ({}). This wastes memory and bandwidth without increasing quality.",
+        //                     glFormatToString(internalFormat));
+        //         }
+        //     }
+        //
+        //     return *this;
+        // }
 
         [[nodiscard]]
-        auto withDimensions(const GLsizei width, const GLsizei height) noexcept -> Texture2DBuilder &
+        auto withSize(const GLsizei width, const GLsizei height) noexcept -> Texture2DBuilder &
         {
             m_width = width;
             m_height = height;
@@ -134,19 +126,9 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto withFormat(const GLint internalFormat, const GLenum format,
-                        const GLenum type) noexcept -> Texture2DBuilder &
+        auto withInternalFormat(const GLint internalFormat) noexcept -> Texture2DBuilder &
         {
             m_internalFormat = internalFormat;
-            m_format = format;
-            m_type = type;
-            return *this;
-        }
-
-        [[nodiscard]]
-        auto withData(const void * data) noexcept -> Texture2DBuilder &
-        {
-            m_data = data;
             return *this;
         }
 

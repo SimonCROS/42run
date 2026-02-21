@@ -23,8 +23,6 @@ export namespace OpenGL
         GLint m_internalFormat;
         GLsizei m_width;
         GLsizei m_height;
-        GLenum m_format;
-        GLenum m_type;
 
     public:
         Texture2D() = delete;
@@ -33,11 +31,9 @@ export namespace OpenGL
                             const GLuint id,
                             const GLint internalFormat,
                             const GLsizei width,
-                            const GLsizei height,
-                            const GLenum format,
-                            const GLenum type) noexcept
+                            const GLsizei height) noexcept
             : m_stateCache(stateCache), m_id(id), m_internalFormat(internalFormat),
-              m_width(width), m_height(height), m_format(format), m_type(type)
+              m_width(width), m_height(height)
         {}
 
         Texture2D(const Texture2D &) = delete;
@@ -50,8 +46,6 @@ export namespace OpenGL
               , m_internalFormat(std::exchange(other.m_internalFormat, 0))
               , m_width(std::exchange(other.m_width, 0))
               , m_height(std::exchange(other.m_height, 0))
-              , m_format(std::exchange(other.m_format, 0))
-              , m_type(std::exchange(other.m_type, 0))
         {}
 
         auto operator=(Texture2D && other) noexcept -> Texture2D &
@@ -61,8 +55,6 @@ export namespace OpenGL
             std::swap(m_internalFormat, other.m_internalFormat);
             std::swap(m_width, other.m_width);
             std::swap(m_height, other.m_height);
-            std::swap(m_format, other.m_format);
-            std::swap(m_type, other.m_type);
             return *this;
         }
 
@@ -112,10 +104,8 @@ export namespace OpenGL
         constexpr auto width() const noexcept -> GLsizei { return m_width; }
         [[nodiscard]]
         constexpr auto height() const noexcept -> GLsizei { return m_height; }
-        [[nodiscard]]
-        constexpr auto format() const noexcept -> GLenum { return m_format; }
-        [[nodiscard]]
-        constexpr auto type() const noexcept -> GLenum { return m_type; }
+
+        auto fromRaw(GLenum format, GLenum type, const void * pixels) -> void;
 
         [[nodiscard]]
         auto fromShader(ShaderProgram & converter) -> std::expected<void, std::string>;
@@ -132,15 +122,13 @@ struct std::formatter<OpenGL::Texture2D>
     }
 
     template<class FormatContext>
-    auto format(const OpenGL::Texture2D & obj, FormatContext & ctx) const -> typename FormatContext::iterator
+    auto format(const OpenGL::Texture2D & obj, FormatContext & ctx) const -> FormatContext::iterator
     {
         return std::format_to(ctx.out(),
-                              "Texture2D{{id:{},internalFormat:{},width:{},height:{},format:{},type:{}}}",
+                              "Texture2D{{id:{},internalFormat:{},width:{},height:{}}}",
                               obj.id(),
                               glFormatToString(obj.internalFormat()),
                               obj.width(),
-                              obj.height(),
-                              glFormatToString(obj.format()),
-                              glTypeToString(obj.type()));
+                              obj.height());
     }
 };

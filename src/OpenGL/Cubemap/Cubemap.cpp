@@ -42,9 +42,9 @@ namespace OpenGL
                              m_size >> l,
                              m_size >> l,
                              0,
-                             m_format,
-                             m_type,
-                             m_faceData[i]);
+                             GL_RGBA, // dummy
+                             GL_UNSIGNED_BYTE, // dummy
+                             nullptr);
             }
         }
 

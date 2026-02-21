@@ -23,6 +23,8 @@ import OpenGL.Cubemap;
 import DataCache;
 import Utility.SlotSet;
 
+constexpr GLuint cubemapSize = 512;
+
 class Rotator : public Component
 {
 private:
@@ -47,42 +49,9 @@ auto start() -> std::expected<void, std::string>
     auto stateCache = std::make_shared<OpenGL::StateCache>();
     auto engine = Engine::Create(std::move(window));
 
-    // ********************************
-    // Init shaders
-    // TODO safe
-    // ********************************
-
-    TRY_V(const SlotSetIndex, defaultVertIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.vert"));
-    TRY_V(const SlotSetIndex, defaultFragIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.frag"));
-
-    *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"), ShaderFlags::None);
-
-    const auto brdfProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/brdf.frag"), ShaderFlags::None);
-
-    const auto eqProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/equirectangular_to_cubemap.frag"),
-        ShaderFlags::None);
-
-    const auto irradianceProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/irradiance.frag"), ShaderFlags::None);
-
-    const auto prefilterProgramIdx = *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/prefilter.frag"), ShaderFlags::None);
-
-    *engine.getShaderManager().getOrCreateShaderProgram(
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.vert"),
-        *engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"), ShaderFlags::None);
-
 
     // ********************************
-    // Init models
+    // Load models
     // ********************************
 
     stbi_set_flip_vertically_on_load(false);
@@ -94,68 +63,112 @@ auto start() -> std::expected<void, std::string>
 
 
     // ********************************
-    // Prepare shaders for models
+    // Create shaders
     // ********************************
 
-    TRY(spheresMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx));
-    TRY(ancientMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx));
-    TRY(floorMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx));
-    TRY(deskMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertIdx, defaultFragIdx));
+    TRY_V(const SlotSetIndex, defaultVertShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.vert"));
+    TRY_V(const SlotSetIndex, texcoordVertShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/texcoord.vert"));
+    TRY_V(const SlotSetIndex, cubemapVertShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/cubemap.vert"));
+    TRY_V(const SlotSetIndex, skyboxVertShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.vert"));
+
+    TRY_V(const SlotSetIndex, defaultFragShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/pbr.frag"));
+    TRY_V(const SlotSetIndex, hdrFragShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/hdr.frag"));
+    TRY_V(const SlotSetIndex, brdfFragShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/brdf.frag"));
+    TRY_V(const SlotSetIndex, equirectangularFragShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/equirectangular.frag"));
+    TRY_V(const SlotSetIndex, irradianceFragShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/irradiance.frag"));
+    TRY_V(const SlotSetIndex, prefilterFragShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/prefilter.frag"));
+    TRY_V(const SlotSetIndex, skyboxFragShaderIdx, engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"));
+
 
     // ********************************
-    // Compile and link shaders
+    // Create IBL resources
+    // ********************************
+
+    TRY_V(auto, irradianceMap, OpenGL::Cubemap::builder(stateCache.get())
+        .withInternalFormat(GL_RGB32F)
+        .withSize(cubemapSize)
+        .build());
+
+    TRY_V(auto, prefilterMap, OpenGL::Cubemap::builder(stateCache.get())
+        .withInternalFormat(GL_RGB32F)
+        .withSize(cubemapSize)
+        .withFiltering(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        .build());
+
+    TRY_V(auto, brdfTexture, OpenGL::Texture2D::builder(stateCache.get())
+        .withInternalFormat(GL_RG16F)
+        .withSize(cubemapSize, cubemapSize)
+        .build());
+
+
+    // ********************************
+    // Create programs
+    // ********************************
+
+    TRY_V(const SlotSetIndex, hdrProgramIdx, engine.getShaderManager().getOrCreateShaderProgram(texcoordVertShaderIdx, hdrFragShaderIdx, ShaderFlags::None));
+    TRY_V(const SlotSetIndex, brdfProgramIdx, engine.getShaderManager().getOrCreateShaderProgram(texcoordVertShaderIdx, brdfFragShaderIdx, ShaderFlags::None));
+    TRY_V(const SlotSetIndex, eqProgramIdx, engine.getShaderManager().getOrCreateShaderProgram(cubemapVertShaderIdx, equirectangularFragShaderIdx, ShaderFlags::None));
+    TRY_V(const SlotSetIndex, irradianceProgramIdx, engine.getShaderManager().getOrCreateShaderProgram(cubemapVertShaderIdx, irradianceFragShaderIdx, ShaderFlags::None));
+    TRY_V(const SlotSetIndex, prefilterProgramIdx, engine.getShaderManager().getOrCreateShaderProgram(cubemapVertShaderIdx, prefilterFragShaderIdx, ShaderFlags::None));
+    TRY_V(const SlotSetIndex, skyboxProgramIdx, engine.getShaderManager().getOrCreateShaderProgram(skyboxVertShaderIdx, skyboxFragShaderIdx, ShaderFlags::None));
+
+    TRY(spheresMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
+    TRY(ancientMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
+    TRY(floorMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
+    TRY(deskMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
+
+
+    // ********************************
+    // Compile and link programs
     // ********************************
 
     TRY(engine.getShaderManager().reloadAllShaders());
 
+
     // ********************************
-    // Prepare IBL
+    // Build IBL
     // ********************************
 
-    const GLuint cubemapSize = 512;
-
-    TRY_V(auto, hdrTexture, DataCache::loadOrCreate<OpenGL::Texture2D>(std::filesystem::path("aaa/a.cubemap"), [&stateCache] -> std::expected<OpenGL::Texture2D, std::string>
-    {
-        TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
-
-        return OpenGL::Texture2D::builder(stateCache.get()).fromImage(hdrImage, GL_RGB32F).build();
-    }));
-
-    TRY_V(auto, skybox, OpenGL::Cubemap::builder(stateCache.get())
-        .withFormat(GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE)
-        .withSize(cubemapSize)
-        .build());
-
-    if (!skybox.fromCache(".cache/skybox.cubemap"))
-    {
-        TRY(skybox.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture));
-    }
-
-    std::println("{}", hdrTexture);
-    auto CubemapTexture = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
-        hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
-    *CubemapTexture.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture);
-
-    auto irradianceMap = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
-        hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
-    *irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), CubemapTexture, 0);
-
-    auto prefilterMap = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
-        hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).withFiltering(
-        GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR).build();
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 0);
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 1);
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 2);
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 3);
-    *prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), CubemapTexture, 4);
-
-    auto brdfTexture = *OpenGL::Texture2D::builder(stateCache.get()).withDimensions(cubemapSize, cubemapSize).
-            withFormat(GL_RG16F, GL_RG, hdrTexture.type()).build();
-    *brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx));
+    // const bool irradianceLoaded = irradianceMap.fromCache(".cache/irradiance.cubemap");
+    // const bool prefilterLoaded = prefilterMap.fromCache(".cache/prefilter.cubemap");
+    // if (!irradianceLoaded || !prefilterLoaded)
+    // {
+    //     TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
+    //     TRY_V(auto, hdrTexture, OpenGL::Texture2D::builder(stateCache.get()).withInternalFormat(GL_RGB32F).build());
+    //     TRY_V(auto, cubemap, OpenGL::Cubemap::builder(stateCache.get())
+    //         .withInternalFormat(GL_RGB32F)
+    //         .withSize(cubemapSize)
+    //         .build());
+    //
+    //     TRY(hdrTexture.fromImage(hdrImage));
+    //     TRY(cubemap.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture));
+    //
+    //     if (!irradianceLoaded)
+    //     {
+    //         TRY(irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap, 0));
+    //         TRY(irradianceMap.saveCache(".cache/irradiance.cubemap"));
+    //     }
+    //
+    //     if (!prefilterLoaded)
+    //     {
+    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 0));
+    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 1));
+    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 2));
+    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 3));
+    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 4));
+    //         TRY(prefilterMap.saveCache(".cache/prefilter.cubemap"));
+    //     }
+    // }
+    //
+    // if (!brdfTexture.fromCache(".cache/brdf.texture2d"))
+    // {
+    //     TRY(brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx)));
+    //     TRY(brdfTexture.saveCache(".cache/brdf.texture2d"));
+    // }
 
 
     // ********************************
-    // Manually create the scene
+    // Create the scene
     // ********************************
 
     {
