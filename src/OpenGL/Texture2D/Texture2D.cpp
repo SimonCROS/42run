@@ -16,10 +16,20 @@ namespace OpenGL
         GLuint id;
         glGenTextures(1, &id);
 
+        if (id == 0)
+        {
+            return std::unexpected<std::string>("Failed to generate texture");
+        }
+
         if (m_stateCache->setActiveTexture(0))
+        {
             glActiveTexture(GL_TEXTURE0);
+        }
+
         if (m_stateCache->setBoundTexture(id))
+        {
             glBindTexture(GL_TEXTURE_2D, id);
+        }
 
         glTexImage2D(GL_TEXTURE_2D,
                      0,
@@ -27,15 +37,20 @@ namespace OpenGL
                      m_width,
                      m_height,
                      0,
-                     m_format,
-                     m_type,
-                     m_data);
+                     GL_RGBA, // dummy
+                     GL_UNSIGNED_BYTE, // dummy
+                     nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_wrapS);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_wrapT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_minFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_magFilter);
 
         return std::expected<Texture2D, std::string>{std::in_place, m_stateCache, id, m_internalFormat, m_width, m_height, m_format, m_type};
+    }
+
+    auto Texture2D::fromRaw()
+    {
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_format, m_type, nullptr);
     }
 
     auto Texture2D::fromShader(ShaderProgram & converter) -> std::expected<void, std::string>

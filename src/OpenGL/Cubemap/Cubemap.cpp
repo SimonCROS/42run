@@ -17,10 +17,20 @@ namespace OpenGL
         GLuint id;
         glGenTextures(1, &id);
 
+        if (id == 0)
+        {
+            return std::unexpected<std::string>("Failed to generate texture");
+        }
+
         if (m_stateCache->setActiveTexture(GL_TEXTURE0))
+        {
             glActiveTexture(GL_TEXTURE0);
+        }
+
         if (m_stateCache->setBoundTexture(id))
+        {
             glBindTexture(GL_TEXTURE_CUBE_MAP, id);
+        }
 
         for (GLuint l = 0; l < 5; ++l)
         {

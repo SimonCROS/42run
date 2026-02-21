@@ -76,8 +76,12 @@ export namespace OpenGL
             }
         }
 
-        static auto serialize(const Texture2D & cubemap) -> std::vector<std::byte>
+        static auto serialize(const Texture2D & texture) -> std::vector<std::byte>
         {
+            // std::vector<unsigned char> pixels(texture.width() * texture.height() * );
+            // glBindTexture(GL_TEXTURE_2D, textureID);
+            // glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
             return {};
         }
 

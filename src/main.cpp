@@ -112,16 +112,25 @@ auto start() -> std::expected<void, std::string>
     // Prepare IBL
     // ********************************
 
-    TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
-
     const GLuint cubemapSize = 512;
 
-    TRY_V(auto, hdrTexture, DataCache::loadOrCreate<OpenGL::Texture2D>(std::filesystem::path("aaa/a.cubemap"), [&stateCache, &hdrImage]
+    TRY_V(auto, hdrTexture, DataCache::loadOrCreate<OpenGL::Texture2D>(std::filesystem::path("aaa/a.cubemap"), [&stateCache] -> std::expected<OpenGL::Texture2D, std::string>
     {
+        TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
+
         return OpenGL::Texture2D::builder(stateCache.get()).fromImage(hdrImage, GL_RGB32F).build();
     }));
 
-    std::println("{}", hdrImage);
+    TRY_V(auto, skybox, OpenGL::Cubemap::builder(stateCache.get())
+        .withFormat(GL_RGB32F, GL_RGB, GL_UNSIGNED_BYTE)
+        .withSize(cubemapSize)
+        .build());
+
+    if (!skybox.fromCache(".cache/skybox.cubemap"))
+    {
+        TRY(skybox.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture));
+    }
+
     std::println("{}", hdrTexture);
     auto CubemapTexture = *OpenGL::Cubemap::builder(stateCache.get()).withFormat(
         hdrTexture.internalFormat(), hdrTexture.format(), hdrTexture.type()).withSize(cubemapSize).build();
