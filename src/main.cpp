@@ -55,10 +55,16 @@ auto start() -> std::expected<void, std::string>
     // ********************************
 
     stbi_set_flip_vertically_on_load(false);
-    TRY_V(auto, spheresMesh, engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true));
-    TRY_V(auto, ancientMesh, engine.loadModel("ancient", RESOURCE_PATH"models/character.glb", true));
+    std::cout << "Loading models... " << std::endl;
+    std::cout << "    character... " << std::flush;
+    TRY_V(auto, characterMesh, engine.loadModel("character", RESOURCE_PATH"models/character.glb", true));
+    std::cout << "OK!" << std::endl;
+    std::cout << "    floor... " << std::flush;
     TRY_V(auto, floorMesh, engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true));
+    std::cout << "OK!" << std::endl;
+    std::cout << "    desk... " << std::flush;
     TRY_V(auto, deskMesh, engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true));
+    std::cout << "OK!" << std::endl;
     stbi_set_flip_vertically_on_load(true);
 
 
@@ -119,17 +125,17 @@ auto start() -> std::expected<void, std::string>
     TRY_V(const SlotSetIndex, prefilterProgramIdx, engine.getShaderManager().getOrCreateShaderProgram(cubemapVertShaderIdx, prefilterFragShaderIdx, ShaderFlags::None));
     TRY_V(const SlotSetIndex, skyboxProgramIdx, engine.getShaderManager().getOrCreateShaderProgram(skyboxVertShaderIdx, skyboxFragShaderIdx, ShaderFlags::None));
 
-    TRY(spheresMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
-    TRY(ancientMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
+    TRY(characterMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
     TRY(floorMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
     TRY(deskMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
-
 
     // ********************************
     // Compile and link programs
     // ********************************
 
+    std::cout << "Compiling programs... " << std::flush;
     TRY(engine.getShaderManager().reloadAllShaders());
+    std::cout << "OK!" << std::endl;
 
 
     // ********************************
@@ -218,8 +224,8 @@ auto start() -> std::expected<void, std::string>
     {
         // Ancient
         auto & object = engine.instantiate();
-        auto & animator = object.addComponent<Animator>(ancientMesh);
-        auto & meshRenderer = object.addComponent<MeshRenderer>(ancientMesh, irradianceMap, prefilterMap,
+        auto & animator = object.addComponent<Animator>(characterMesh);
+        auto & meshRenderer = object.addComponent<MeshRenderer>(characterMesh, irradianceMap, prefilterMap,
                                                                 brdfTexture);
         auto & ui = object.addComponent<UserInterface>("Character");
         ui.addBlock<DisplayInterfaceBlock>(1);
