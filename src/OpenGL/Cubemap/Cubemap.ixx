@@ -20,8 +20,10 @@ export namespace OpenGL
     {
     private:
         StateCache * m_stateCache;
-        GLuint m_id;
         GLsizei m_size;
+        GLuint m_id;
+        GLuint m_baseLevel;
+        GLuint m_maxLevel;
 
     public:
         Cubemap() = delete;
@@ -29,8 +31,8 @@ export namespace OpenGL
         explicit Cubemap(std::nullptr_t) noexcept : m_stateCache(nullptr), m_id(0), m_size(0)
         {}
 
-        explicit Cubemap(StateCache * stateCache, const GLuint id, const GLsizei size) noexcept
-            : m_stateCache(stateCache), m_id(id), m_size(size)
+        explicit Cubemap(StateCache * stateCache, const GLuint id, const GLsizei size, const GLuint baseLevel, const GLuint maxLevel) noexcept
+            : m_stateCache(stateCache), m_size(size), m_id(id), m_baseLevel(baseLevel), m_maxLevel(maxLevel)
         {}
 
         Cubemap(const Cubemap &) = delete;
@@ -39,8 +41,10 @@ export namespace OpenGL
 
         Cubemap(Cubemap && other) noexcept
             : m_stateCache(std::exchange(other.m_stateCache, nullptr)),
+              m_size(std::exchange(other.m_size, 0)),
               m_id(std::exchange(other.m_id, 0)),
-              m_size(std::exchange(other.m_size, 0))
+              m_baseLevel(std::exchange(other.m_baseLevel, 0)),
+              m_maxLevel(std::exchange(other.m_maxLevel, 0))
         {}
 
         auto operator=(Cubemap && other) noexcept -> Cubemap &
@@ -48,8 +52,10 @@ export namespace OpenGL
             if (this != &other)
             {
                 std::swap(m_stateCache, other.m_stateCache);
-                std::swap(m_id, other.m_id);
                 std::swap(m_size, other.m_size);
+                std::swap(m_id, other.m_id);
+                std::swap(m_baseLevel, other.m_baseLevel);
+                std::swap(m_maxLevel, other.m_maxLevel);
             }
             return *this;
         }

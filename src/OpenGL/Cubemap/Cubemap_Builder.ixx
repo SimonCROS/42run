@@ -21,6 +21,8 @@ export namespace OpenGL
         StateCache * m_stateCache;
         GLint m_internalFormat;
         GLsizei m_size;
+        GLuint m_baseLevel;
+        GLuint m_maxLevel;
         GLint m_minFilter = GL_LINEAR;
         GLint m_magFilter = GL_LINEAR;
         const char * m_debugLabel;
@@ -30,6 +32,8 @@ export namespace OpenGL
             : m_stateCache(stateCache),
               m_internalFormat(0),
               m_size(0),
+              m_baseLevel(0),
+              m_maxLevel(0),
               m_debugLabel(nullptr)
         {}
 
@@ -78,6 +82,20 @@ export namespace OpenGL
         {
             m_minFilter = minFilter;
             m_magFilter = magFilter;
+            return *this;
+        }
+
+        [[nodiscard]]
+        auto baseLevel(const GLuint baseLevel) noexcept -> CubemapBuilder &
+        {
+            m_baseLevel = baseLevel;
+            return *this;
+        }
+
+        [[nodiscard]]
+        auto maxLevel(const GLuint maxLevel) noexcept -> CubemapBuilder &
+        {
+            m_maxLevel = maxLevel;
             return *this;
         }
 

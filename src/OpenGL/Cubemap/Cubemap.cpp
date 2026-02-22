@@ -3,12 +3,43 @@
 //
 
 module;
+#include <cstdio>
+
 #include "glad/gl.h"
 
 module OpenGL.Cubemap;
+import DataCache;
 import glm;
 import OpenGL;
+import OpenGL.Utility;
 import Engine;
+
+static auto textureSizeInMemoryForLevel(const GLenum format,
+                                        const GLenum type,
+                                        const uint32_t baseWidth,
+                                        const uint32_t baseHeight,
+                                        const uint32_t level) -> uint32_t
+{
+    const uint32_t pixelSize = OpenGL::formatComponentsCount(format) * OpenGL::typeSize(type);
+    const uint32_t levelsSize = (baseWidth * baseHeight) >> level;
+    return pixelSize * levelsSize;
+}
+
+static auto textureSizeInMemory(const GLenum format,
+                                const GLenum type,
+                                const uint32_t baseWidth,
+                                const uint32_t baseHeight,
+                                const uint32_t baseLevel,
+                                const uint32_t maxLevel) -> uint32_t
+{
+    const uint32_t pixelSize = OpenGL::formatComponentsCount(format) * OpenGL::typeSize(type);
+    uint32_t levelsSize = 0;
+    for (uint32_t level = baseLevel; level <= maxLevel; ++level)
+    {
+        levelsSize += (baseWidth * baseHeight) >> level;
+    }
+    return pixelSize * levelsSize;
+}
 
 namespace OpenGL
 {
@@ -32,10 +63,10 @@ namespace OpenGL
             glBindTexture(GL_TEXTURE_CUBE_MAP, id);
         }
 
-        if (m_debugLabel != nullptr && glObjectLabel != nullptr)
-        {
-            glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
-        }
+        // if (m_debugLabel != nullptr)
+        // {
+        //     glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
+        // }
 
         for (GLint l = 0; l < 5; ++l)
         {
@@ -58,9 +89,10 @@ namespace OpenGL
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 4);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, m_baseLevel);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, m_maxLevel);
 
-        return std::expected<Cubemap, std::string>{std::in_place, m_stateCache, id, m_size};
+        return std::expected<Cubemap, std::string>{std::in_place, m_stateCache, id, m_size, m_baseLevel, m_maxLevel};
     }
 
     auto Cubemap::fromCache(const std::filesystem::path & path, const GLenum format, const GLenum type) -> bool
@@ -78,17 +110,44 @@ namespace OpenGL
             return false;
         }
 
-        fromRaw(format, type, oe_result->value().data()); // TODO maybe return result of from data
+        const uint32_t saveSize = textureSizeInMemory(format, type, size(), size(), m_baseLevel, m_maxLevel) * 6;
+
+        if (oe_result->value().size() != saveSize)
+        {
+            std::println(stderr, "Failed to load texture from {}: unexpected size", path.c_str(),
+                         oe_result->value().size());
+            return false;
+        }
+
+        uint32_t offset = 0;
+        for (GLuint level = m_baseLevel; level <= m_maxLevel; ++level)
+        {
+            for (GLuint face = 0; face < 6; ++face)
+            {
+                fromRaw(format, type, oe_result->value().data() + offset, level, face);
+                offset += textureSizeInMemoryForLevel(format, type, size(), size(), level);
+            }
+        }
         return true;
     }
 
-    auto Cubemap::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> std::expected<void, std::string>
+    auto Cubemap::saveCache(const std::filesystem::path & path, const GLenum format,
+                            const GLenum type) const -> std::expected<void, std::string>
     {
-        const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
+        const uint32_t saveSize = textureSizeInMemory(format, type, size(), size(), m_baseLevel, m_maxLevel) * 6;
 
-        std::vector<std::byte> pixels(width() * height() * pixelSize);
-        glBindTexture(GL_TEXTURE_2D, m_id);
-        glGetTexImage(GL_TEXTURE_2D, 0, format, type, pixels.data());
+        std::vector<std::byte> pixels(saveSize);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+
+        uint32_t offset = 0;
+        for (GLuint level = m_baseLevel; level <= m_maxLevel; ++level)
+        {
+            for (GLuint face = 0; face < 6; ++face)
+            {
+                glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, format, type, pixels.data() + offset);
+                offset += textureSizeInMemoryForLevel(format, type, size(), size(), level);
+            }
+        }
 
         TRY(DataCache::writeFile(path, pixels));
         return {};
@@ -98,7 +157,7 @@ namespace OpenGL
                           const GLint level, const GLuint face) -> void
     {
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
-        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, 0, 0, m_size, m_size, format, type, pixels);
+        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, 0, 0, m_size >> level, m_size >> level, format, type, pixels);
     }
 
     auto Cubemap::fromEquirectangular(ShaderProgram & converter,

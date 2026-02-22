@@ -35,10 +35,10 @@ namespace OpenGL
             glBindTexture(GL_TEXTURE_2D, id);
         }
 
-        if (m_debugLabel != nullptr && glObjectLabel != nullptr)
-        {
-            glObjectLabel( GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
-        }
+        // if (m_debugLabel != nullptr)
+        // {
+        //     glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
+        // }
 
         glTexImage2D(GL_TEXTURE_2D,
                      0,
@@ -74,15 +74,26 @@ namespace OpenGL
             return false;
         }
 
+        const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
+        const uint32_t saveSize = width() * height() * pixelSize;
+
+        if (oe_result->value().size() != saveSize)
+        {
+            std::println(stderr, "Failed to load texture from {}: unexpected size", path.c_str(), oe_result->value().size());
+            return false;
+        }
+
         fromRaw(format, type, oe_result->value().data()); // TODO maybe return result of from data
         return true;
     }
 
-    auto Texture2D::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> std::expected<void, std::string>
+    auto Texture2D::saveCache(const std::filesystem::path & path, const GLenum format,
+                              const GLenum type) const -> std::expected<void, std::string>
     {
         const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
+        const uint32_t saveSize = width() * height() * pixelSize;
 
-        std::vector<std::byte> pixels(width() * height() * pixelSize);
+        std::vector<std::byte> pixels(saveSize);
         glBindTexture(GL_TEXTURE_2D, m_id);
         glGetTexImage(GL_TEXTURE_2D, 0, format, type, pixels.data());
 
