@@ -85,15 +85,19 @@ auto start() -> std::expected<void, std::string>
     // ********************************
 
     TRY_V(auto, irradianceMap, OpenGL::Cubemap::builder(stateCache.get())
-        .withInternalFormat(GL_RGB32F)
-        .withSize(cubemapSize)
+        .internalFormat(GL_RGB32F)
+        .size(cubemapSize)
+        .baseLevel(0)
+        .maxLevel(4)
         .debugLabel("Irradiance")
         .build());
 
     TRY_V(auto, prefilterMap, OpenGL::Cubemap::builder(stateCache.get())
-        .withInternalFormat(GL_RGB32F)
-        .withSize(cubemapSize)
-        .withFiltering(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        .internalFormat(GL_RGB32F)
+        .size(cubemapSize)
+        .filtering(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        .baseLevel(0)
+        .maxLevel(4)
         .debugLabel("Prefilter")
         .build());
 
@@ -138,13 +142,13 @@ auto start() -> std::expected<void, std::string>
     {
         TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
         TRY_V(auto, hdrTexture, OpenGL::Texture2D::builder(stateCache.get())
-            .withInternalFormat(GL_RGB32F)
-            .withSize(hdrImage.width(), hdrImage.height())
+            .internalFormat(GL_RGB32F)
+            .size(hdrImage.width(), hdrImage.height())
             .debugLabel("Equirectangular Skybox")
             .build());
         TRY_V(auto, cubemap, OpenGL::Cubemap::builder(stateCache.get())
-            .withInternalFormat(GL_RGB32F)
-            .withSize(cubemapSize)
+            .internalFormat(GL_RGB32F)
+            .size(cubemapSize)
             .debugLabel("Skybox")
             .build());
 

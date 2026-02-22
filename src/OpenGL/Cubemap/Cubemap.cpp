@@ -34,7 +34,7 @@ namespace OpenGL
 
         if (m_debugLabel != nullptr && glObjectLabel != nullptr)
         {
-            glObjectLabel( GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
+            glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
         }
 
         for (GLint l = 0; l < 5; ++l)
@@ -63,7 +63,46 @@ namespace OpenGL
         return std::expected<Cubemap, std::string>{std::in_place, m_stateCache, id, m_size};
     }
 
-    auto Cubemap::fromEquirectangular(ShaderProgram & converter, const Texture2D& equirectangular) -> std::expected<void, std::string>
+    auto Cubemap::fromCache(const std::filesystem::path & path, const GLenum format, const GLenum type) -> bool
+    {
+        const auto oe_result = DataCache::readFile(path);
+
+        if (!oe_result)
+        {
+            return false;
+        }
+
+        if (!oe_result->has_value())
+        {
+            std::println(stderr, "Failed to load texture from {}: {}", path.c_str(), oe_result->error());
+            return false;
+        }
+
+        fromRaw(format, type, oe_result->value().data()); // TODO maybe return result of from data
+        return true;
+    }
+
+    auto Cubemap::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> std::expected<void, std::string>
+    {
+        const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
+
+        std::vector<std::byte> pixels(width() * height() * pixelSize);
+        glBindTexture(GL_TEXTURE_2D, m_id);
+        glGetTexImage(GL_TEXTURE_2D, 0, format, type, pixels.data());
+
+        TRY(DataCache::writeFile(path, pixels));
+        return {};
+    }
+
+    auto Cubemap::fromRaw(const GLenum format, const GLenum type, const void * const pixels,
+                          const GLint level, const GLuint face) -> void
+    {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, 0, 0, m_size, m_size, format, type, pixels);
+    }
+
+    auto Cubemap::fromEquirectangular(ShaderProgram & converter,
+                                      const Texture2D & equirectangular) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
 
@@ -114,7 +153,8 @@ namespace OpenGL
     }
 
     // TODO change to from shader because cubemap can be mapped outside the function
-    auto Cubemap::fromCubemap(ShaderProgram & converter, const Cubemap& cubemap, const GLint level) -> std::expected<void, std::string>
+    auto Cubemap::fromCubemap(ShaderProgram & converter, const Cubemap & cubemap,
+                              const GLint level) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
 
@@ -140,7 +180,7 @@ namespace OpenGL
         cubemap.bind(GL_TEXTURE0);
 
         // ------------ TMP ------------
-        float roughness = (float)level / (float)(5 - 1);
+        float roughness = (float) level / (float) (5 - 1);
         converter.setFloat("u_roughness", roughness);
         // ------------ TMP ------------
 

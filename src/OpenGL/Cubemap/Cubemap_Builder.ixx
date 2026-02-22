@@ -60,21 +60,21 @@ export namespace OpenGL
         // }
 
         [[nodiscard]]
-        auto withSize(const GLsizei size) noexcept -> CubemapBuilder &
+        auto size(const GLsizei size) noexcept -> CubemapBuilder &
         {
             m_size = size;
             return *this;
         }
 
         [[nodiscard]]
-        auto withInternalFormat(const GLint internalFormat) noexcept -> CubemapBuilder &
+        auto internalFormat(const GLint internalFormat) noexcept -> CubemapBuilder &
         {
             m_internalFormat = internalFormat;
             return *this;
         }
 
         [[nodiscard]]
-        auto withFiltering(const GLint minFilter, const GLint magFilter) noexcept -> CubemapBuilder &
+        auto filtering(const GLint minFilter, const GLint magFilter) noexcept -> CubemapBuilder &
         {
             m_minFilter = minFilter;
             m_magFilter = magFilter;

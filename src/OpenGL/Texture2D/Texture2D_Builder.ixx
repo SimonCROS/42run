@@ -120,7 +120,7 @@ export namespace OpenGL
         // }
 
         [[nodiscard]]
-        auto withSize(const GLsizei width, const GLsizei height) noexcept -> Texture2DBuilder &
+        auto size(const GLsizei width, const GLsizei height) noexcept -> Texture2DBuilder &
         {
             m_width = width;
             m_height = height;
@@ -128,14 +128,14 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto withInternalFormat(const GLint internalFormat) noexcept -> Texture2DBuilder &
+        auto internalFormat(const GLint internalFormat) noexcept -> Texture2DBuilder &
         {
             m_internalFormat = internalFormat;
             return *this;
         }
 
         [[nodiscard]]
-        auto withWrapping(const GLint wrapS, const GLint wrapT) noexcept -> Texture2DBuilder &
+        auto wrapping(const GLint wrapS, const GLint wrapT) noexcept -> Texture2DBuilder &
         {
             m_wrapS = wrapS;
             m_wrapT = wrapT;
@@ -143,7 +143,7 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto withFiltering(const GLint minFilter, const GLint magFilter) noexcept -> Texture2DBuilder &
+        auto filtering(const GLint minFilter, const GLint magFilter) noexcept -> Texture2DBuilder &
         {
             m_minFilter = minFilter;
             m_magFilter = magFilter;

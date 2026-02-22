@@ -19,7 +19,7 @@ export namespace OpenGL
     class Cubemap
     {
     private:
-        StateCache* m_stateCache;
+        StateCache * m_stateCache;
         GLuint m_id;
         GLsizei m_size;
 
@@ -27,25 +27,23 @@ export namespace OpenGL
         Cubemap() = delete;
 
         explicit Cubemap(std::nullptr_t) noexcept : m_stateCache(nullptr), m_id(0), m_size(0)
-        {
-        }
+        {}
 
-        explicit Cubemap(StateCache* stateCache, const GLuint id, const GLsizei size) noexcept
+        explicit Cubemap(StateCache * stateCache, const GLuint id, const GLsizei size) noexcept
             : m_stateCache(stateCache), m_id(id), m_size(size)
-        {
-        }
+        {}
 
-        Cubemap(const Cubemap&) = delete;
-        auto operator=(const Cubemap&) -> Cubemap& = delete;
+        Cubemap(const Cubemap &) = delete;
 
-        Cubemap(Cubemap&& other) noexcept
+        auto operator=(const Cubemap &) -> Cubemap & = delete;
+
+        Cubemap(Cubemap && other) noexcept
             : m_stateCache(std::exchange(other.m_stateCache, nullptr)),
               m_id(std::exchange(other.m_id, 0)),
               m_size(std::exchange(other.m_size, 0))
-        {
-        }
+        {}
 
-        auto operator=(Cubemap&& other) noexcept -> Cubemap&
+        auto operator=(Cubemap && other) noexcept -> Cubemap &
         {
             if (this != &other)
             {
@@ -66,16 +64,6 @@ export namespace OpenGL
             }
         }
 
-        static auto serialize(const Cubemap & cubemap) -> std::vector<std::byte>
-        {
-            return {};
-        }
-
-        static auto deserialize(const std::vector<std::byte> & data) -> std::expected<Cubemap, std::string>
-        {
-            return std::unexpected<std::string>("a");
-        }
-
         auto bind(const GLuint unit) const -> void
         {
             if (m_stateCache->setActiveTexture(unit))
@@ -85,17 +73,24 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        static auto builder(StateCache* stateCache) noexcept -> CubemapBuilder
+        static auto builder(StateCache * stateCache) noexcept -> CubemapBuilder
         {
             return CubemapBuilder(stateCache);
         }
 
         [[nodiscard]]
-        auto fromEquirectangular(ShaderProgram & converter, const Texture2D& equirectangular)
+        auto fromCache(const std::filesystem::path & path, GLenum format, GLenum type) -> bool;
+        [[nodiscard]]
+        auto saveCache(const std::filesystem::path & path, GLenum format, GLenum type) const -> std::expected<void, std::string>;
+
+        auto fromRaw(GLenum format, GLenum type, const void * pixels, GLint level, GLuint face) -> void;
+
+        [[nodiscard]]
+        auto fromEquirectangular(ShaderProgram & converter, const Texture2D & equirectangular)
             -> std::expected<void, std::string>;
 
         [[nodiscard]]
-        auto fromCubemap(ShaderProgram & converter, const Cubemap& cubemap, GLint level)
+        auto fromCubemap(ShaderProgram & converter, const Cubemap & cubemap, GLint level)
             -> std::expected<void, std::string>;
 
         [[nodiscard]]
@@ -106,17 +101,17 @@ export namespace OpenGL
     };
 }
 
-export template <>
+export template<>
 struct std::formatter<OpenGL::Cubemap>
 {
-    template <class ParseContext>
-    constexpr auto parse(ParseContext& ctx) -> typename ParseContext::iterator
+    template<class ParseContext>
+    constexpr auto parse(ParseContext & ctx) -> typename ParseContext::iterator
     {
         return ctx.begin();
     }
 
-    template <class FormatContext>
-    auto format(const OpenGL::Cubemap& obj, FormatContext& ctx) const -> typename FormatContext::iterator
+    template<class FormatContext>
+    auto format(const OpenGL::Cubemap & obj, FormatContext & ctx) const -> typename FormatContext::iterator
     {
         return std::format_to(ctx.out(),
                               "Cubemap{{id:{}}}",
