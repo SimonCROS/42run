@@ -32,7 +32,7 @@ namespace OpenGL
             glBindTexture(GL_TEXTURE_CUBE_MAP, id);
         }
 
-        for (GLuint l = 0; l < 5; ++l)
+        for (GLint l = 0; l < 5; ++l)
         {
             for (GLuint i = 0; i < 6; ++i)
             {

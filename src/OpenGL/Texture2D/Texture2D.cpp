@@ -3,11 +3,15 @@
 //
 
 module;
+#include <cstdio>
+
 #include "glad/gl.h"
 
 module OpenGL.Texture2D;
-import ShaderProgram;
+import DataCache;
 import Engine;
+import OpenGL.Utility;
+import ShaderProgram;
 
 namespace OpenGL
 {
@@ -48,6 +52,42 @@ namespace OpenGL
         return std::expected<Texture2D, std::string>{
             std::in_place, m_stateCache, id, m_internalFormat, m_width, m_height
         };
+    }
+
+    auto Texture2D::fromCache(const std::filesystem::path & path, const GLenum format, const GLenum type) -> bool
+    {
+        const auto oe_result = DataCache::readFile(path);
+
+        if (!oe_result)
+        {
+            return false;
+        }
+
+        if (!oe_result->has_value())
+        {
+            std::println(stderr, "Failed to load texture from {}: {}", path, oe_result->error());
+            return false;
+        }
+
+        fromRaw(format, type, oe_result->value().data()); // TODO maybe return result of from data
+        return true;
+    }
+
+    auto Texture2D::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> bool
+    {
+        const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
+
+        std::vector<std::byte> pixels(width() * height() * pixelSize);
+        glBindTexture(GL_TEXTURE_2D, m_id);
+        glGetTexImage(GL_TEXTURE_2D, 0, format, type, pixels.data());
+
+        if (const auto e_result = DataCache::writeFile(path, pixels); !e_result)
+        {
+            std::println(stderr, "Failed to save texture to {}: {}", path, e_result.error());
+            return false;
+        }
+
+        return true;
     }
 
     auto Texture2D::fromRaw(const GLenum format, const GLenum type, const void * const pixels) -> void

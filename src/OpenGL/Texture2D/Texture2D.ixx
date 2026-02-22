@@ -105,6 +105,10 @@ export namespace OpenGL
         [[nodiscard]]
         constexpr auto height() const noexcept -> GLsizei { return m_height; }
 
+        [[nodiscard]]
+        auto fromCache(const std::filesystem::path & path, GLenum format, GLenum type) -> bool;
+        auto saveCache(const std::filesystem::path & path, GLenum format, GLenum type) const -> bool; // NOLINT(modernize-use-nodiscard)
+
         auto fromRaw(GLenum format, GLenum type, const void * pixels) -> void;
 
         [[nodiscard]]

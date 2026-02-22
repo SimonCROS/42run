@@ -63,6 +63,7 @@ target_sources(42run
                         OpenGL/Texture2D/Texture2D.ixx
                         OpenGL/Texture2D/Texture2D_Builder.ixx
                         OpenGL/UniformValue.ixx
+                        OpenGL/Utility.ixx
                         OpenGL2/StateCache.ixx
                         OpenGL2/glToString.ixx
                         Time.ixx
@@ -82,6 +83,7 @@ target_sources(42run
                 Components/Components_PlayerController.cpp
                 Components/Components_UserInterface.cpp
                 Components/Engine_Camera.cpp
+                DataCache/DataCache.cpp
                 Engine/Animation.cpp
                 Engine/AnimationSampler.cpp
                 Engine/Engine_Engine.cpp

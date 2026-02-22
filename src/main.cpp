@@ -129,42 +129,44 @@ auto start() -> std::expected<void, std::string>
     // Build IBL
     // ********************************
 
-    // const bool irradianceLoaded = irradianceMap.fromCache(".cache/irradiance.cubemap");
-    // const bool prefilterLoaded = prefilterMap.fromCache(".cache/prefilter.cubemap");
-    // if (!irradianceLoaded || !prefilterLoaded)
-    // {
-    //     TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
-    //     TRY_V(auto, hdrTexture, OpenGL::Texture2D::builder(stateCache.get()).withInternalFormat(GL_RGB32F).build());
-    //     TRY_V(auto, cubemap, OpenGL::Cubemap::builder(stateCache.get())
-    //         .withInternalFormat(GL_RGB32F)
-    //         .withSize(cubemapSize)
-    //         .build());
-    //
-    //     TRY(hdrTexture.fromImage(hdrImage));
-    //     TRY(cubemap.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture));
-    //
-    //     if (!irradianceLoaded)
-    //     {
-    //         TRY(irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap, 0));
-    //         TRY(irradianceMap.saveCache(".cache/irradiance.cubemap"));
-    //     }
-    //
-    //     if (!prefilterLoaded)
-    //     {
-    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 0));
-    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 1));
-    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 2));
-    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 3));
-    //         TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 4));
-    //         TRY(prefilterMap.saveCache(".cache/prefilter.cubemap"));
-    //     }
-    // }
-    //
-    // if (!brdfTexture.fromCache(".cache/brdf.texture2d"))
-    // {
-    //     TRY(brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx)));
-    //     TRY(brdfTexture.saveCache(".cache/brdf.texture2d"));
-    // }
+    const bool irradianceLoaded = irradianceMap.fromCache(".cache/irradiance.cubemap", GL_RGB, GL_FLOAT);
+    const bool prefilterLoaded = prefilterMap.fromCache(".cache/prefilter.cubemap", GL_RGB, GL_FLOAT);
+    if (!irradianceLoaded || !prefilterLoaded)
+    {
+        TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
+        TRY_V(auto, hdrTexture, OpenGL::Texture2D::builder(stateCache.get())
+            .withInternalFormat(GL_RGB32F)
+            .build());
+        TRY_V(auto, cubemap, OpenGL::Cubemap::builder(stateCache.get())
+            .withInternalFormat(GL_RGB32F)
+            .withSize(cubemapSize)
+            .build());
+
+        TRY(hdrTexture.fromImage(hdrImage));
+        TRY(cubemap.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture));
+
+        if (!irradianceLoaded)
+        {
+            TRY(irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap, 0));
+            TRY(irradianceMap.saveCache(".cache/irradiance.cubemap", GL_RGB, GL_FLOAT));
+        }
+
+        if (!prefilterLoaded)
+        {
+            TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 0));
+            TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 1));
+            TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 2));
+            TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 3));
+            TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 4));
+            TRY(prefilterMap.saveCache(".cache/prefilter.cubemap", GL_RGB, GL_FLOAT));
+        }
+    }
+
+    if (!brdfTexture.fromCache(".cache/brdf.texture2d", GL_RG, GL_HALF_FLOAT))
+    {
+        TRY(brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx)));
+        brdfTexture.saveCache(".cache/brdf.texture2d", GL_RG, GL_HALF_FLOAT);
+    }
 
 
     // ********************************
