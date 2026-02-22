@@ -32,6 +32,11 @@ namespace OpenGL
             glBindTexture(GL_TEXTURE_CUBE_MAP, id);
         }
 
+        if (m_debugLabel != nullptr && glObjectLabel != nullptr)
+        {
+            glObjectLabel( GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
+        }
+
         for (GLint l = 0; l < 5; ++l)
         {
             for (GLuint i = 0; i < 6; ++i)

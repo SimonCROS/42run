@@ -107,7 +107,8 @@ export namespace OpenGL
 
         [[nodiscard]]
         auto fromCache(const std::filesystem::path & path, GLenum format, GLenum type) -> bool;
-        auto saveCache(const std::filesystem::path & path, GLenum format, GLenum type) const -> bool; // NOLINT(modernize-use-nodiscard)
+        [[nodiscard]]
+        auto saveCache(const std::filesystem::path & path, GLenum format, GLenum type) const -> std::expected<void, std::string>;
 
         auto fromRaw(GLenum format, GLenum type, const void * pixels) -> void;
 

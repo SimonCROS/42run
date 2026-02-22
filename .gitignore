@@ -623,6 +623,7 @@ FodyWeavers.xsd
 
 !/Makefile
 .idea/editor.xml
+.cache
 /resources/models
 /resources/textures
 /resources/Tantolunden4

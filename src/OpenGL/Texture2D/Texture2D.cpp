@@ -35,6 +35,11 @@ namespace OpenGL
             glBindTexture(GL_TEXTURE_2D, id);
         }
 
+        if (m_debugLabel != nullptr && glObjectLabel != nullptr)
+        {
+            glObjectLabel( GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
+        }
+
         glTexImage2D(GL_TEXTURE_2D,
                      0,
                      m_internalFormat,
@@ -65,7 +70,7 @@ namespace OpenGL
 
         if (!oe_result->has_value())
         {
-            std::println(stderr, "Failed to load texture from {}: {}", path, oe_result->error());
+            std::println(stderr, "Failed to load texture from {}: {}", path.c_str(), oe_result->error());
             return false;
         }
 
@@ -73,7 +78,7 @@ namespace OpenGL
         return true;
     }
 
-    auto Texture2D::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> bool
+    auto Texture2D::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> std::expected<void, std::string>
     {
         const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
 
@@ -81,17 +86,13 @@ namespace OpenGL
         glBindTexture(GL_TEXTURE_2D, m_id);
         glGetTexImage(GL_TEXTURE_2D, 0, format, type, pixels.data());
 
-        if (const auto e_result = DataCache::writeFile(path, pixels); !e_result)
-        {
-            std::println(stderr, "Failed to save texture to {}: {}", path, e_result.error());
-            return false;
-        }
-
-        return true;
+        TRY(DataCache::writeFile(path, pixels));
+        return {};
     }
 
     auto Texture2D::fromRaw(const GLenum format, const GLenum type, const void * const pixels) -> void
     {
+        glBindTexture(GL_TEXTURE_2D, m_id);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, format, type, pixels);
     }
 

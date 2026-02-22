@@ -87,17 +87,20 @@ auto start() -> std::expected<void, std::string>
     TRY_V(auto, irradianceMap, OpenGL::Cubemap::builder(stateCache.get())
         .withInternalFormat(GL_RGB32F)
         .withSize(cubemapSize)
+        .debugLabel("Irradiance")
         .build());
 
     TRY_V(auto, prefilterMap, OpenGL::Cubemap::builder(stateCache.get())
         .withInternalFormat(GL_RGB32F)
         .withSize(cubemapSize)
         .withFiltering(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        .debugLabel("Prefilter")
         .build());
 
     TRY_V(auto, brdfTexture, OpenGL::Texture2D::builder(stateCache.get())
         .withInternalFormat(GL_RG16F)
         .withSize(cubemapSize, cubemapSize)
+        .debugLabel("BRDF")
         .build());
 
 
@@ -129,43 +132,46 @@ auto start() -> std::expected<void, std::string>
     // Build IBL
     // ********************************
 
-    const bool irradianceLoaded = irradianceMap.fromCache(".cache/irradiance.cubemap", GL_RGB, GL_FLOAT);
-    const bool prefilterLoaded = prefilterMap.fromCache(".cache/prefilter.cubemap", GL_RGB, GL_FLOAT);
-    if (!irradianceLoaded || !prefilterLoaded)
+    // const bool irradianceLoaded = irradianceMap.fromCache(".cache/irradiance.cubemap", GL_RGB, GL_FLOAT);
+    // const bool prefilterLoaded = prefilterMap.fromCache(".cache/prefilter.cubemap", GL_RGB, GL_FLOAT);
+    // if (!irradianceLoaded || !prefilterLoaded)
     {
         TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
         TRY_V(auto, hdrTexture, OpenGL::Texture2D::builder(stateCache.get())
             .withInternalFormat(GL_RGB32F)
+            .withSize(hdrImage.width(), hdrImage.height())
+            .debugLabel("Equirectangular Skybox")
             .build());
         TRY_V(auto, cubemap, OpenGL::Cubemap::builder(stateCache.get())
             .withInternalFormat(GL_RGB32F)
             .withSize(cubemapSize)
+            .debugLabel("Skybox")
             .build());
 
-        TRY(hdrTexture.fromImage(hdrImage));
+        hdrTexture.fromRaw(hdrImage.glFormat(), hdrImage.glType(), hdrImage.data());
         TRY(cubemap.fromEquirectangular(engine.getShaderManager().getProgram(eqProgramIdx), hdrTexture));
 
-        if (!irradianceLoaded)
+        // if (!irradianceLoaded)
         {
             TRY(irradianceMap.fromCubemap(engine.getShaderManager().getProgram(irradianceProgramIdx), cubemap, 0));
-            TRY(irradianceMap.saveCache(".cache/irradiance.cubemap", GL_RGB, GL_FLOAT));
+            // TRY(irradianceMap.saveCache(".cache/irradiance.cubemap", GL_RGB, GL_FLOAT));
         }
 
-        if (!prefilterLoaded)
+        // if (!prefilterLoaded)
         {
             TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 0));
             TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 1));
             TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 2));
             TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 3));
             TRY(prefilterMap.fromCubemap(engine.getShaderManager().getProgram(prefilterProgramIdx), cubemap, 4));
-            TRY(prefilterMap.saveCache(".cache/prefilter.cubemap", GL_RGB, GL_FLOAT));
+            // TRY(prefilterMap.saveCache(".cache/prefilter.cubemap", GL_RGB, GL_FLOAT));
         }
     }
 
     if (!brdfTexture.fromCache(".cache/brdf.texture2d", GL_RG, GL_HALF_FLOAT))
     {
         TRY(brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx)));
-        brdfTexture.saveCache(".cache/brdf.texture2d", GL_RG, GL_HALF_FLOAT);
+        TRY_LOG(brdfTexture.saveCache(".cache/brdf.texture2d", GL_RG, GL_HALF_FLOAT));
     }
 
 

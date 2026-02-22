@@ -29,6 +29,14 @@
         } \
     } while (0)
 
+#define TRY_LOG(expression) \
+    do { \
+        if (auto UNIQUE_NAME(_expected_) = (expression); !UNIQUE_NAME(_expected_)) \
+        { \
+            std::println(stderr, "{}", std::move(UNIQUE_NAME(_expected_)).error()); \
+        } \
+    } while (0)
+
 #define TRY_V(type, variable, expression) \
     auto UNIQUE_NAME(_expected_) = (expression); \
     if (!UNIQUE_NAME(_expected_)) \

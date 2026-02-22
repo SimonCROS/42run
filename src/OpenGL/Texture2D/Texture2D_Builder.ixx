@@ -79,13 +79,15 @@ export namespace OpenGL
         GLint m_wrapT = GL_CLAMP_TO_EDGE;
         GLint m_minFilter = GL_LINEAR;
         GLint m_magFilter = GL_LINEAR;
+        const char * m_debugLabel;
 
     public:
         explicit Texture2DBuilder(StateCache * stateCache) noexcept
-            : m_stateCache(stateCache)
-              , m_internalFormat(0)
-              , m_width(0)
-              , m_height(0)
+            : m_stateCache(stateCache),
+              m_internalFormat(0),
+              m_width(0),
+              m_height(0),
+              m_debugLabel(nullptr)
         {}
 
         // [[nodiscard]]
@@ -145,6 +147,13 @@ export namespace OpenGL
         {
             m_minFilter = minFilter;
             m_magFilter = magFilter;
+            return *this;
+        }
+
+        [[nodiscard]]
+        auto debugLabel(const char *label) noexcept -> Texture2DBuilder &
+        {
+            m_debugLabel = label;
             return *this;
         }
 
