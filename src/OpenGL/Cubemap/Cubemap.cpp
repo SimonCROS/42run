@@ -4,11 +4,14 @@
 
 module;
 #include "glad/gl.h"
+#include <cstdio>
 
 module OpenGL.Cubemap;
+import std;
 import glm;
 import OpenGL;
 import Engine;
+import DataCache;
 
 namespace OpenGL
 {
