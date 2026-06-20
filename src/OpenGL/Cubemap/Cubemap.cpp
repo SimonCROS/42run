@@ -104,8 +104,8 @@ namespace OpenGL
         glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, 0, 0, m_size, m_size, format, type, pixels);
     }
 
-    auto Cubemap::fromEquirectangular(ShaderProgram & converter,
-                                      const Texture2D & equirectangular) -> std::expected<void, std::string>
+    auto Cubemap::fromEquirectangular(ShaderProgram & converter, const Texture2D & equirectangular,
+                              const GLint level) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
 
@@ -115,7 +115,7 @@ namespace OpenGL
         glDisable(GL_DEPTH_TEST);
         glGenFramebuffers(1, &captureFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-        glViewport(0, 0, m_size, m_size);
+        glViewport(0, 0, m_size >> level, m_size >> level);
 
         const std::array<glm::mat4, 6> captureViews = {
             glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
@@ -133,6 +133,11 @@ namespace OpenGL
 
         equirectangular.bind(GL_TEXTURE0);
 
+        // ------------ TMP ------------
+        float roughness = (float) level / (float) (5 - 1);
+        converter.setFloat("u_roughness", roughness);
+        // ------------ TMP ------------
+
         for (unsigned int i = 0; i < 6; ++i)
         {
             converter.setMat4("u_projectionView", captureProjection * captureViews[i]);
@@ -140,12 +145,11 @@ namespace OpenGL
                                    GL_COLOR_ATTACHMENT0,
                                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                                    m_id,
-                                   0);
+                                   level);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderCube();
         }
 
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -160,6 +164,9 @@ namespace OpenGL
                               const GLint level) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
 
         glDisable(GL_DEPTH_TEST);
         glGenFramebuffers(1, &captureFBO);
@@ -198,6 +205,8 @@ namespace OpenGL
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderCube();
         }
+
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteFramebuffers(1, &captureFBO);
