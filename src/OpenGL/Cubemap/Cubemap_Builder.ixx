@@ -23,6 +23,8 @@ export namespace OpenGL
         GLsizei m_size;
         GLint m_minFilter = GL_LINEAR;
         GLint m_magFilter = GL_LINEAR;
+        GLint m_baseLevel = 0;
+        GLint m_maxLevel = 0;
         const char * m_debugLabel;
 
     public:
@@ -74,10 +76,30 @@ export namespace OpenGL
         }
 
         [[nodiscard]]
-        auto filtering(const GLint minFilter, const GLint magFilter) noexcept -> CubemapBuilder &
+        auto minFilter(const GLint minFilter) noexcept -> CubemapBuilder &
         {
             m_minFilter = minFilter;
+            return *this;
+        }
+
+        [[nodiscard]]
+        auto magFilter(const GLint magFilter) noexcept -> CubemapBuilder &
+        {
             m_magFilter = magFilter;
+            return *this;
+        }
+
+        [[nodiscard]]
+        auto baseLevel(const GLint baseLevel) noexcept -> CubemapBuilder &
+        {
+            m_baseLevel = baseLevel;
+            return *this;
+        }
+
+        [[nodiscard]]
+        auto maxLevel(const GLint maxLevel) noexcept -> CubemapBuilder &
+        {
+            m_maxLevel = maxLevel;
             return *this;
         }
 

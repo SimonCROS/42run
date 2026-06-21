@@ -12,6 +12,7 @@ import glm;
 import OpenGL;
 import Engine;
 import DataCache;
+import OpenGL.Utility;
 
 namespace OpenGL
 {
@@ -40,15 +41,15 @@ namespace OpenGL
             glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
         }
 
-        for (GLint l = 0; l < 5; ++l)
+        for (GLint level = 0; level < 5; ++level)
         {
-            for (GLuint i = 0; i < 6; ++i)
+            for (GLuint faceIdx = 0; faceIdx < 6; ++faceIdx)
             {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                             l,
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIdx,
+                             level,
                              m_internalFormat,
-                             m_size >> l,
-                             m_size >> l,
+                             m_size >> level,
+                             m_size >> level,
                              0,
                              GL_RGBA, // dummy
                              GL_UNSIGNED_BYTE, // dummy
@@ -61,42 +62,44 @@ namespace OpenGL
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 4);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, m_baseLevel);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, m_maxLevel);
 
         return std::expected<Cubemap, std::string>{std::in_place, m_stateCache, id, m_size};
     }
 
-    auto Cubemap::fromCache(const std::filesystem::path & path, const GLenum format, const GLenum type) -> bool
-    {
-        const auto oe_result = DataCache::readFile(path);
+    // auto Cubemap::fromCache(const std::filesystem::path & path, const GLenum format, const GLenum type) -> bool
+    // {
+    //     const auto oe_result = DataCache::readFile(path);
+    //
+    //     if (!oe_result)
+    //     {
+    //         return false;
+    //     }
+    //
+    //     if (!oe_result->has_value())
+    //     {
+    //         std::println(stderr, "Failed to load texture from {}: {}", path.c_str(), oe_result->error());
+    //         return false;
+    //     }
+    //
+    //     fromRaw(format, type, oe_result->value().data()); // TODO maybe return result of from data
+    //     return true;
+    // }
+    //
+    // auto Cubemap::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> std::expected<void, std::string>
+    // {
+    //     const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
+    //
+    //     std::vector<std::byte> pixels(width() * height() * pixelSize);
+    //     glBindTexture(GL_TEXTURE_2D, m_id);
+    //     glGetTexImage(GL_TEXTURE_2D, 0, format, type, pixels.data());
+    //
+    //     TRY(DataCache::writeFile(path, pixels));
+    //     return {};
+    // }
 
-        if (!oe_result)
-        {
-            return false;
-        }
-
-        if (!oe_result->has_value())
-        {
-            std::println(stderr, "Failed to load texture from {}: {}", path.c_str(), oe_result->error());
-            return false;
-        }
-
-        fromRaw(format, type, oe_result->value().data()); // TODO maybe return result of from data
-        return true;
-    }
-
-    auto Cubemap::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> std::expected<void, std::string>
-    {
-        const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
-
-        std::vector<std::byte> pixels(width() * height() * pixelSize);
-        glBindTexture(GL_TEXTURE_2D, m_id);
-        glGetTexImage(GL_TEXTURE_2D, 0, format, type, pixels.data());
-
-        TRY(DataCache::writeFile(path, pixels));
-        return {};
-    }
-
+    // ReSharper disable once CppMemberFunctionMayBeConst
     auto Cubemap::fromRaw(const GLenum format, const GLenum type, const void * const pixels,
                           const GLint level, const GLuint face) -> void
     {
@@ -104,13 +107,10 @@ namespace OpenGL
         glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, 0, 0, m_size, m_size, format, type, pixels);
     }
 
-    auto Cubemap::fromEquirectangular(ShaderProgram & converter, const Texture2D & equirectangular,
-                              const GLint level) -> std::expected<void, std::string>
+    // ReSharper disable once CppMemberFunctionMayBeConst
+    auto Cubemap::fromShader(ShaderProgram & program, const GLint level) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
 
         glDisable(GL_DEPTH_TEST);
         glGenFramebuffers(1, &captureFBO);
@@ -128,19 +128,9 @@ namespace OpenGL
 
         const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 
-        glUseProgram(converter.id()); // Bad way to use
-        converter.setInt("u_equirectangularMap", 0);
-
-        equirectangular.bind(GL_TEXTURE0);
-
-        // ------------ TMP ------------
-        float roughness = (float) level / (float) (5 - 1);
-        converter.setFloat("u_roughness", roughness);
-        // ------------ TMP ------------
-
         for (unsigned int i = 0; i < 6; ++i)
         {
-            converter.setMat4("u_projectionView", captureProjection * captureViews[i]);
+            program.setMat4("u_projectionView", captureProjection * captureViews[i]);
             glFramebufferTexture2D(GL_FRAMEBUFFER,
                                    GL_COLOR_ATTACHMENT0,
                                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
@@ -149,8 +139,6 @@ namespace OpenGL
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderCube();
         }
-
-        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteFramebuffers(1, &captureFBO);
@@ -159,59 +147,10 @@ namespace OpenGL
         return {};
     }
 
-    // TODO change to from shader because cubemap can be mapped outside the function
-    auto Cubemap::fromCubemap(ShaderProgram & converter, const Cubemap & cubemap,
-                              const GLint level) -> std::expected<void, std::string>
+    // ReSharper disable once CppMemberFunctionMayBeConst
+    auto Cubemap::generateMipmap() -> void
     {
-        GLuint captureFBO;
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
-
-        glDisable(GL_DEPTH_TEST);
-        glGenFramebuffers(1, &captureFBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-        glViewport(0, 0, m_size >> level, m_size >> level);
-
-        const std::array<glm::mat4, 6> captureViews = {
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
-        };
-
-        const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-
-        glUseProgram(converter.id()); // Bad way to use
-        converter.setInt("u_cubemap", 0);
-
-        cubemap.bind(GL_TEXTURE0);
-
-        // ------------ TMP ------------
-        float roughness = (float) level / (float) (5 - 1);
-        converter.setFloat("u_roughness", roughness);
-        // ------------ TMP ------------
-
-        for (unsigned int i = 0; i < 6; ++i)
-        {
-            converter.setMat4("u_projectionView", captureProjection * captureViews[i]);
-            glFramebufferTexture2D(GL_FRAMEBUFFER,
-                                   GL_COLOR_ATTACHMENT0,
-                                   GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                                   m_id,
-                                   level);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            renderCube();
-        }
-
+        bind(GL_TEXTURE0);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDeleteFramebuffers(1, &captureFBO);
-        glEnable(GL_DEPTH_TEST);
-
-        return {};
     }
 }

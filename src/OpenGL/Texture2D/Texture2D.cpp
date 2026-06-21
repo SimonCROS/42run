@@ -15,6 +15,38 @@ import ShaderProgram;
 
 namespace OpenGL
 {
+/*    namespace
+    {
+        auto create(ShaderProgram & converter) -> std::expected<void, std::string>
+        {
+            GLuint captureFBO;
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, m_id);
+
+            glDisable(GL_DEPTH_TEST);
+            glGenFramebuffers(1, &captureFBO);
+            glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+            glViewport(0, 0, m_width, m_height);
+
+            glUseProgram(converter.id()); // Bad way to use
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                   GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D,
+                                   m_id,
+                                   0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            renderQuad();
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDeleteFramebuffers(1, &captureFBO);
+            glEnable(GL_DEPTH_TEST);
+
+            return {};
+        }
+    }*/
+
     auto Texture2DBuilder::build() const -> std::expected<Texture2D, std::string>
     {
         GLuint id;
@@ -96,19 +128,16 @@ namespace OpenGL
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, format, type, pixels);
     }
 
-    auto Texture2D::fromShader(ShaderProgram & converter) -> std::expected<void, std::string>
+    auto Texture2D::fromShader(const ShaderProgram & program) -> std::expected<void, std::string>
     {
         GLuint captureFBO;
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_id);
 
         glDisable(GL_DEPTH_TEST);
         glGenFramebuffers(1, &captureFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
         glViewport(0, 0, m_width, m_height);
 
-        glUseProgram(converter.id()); // Bad way to use
+        glUseProgram(program.id()); // Bad way to use
 
         glFramebufferTexture2D(GL_FRAMEBUFFER,
                                GL_COLOR_ATTACHMENT0,

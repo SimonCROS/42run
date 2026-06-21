@@ -86,12 +86,9 @@ export namespace OpenGL
         auto fromRaw(GLenum format, GLenum type, const void * pixels, GLint level, GLuint face) -> void;
 
         [[nodiscard]]
-        auto fromEquirectangular(ShaderProgram & converter, const Texture2D & equirectangular)
-            -> std::expected<void, std::string>;
+        auto fromShader(ShaderProgram & program, GLint level) -> std::expected<void, std::string>;
 
-        [[nodiscard]]
-        auto fromCubemap(ShaderProgram & converter, const Cubemap & cubemap, GLint level)
-            -> std::expected<void, std::string>;
+        auto generateMipmap() -> void;
 
         [[nodiscard]]
         constexpr auto id() const noexcept -> GLuint { return m_id; }

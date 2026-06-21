@@ -113,7 +113,7 @@ export namespace OpenGL
         auto fromRaw(GLenum format, GLenum type, const void * pixels) -> void;
 
         [[nodiscard]]
-        auto fromShader(ShaderProgram & converter) -> std::expected<void, std::string>;
+        auto fromShader(const ShaderProgram & shader) -> std::expected<void, std::string>;
     };
 }
 
