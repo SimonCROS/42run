@@ -21,16 +21,16 @@ export namespace OpenGL
     private:
         StateCache * m_stateCache;
         GLuint m_id;
-        GLsizei m_size;
+        CubemapCreateInfo m_info;
 
     public:
         Cubemap() = delete;
 
-        explicit Cubemap(std::nullptr_t) noexcept : m_stateCache(nullptr), m_id(0), m_size(0)
+        Cubemap(std::nullptr_t) noexcept : m_stateCache(nullptr), m_id(0)
         {}
 
-        explicit Cubemap(StateCache * stateCache, const GLuint id, const GLsizei size) noexcept
-            : m_stateCache(stateCache), m_id(id), m_size(size)
+        Cubemap(StateCache * stateCache, const GLuint id, const CubemapCreateInfo & info) noexcept
+            : m_stateCache(stateCache), m_id(id), m_info(info)
         {}
 
         Cubemap(const Cubemap &) = delete;
@@ -40,7 +40,7 @@ export namespace OpenGL
         Cubemap(Cubemap && other) noexcept
             : m_stateCache(std::exchange(other.m_stateCache, nullptr)),
               m_id(std::exchange(other.m_id, 0)),
-              m_size(std::exchange(other.m_size, 0))
+              m_info(std::exchange(other.m_info, {}))
         {}
 
         auto operator=(Cubemap && other) noexcept -> Cubemap &
@@ -49,7 +49,7 @@ export namespace OpenGL
             {
                 std::swap(m_stateCache, other.m_stateCache);
                 std::swap(m_id, other.m_id);
-                std::swap(m_size, other.m_size);
+                std::swap(m_info, other.m_info);
             }
             return *this;
         }
@@ -64,18 +64,12 @@ export namespace OpenGL
             }
         }
 
-        auto bind(const GLuint unit) const -> void
+        auto bind(const GLuint unit) const -> void // TODO remove active texture
         {
             if (m_stateCache->setActiveTexture(unit))
                 glActiveTexture(unit);
             if (m_stateCache->setBoundTexture(m_id))
                 glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
-        }
-
-        [[nodiscard]]
-        static auto builder(StateCache * stateCache) noexcept -> CubemapBuilder
-        {
-            return CubemapBuilder(stateCache);
         }
 
         [[nodiscard]]
@@ -94,7 +88,7 @@ export namespace OpenGL
         constexpr auto id() const noexcept -> GLuint { return m_id; }
 
         [[nodiscard]]
-        constexpr auto size() const noexcept -> GLsizei { return m_size; }
+        constexpr auto info() const noexcept -> const CubemapCreateInfo & { return m_info; }
     };
 }
 
@@ -102,13 +96,13 @@ export template<>
 struct std::formatter<OpenGL::Cubemap>
 {
     template<class ParseContext>
-    constexpr auto parse(ParseContext & ctx) -> typename ParseContext::iterator
+    constexpr auto parse(ParseContext & ctx) -> ParseContext::iterator
     {
         return ctx.begin();
     }
 
     template<class FormatContext>
-    auto format(const OpenGL::Cubemap & obj, FormatContext & ctx) const -> typename FormatContext::iterator
+    auto format(const OpenGL::Cubemap & obj, FormatContext & ctx) const -> FormatContext::iterator
     {
         return std::format_to(ctx.out(),
                               "Cubemap{{id:{}}}",

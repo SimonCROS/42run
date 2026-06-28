@@ -16,7 +16,7 @@ import OpenGL.Utility;
 
 namespace OpenGL
 {
-    auto CubemapBuilder::build() const -> std::expected<Cubemap, std::string>
+    auto createCubemap(StateCache & stateCache, const CubemapCreateInfo & info) -> std::expected<Cubemap, std::string>
     {
         GLuint id;
         glGenTextures(1, &id);
@@ -26,30 +26,25 @@ namespace OpenGL
             return std::unexpected<std::string>("Failed to generate texture");
         }
 
-        if (m_stateCache->setActiveTexture(GL_TEXTURE0))
-        {
-            glActiveTexture(GL_TEXTURE0);
-        }
-
-        if (m_stateCache->setBoundTexture(id))
+        if (stateCache.setBoundTexture(id))
         {
             glBindTexture(GL_TEXTURE_CUBE_MAP, id);
         }
 
-        if (m_debugLabel != nullptr && glObjectLabel != nullptr)
+        if (info.debugLabel != nullptr && glObjectLabel != nullptr)
         {
-            glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(m_debugLabel)), m_debugLabel);
+            //glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(info.debugLabel)), info.debugLabel);
         }
 
-        for (GLint level = 0; level < 5; ++level)
+        for (GLint level = info.baseLevel; level <= info.maxLevel; ++level)
         {
             for (GLuint faceIdx = 0; faceIdx < 6; ++faceIdx)
             {
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIdx,
                              level,
-                             m_internalFormat,
-                             m_size >> level,
-                             m_size >> level,
+                             info.internalFormat,
+                             info.size >> level,
+                             info.size >> level,
                              0,
                              GL_RGBA, // dummy
                              GL_UNSIGNED_BYTE, // dummy
@@ -57,54 +52,101 @@ namespace OpenGL
             }
         }
 
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, m_minFilter);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, m_magFilter);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, info.minFilter);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, info.magFilter);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, m_baseLevel);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, m_maxLevel);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, info.baseLevel);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, info.maxLevel);
 
-        return std::expected<Cubemap, std::string>{std::in_place, m_stateCache, id, m_size};
+        return std::expected<Cubemap, std::string>{std::in_place, &stateCache, id, info};
     }
 
-    // auto Cubemap::fromCache(const std::filesystem::path & path, const GLenum format, const GLenum type) -> bool
-    // {
-    //     const auto oe_result = DataCache::readFile(path);
-    //
-    //     if (!oe_result)
-    //     {
-    //         return false;
-    //     }
-    //
-    //     if (!oe_result->has_value())
-    //     {
-    //         std::println(stderr, "Failed to load texture from {}: {}", path.c_str(), oe_result->error());
-    //         return false;
-    //     }
-    //
-    //     fromRaw(format, type, oe_result->value().data()); // TODO maybe return result of from data
-    //     return true;
-    // }
-    //
-    // auto Cubemap::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> std::expected<void, std::string>
-    // {
-    //     const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
-    //
-    //     std::vector<std::byte> pixels(width() * height() * pixelSize);
-    //     glBindTexture(GL_TEXTURE_2D, m_id);
-    //     glGetTexImage(GL_TEXTURE_2D, 0, format, type, pixels.data());
-    //
-    //     TRY(DataCache::writeFile(path, pixels));
-    //     return {};
-    // }
+    auto Cubemap::fromCache(const std::filesystem::path & path, const GLenum format, const GLenum type) -> bool
+    {
+        const auto oe_result = DataCache::readFile(path);
+
+        if (!oe_result)
+        {
+            return false;
+        }
+
+        if (!oe_result->has_value())
+        {
+            std::println(stderr, "Failed to load texture from {}: {}", path.c_str(), oe_result->error());
+            return false;
+        }
+
+        const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
+
+        uint32_t totalSize = 0;
+        for (int32_t level = m_info.baseLevel; level <= m_info.maxLevel; ++level)
+        {
+            const uint32_t levelSize = m_info.size >> level;
+            totalSize += levelSize * levelSize * 6 * pixelSize;
+        }
+
+        if ((*oe_result)->size() != totalSize)
+        {
+            std::println(stderr, "Failed to load texture from {}: invalid size", path.c_str());
+            return false;
+        }
+
+        std::vector<std::byte> pixels(totalSize);
+
+        bind(GL_TEXTURE0);
+
+        uint32_t offset = 0;
+        for (GLint level = m_info.baseLevel; level <= m_info.maxLevel; ++level)
+        {
+            for (GLuint faceIdx = 0; faceIdx < 6; ++faceIdx)
+            {
+                fromRaw(format, type, (*oe_result)->data() + offset, level, faceIdx);
+
+                const uint32_t levelSize = m_info.size >> level;
+                offset += levelSize * levelSize * pixelSize;
+            }
+        }
+        return true;
+    }
+
+    auto Cubemap::saveCache(const std::filesystem::path & path, const GLenum format, const GLenum type) const -> std::expected<void, std::string>
+    {
+        const uint32_t pixelSize = formatComponentsCount(format) * typeSize(type);
+
+        uint32_t totalSize = 0;
+        for (int32_t level = m_info.baseLevel; level <= m_info.maxLevel; ++level)
+        {
+            const uint32_t levelSize = m_info.size >> level;
+            totalSize += levelSize * levelSize * 6 * pixelSize;
+        }
+
+        std::vector<std::byte> pixels(totalSize);
+        bind(GL_TEXTURE0);
+
+        uint32_t offset = 0;
+        for (GLint level = m_info.baseLevel; level <= m_info.maxLevel; ++level)
+        {
+            for (GLuint faceIdx = 0; faceIdx < 6; ++faceIdx)
+            {
+                glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIdx, level, format, type, pixels.data() + offset);
+
+                const uint32_t levelSize = m_info.size >> level;
+                offset += levelSize * levelSize * pixelSize;
+            }
+        }
+
+        TRY(DataCache::writeFile(path, pixels));
+        return {};
+    }
 
     // ReSharper disable once CppMemberFunctionMayBeConst
     auto Cubemap::fromRaw(const GLenum format, const GLenum type, const void * const pixels,
                           const GLint level, const GLuint face) -> void
     {
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
-        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, 0, 0, m_size, m_size, format, type, pixels);
+        bind(GL_TEXTURE0);
+        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, 0, 0, m_info.size >> level, m_info.size >> level, format, type, pixels);
     }
 
     // ReSharper disable once CppMemberFunctionMayBeConst
@@ -115,7 +157,7 @@ namespace OpenGL
         glDisable(GL_DEPTH_TEST);
         glGenFramebuffers(1, &captureFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-        glViewport(0, 0, m_size >> level, m_size >> level);
+        glViewport(0, 0, m_info.size >> level, m_info.size >> level);
 
         const std::array<glm::mat4, 6> captureViews = {
             glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
