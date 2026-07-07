@@ -1,0 +1,53 @@
+models:
+  - name: character
+    path: models/character.glb
+    binary: true
+
+  - name: floor
+    path: models/floor.glb
+    binary: true
+
+  - name: desk
+    path: models/desk.glb
+    binary: true
+
+programs:
+  - name: pbr
+    vert: shaders/pbr.vert
+    frag: shaders/pbr.frag
+
+  - name: hdr
+    vert: shaders/texcoord.vert
+    frag: shaders/hdr.frag
+
+  - name: brdf
+    vert: shaders/texcoord.vert
+    frag: shaders/brdf.frag
+
+  - name: equirectangular
+    vert: shaders/cubemap.vert
+    frag: shaders/equirectangular.frag
+
+  - name: irradiance
+    vert: shaders/cubemap.vert
+    frag: shaders/irradiance.frag
+
+  - name: prefilter
+    vert: shaders/cubemap.vert
+    frag: shaders/prefilter.frag
+
+  - name: skybox
+    vert: shaders/skybox.vert
+    frag: shaders/skybox.frag
+
+ibl:
+  source: textures/skybox/san_giuseppe_bridge_1k.hdr
+
+defaultPrograms:
+  pbr: pbr
+  hdr: hdr
+  brdf: brdf
+  equirectangular: equirectangular
+  irradiance: irradiance
+  prefilter: prefilter
+  skybox: skybox

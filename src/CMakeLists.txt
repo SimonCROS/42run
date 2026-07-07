@@ -34,6 +34,7 @@ target_sources(42run
                         Engine/Engine.ixx
                         Engine/Engine_Component.ixx
                         Engine/Engine_Engine.ixx
+                        Engine/Engine_IBL.ixx
                         Engine/Engine_Model.ixx
                         Engine/Engine_Object.ixx
                         Engine/Engine_ObjectsManager.ixx

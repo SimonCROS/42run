@@ -7,6 +7,7 @@ export module Engine;
 export import :Camera;
 export import :Component;
 export import :Engine;
+export import :IBL;
 export import :Mesh;
 export import :Object;
 export import :ObjectsManager;

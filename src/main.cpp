@@ -23,8 +23,6 @@ import OpenGL.Cubemap;
 import DataCache;
 import Utility.SlotSet;
 
-constexpr GLuint cubemapSize = 512;
-
 class Rotator : public Component
 {
 private:
@@ -39,50 +37,6 @@ public:
     }
 };
 
-namespace
-{
-    auto generateSkybox(OpenGL::Cubemap & output, const OpenGL::Texture2D & input,
-                        ShaderProgram & program) -> std::expected<void, std::string>
-    {
-        glUseProgram(program.id());
-        input.bind(GL_TEXTURE0);
-        program.setInt("u_equirectangularMap", 0);
-
-        TRY(output.fromShader(program, 0));
-        output.generateMipmap();
-        return {};
-    }
-
-    auto generateIrradianceMap(OpenGL::Cubemap & output, const OpenGL::Cubemap & input,
-                               ShaderProgram & program) -> std::expected<void, std::string>
-    {
-        glUseProgram(program.id());
-        input.bind(GL_TEXTURE0);
-        program.setInt("u_cubemap", 0);
-
-        TRY(output.fromShader(program, 0));
-        return {};
-    }
-
-    auto generatePrefilterMap(OpenGL::Cubemap & output, const OpenGL::Cubemap & input,
-                              ShaderProgram & program) -> std::expected<void, std::string>
-    {
-        constexpr int maxLevel = 4; // TODO get from output
-
-        glUseProgram(program.id());
-        input.bind(GL_TEXTURE0);
-        program.setInt("u_cubemap", 0);
-
-        for (int i = 0; i <= maxLevel; ++i)
-        {
-            program.setFloat("u_roughness", static_cast<float>(i) / maxLevel);
-            TRY(output.fromShader(program, i));
-        }
-
-        return {};
-    }
-}
-
 auto start() -> std::expected<void, std::string>
 {
     std::cout << "42run " << FTRUN_VERSION_MAJOR << "." << FTRUN_VERSION_MINOR << std::endl;
@@ -92,19 +46,6 @@ auto start() -> std::expected<void, std::string>
 
     auto stateCache = std::make_shared<OpenGL::StateCache>();
     auto engine = Engine::Create(std::move(window));
-
-
-    // ********************************
-    // Load models
-    // ********************************
-
-    stbi_set_flip_vertically_on_load(false);
-    TRY_V(auto, spheresMesh, engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true));
-    TRY_V(auto, ancientMesh, engine.loadModel("ancient", RESOURCE_PATH"models/character.glb", true));
-    TRY_V(auto, floorMesh, engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true));
-    TRY_V(auto, deskMesh, engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true));
-    stbi_set_flip_vertically_on_load(true);
-
 
     // ********************************
     // Create shaders
@@ -134,37 +75,6 @@ auto start() -> std::expected<void, std::string>
     TRY_V(const SlotSetIndex, skyboxFragShaderIdx,
           engine.getShaderManager().getOrAddShaderFile(RESOURCE_PATH"shaders/skybox.frag"));
 
-
-    // ********************************
-    // Create IBL resources
-    // ********************************
-
-    TRY_V(auto, irradianceMap, OpenGL::createCubemap(*stateCache.get(), {
-              .internalFormat = GL_RGB32F,
-              .size = cubemapSize,
-              .maxLevel = 4,
-              .debugLabel = "Irradiance"
-              }));
-
-    TRY_V(auto, prefilterMap, OpenGL::createCubemap(*stateCache.get(), {
-              .internalFormat = GL_RGB32F,
-              .size = cubemapSize,
-              .minFilter = GL_LINEAR_MIPMAP_LINEAR,
-              .maxLevel = 4,
-              .debugLabel = "Prefilter"
-              }));
-
-    TRY_V(auto, brdfTexture, OpenGL::Texture2D::builder(stateCache.get())
-          .internalFormat(GL_RG16F)
-          .size(cubemapSize, cubemapSize)
-          // .debugLabel("BRDF")
-          .build());
-
-
-    // ********************************
-    // Create programs
-    // ********************************
-
     TRY_V(const SlotSetIndex, hdrProgramIdx,
           engine.getShaderManager().getOrCreateShaderProgram(texcoordVertShaderIdx, hdrFragShaderIdx, ShaderFlags::None
           ));
@@ -183,70 +93,21 @@ auto start() -> std::expected<void, std::string>
     TRY_V(const SlotSetIndex, skyboxProgramIdx,
           engine.getShaderManager().getOrCreateShaderProgram(skyboxVertShaderIdx, skyboxFragShaderIdx, ShaderFlags::None
           ));
+    TRY(engine.getShaderManager().reloadAllShaders());
 
+    TRY_V(auto, ibl, IBL::Create());
+
+    stbi_set_flip_vertically_on_load(false);
+    TRY_V(auto, spheresMesh, engine.loadModel("spheres", RESOURCE_PATH"models/spheres.glb", true));
+    TRY_V(auto, ancientMesh, engine.loadModel("ancient", RESOURCE_PATH"models/character.glb", true));
+    TRY_V(auto, floorMesh, engine.loadModel("floor", RESOURCE_PATH"models/floor.glb", true));
+    TRY_V(auto, deskMesh, engine.loadModel("desk", RESOURCE_PATH"models/desk.glb", true));
+    stbi_set_flip_vertically_on_load(true);
     TRY(spheresMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
     TRY(ancientMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
     TRY(floorMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
     TRY(deskMesh.get().prepareShaderPrograms(engine.getShaderManager(), defaultVertShaderIdx, defaultFragShaderIdx));
-
-
-    // ********************************
-    // Compile and link programs
-    // ********************************
-
     TRY(engine.getShaderManager().reloadAllShaders());
-
-
-    // ********************************
-    // Build IBL
-    // ********************************
-
-    const bool irradianceLoaded = irradianceMap.fromCache(".cache/irradiance.cubemap", GL_RGB, GL_FLOAT);
-    const bool prefilterLoaded = prefilterMap.fromCache(".cache/prefilter.cubemap", GL_RGB, GL_FLOAT);
-    if (!irradianceLoaded || !prefilterLoaded)
-    {
-        TRY_V(auto, hdrImage, Image::Create(RESOURCE_PATH"textures/skybox/san_giuseppe_bridge_1k.hdr"));
-        TRY_V(auto, hdrTexture, OpenGL::Texture2D::builder(stateCache.get())
-              .internalFormat(GL_RGB32F)
-              .size(hdrImage.width(), hdrImage.height())
-              // .debugLabel("Equirectangular Skybox")
-              .build());
-        TRY_V(auto, skybox, OpenGL::createCubemap(*stateCache.get(), {
-                  .internalFormat = GL_RGB32F,
-                  .size = cubemapSize,
-                  .debugLabel = "Skybox"
-                  }));
-
-        hdrTexture.fromRaw(hdrImage.glFormat(), hdrImage.glType(), hdrImage.data());
-        TRY(generateSkybox(
-            skybox,
-            hdrTexture,
-            engine.getShaderManager().getProgram(eqProgramIdx)));
-
-        if (!irradianceLoaded)
-        {
-            TRY(generateIrradianceMap(
-                irradianceMap,
-                skybox,
-                engine.getShaderManager().getProgram(irradianceProgramIdx)));
-            TRY(irradianceMap.saveCache(".cache/irradiance.cubemap", GL_RGB, GL_FLOAT));
-        }
-
-        if (!prefilterLoaded)
-        {
-            TRY(generatePrefilterMap(
-                prefilterMap,
-                skybox,
-                engine.getShaderManager().getProgram(prefilterProgramIdx)));
-            TRY(prefilterMap.saveCache(".cache/prefilter.cubemap", GL_RGB, GL_FLOAT));
-        }
-    }
-
-    if (!brdfTexture.fromCache(".cache/brdf.texture2d", GL_RG, GL_HALF_FLOAT))
-    {
-        TRY(brdfTexture.fromShader(engine.getShaderManager().getProgram(brdfProgramIdx)));
-        TRY_LOG(brdfTexture.saveCache(".cache/brdf.texture2d", GL_RG, GL_HALF_FLOAT));
-    }
 
 
     // ********************************
@@ -254,49 +115,10 @@ auto start() -> std::expected<void, std::string>
     // ********************************
 
     {
+        // Root
         auto & object = engine.instantiate();
-        object.addComponent<ImguiSingleton>(engine.getWindow());
-    }
-
-    {
-        auto & object = engine.instantiate();
-        object.addComponent<SkyboxRenderer>(engine, irradianceMap);
-    }
-
-    // {
-    //     auto & object = engine.instantiate();
-    //     object.addComponent<MeshRenderer>(*e_spheresMesh, irradianceMap, prefilterMap, brdfTexture);
-    // }
-    //
-    // {
-    //     // Camera
-    //     auto& object = engine.instantiate();
-    //     object.transform().setTranslation({0, 20, 0});
-    //     object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-90.0f), glm::radians(0.0f), glm::radians(0.0f))));
-    //
-    //     const auto & camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
-    //     engine.setCamera(camera);
-    //     // object.addComponent<Rotator>();
-    //     object.addComponent<CameraController>(glm::vec3(0, 0, 0), 20);
-    // }
-
-    auto & map = engine.instantiate();
-    map.addComponent<MapController>(irradianceMap, prefilterMap, brdfTexture);
-
-    {
-        // Ancient
-        auto & object = engine.instantiate();
-        auto & animator = object.addComponent<Animator>(ancientMesh);
-        auto & meshRenderer = object.addComponent<MeshRenderer>(ancientMesh, irradianceMap, prefilterMap,
-                                                                brdfTexture);
-        auto & ui = object.addComponent<UserInterface>("Character");
-        ui.addBlock<DisplayInterfaceBlock>(1);
-        ui.addBlock<AnimationInterfaceBlock>(2);
-
-        // object.addComponent<PlayerController>();
-        // object.addComponent<Rotator>(glm::vec3(0.0f, 1.0f, 0.0f));
-        meshRenderer.setAnimator(animator);
-        animator.setAnimation(0);
+        object.addComponent<ImguiSingleton>();
+        object.addComponent<SkyboxRenderer>();
     }
 
     {
@@ -304,17 +126,29 @@ auto start() -> std::expected<void, std::string>
         auto & object = engine.instantiate();
         object.transform().setTranslation({0, 3, -3.5});
         object.transform().setRotation(glm::quat(glm::vec3(glm::radians(-15.0f), glm::radians(180.0f), 0)));
-
-        object.addComponent<CameraController>(glm::vec3(0, 1, 0), 2);
-
-        const auto & camera = object.addComponent<Camera>(WIDTH, HEIGHT, 60);
-        engine.setCamera(camera);
+        object.addComponent<Camera>(WIDTH, HEIGHT, 60);
+        // object.addComponent<CameraController>(glm::vec3(0, 1, 0), 2);
     }
 
+    {
+        // Map
+        auto & object = engine.instantiate();
+        object.addComponent<MapController>();
+    }
 
-    // ********************************
-    // Run game loop
-    // ********************************
+    {
+        // Character
+        auto & object = engine.instantiate();
+        object.addComponent<MeshRenderer>(ancientMesh);
+        object.addComponent<Animator>();
+        object.addComponent<PlayerController>();
+
+        auto & ui = object.addComponent<UserInterface>("Character");
+        ui.addBlock<DisplayInterfaceBlock>(1);
+        ui.addBlock<AnimationInterfaceBlock>(2);
+
+        // object.addComponent<Rotator>(glm::vec3(0.0f, 1.0f, 0.0f));
+    }
 
     return engine.run();
 }
