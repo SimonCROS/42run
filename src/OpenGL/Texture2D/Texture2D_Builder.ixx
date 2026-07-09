@@ -68,96 +68,20 @@ export namespace OpenGL
 {
     class Texture2D;
 
-    class Texture2DBuilder
+    struct Texture2DCreateInfo
     {
-    private:
-        StateCache * m_stateCache;
-        GLint m_internalFormat;
-        GLsizei m_width;
-        GLsizei m_height;
-        GLint m_wrapS = GL_CLAMP_TO_EDGE;
-        GLint m_wrapT = GL_CLAMP_TO_EDGE;
-        GLint m_minFilter = GL_LINEAR;
-        GLint m_magFilter = GL_LINEAR;
-        const char * m_debugLabel;
-
-    public:
-        explicit Texture2DBuilder(StateCache * stateCache) noexcept
-            : m_stateCache(stateCache),
-              m_internalFormat(0),
-              m_width(0),
-              m_height(0),
-              m_debugLabel(nullptr)
-        {}
-
-        // [[nodiscard]]
-        // auto fromImage(const Image & image, const GLint internalFormat) noexcept -> Texture2DBuilder &
-        // {
-        //     m_internalFormat = internalFormat;
-        //     m_width = image.width();
-        //     m_height = image.height();
-        //     m_data = image.data();
-        //
-        //     if (!isBaseInternalFormat(internalFormat))
-        //     {
-        //         if (image.isHdr())
-        //         {
-        //             if (!isFloatInternalFormat(internalFormat))
-        //                 std::println(
-        //                     "[Warning] HDR image data (float) is being uploaded to an integer internal format ({}). This will cause loss of precision and dynamic range.",
-        //                     glFormatToString(internalFormat));
-        //         }
-        //         else
-        //         {
-        //             if (!isIntegerInternalFormat(internalFormat))
-        //                 std::println(
-        //                     "[Warning] LDR image data (byte) is being uploaded to a float internal format ({}). This wastes memory and bandwidth without increasing quality.",
-        //                     glFormatToString(internalFormat));
-        //         }
-        //     }
-        //
-        //     return *this;
-        // }
-
-        [[nodiscard]]
-        auto size(const GLsizei width, const GLsizei height) noexcept -> Texture2DBuilder &
-        {
-            m_width = width;
-            m_height = height;
-            return *this;
-        }
-
-        [[nodiscard]]
-        auto internalFormat(const GLint internalFormat) noexcept -> Texture2DBuilder &
-        {
-            m_internalFormat = internalFormat;
-            return *this;
-        }
-
-        [[nodiscard]]
-        auto wrapping(const GLint wrapS, const GLint wrapT) noexcept -> Texture2DBuilder &
-        {
-            m_wrapS = wrapS;
-            m_wrapT = wrapT;
-            return *this;
-        }
-
-        [[nodiscard]]
-        auto filtering(const GLint minFilter, const GLint magFilter) noexcept -> Texture2DBuilder &
-        {
-            m_minFilter = minFilter;
-            m_magFilter = magFilter;
-            return *this;
-        }
-
-        [[nodiscard]]
-        auto debugLabel(const char *label) noexcept -> Texture2DBuilder &
-        {
-            m_debugLabel = label;
-            return *this;
-        }
-
-        [[nodiscard]]
-        auto build() const -> std::expected<Texture2D, std::string>;
+        GLint internalFormat{GL_INVALID_ENUM};
+        GLsizei m_width{0};
+        GLsizei m_height{0};
+        GLint m_wrapS{GL_CLAMP_TO_EDGE};
+        GLint m_wrapT{GL_CLAMP_TO_EDGE};
+        GLint minFilter{GL_LINEAR};
+        GLint magFilter{GL_LINEAR};
+        GLint baseLevel{0};
+        GLint maxLevel{0};
+        const char * debugLabel{nullptr};
     };
+
+    [[nodiscard]]
+    auto createTexture2D(StateCache & stateCache, const Texture2DCreateInfo & info) -> std::expected<Texture2D, std::string>;
 }
