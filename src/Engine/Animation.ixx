@@ -4,7 +4,7 @@
 
 module;
 
-#include "tiny_gltf.h"
+#include "tiny_gltf_v3.h"
 
 export module Engine.Animation;
 import std;
@@ -36,7 +36,7 @@ public:
           m_channels(std::move(channels)),
           m_samplers(std::move(samplers)) {}
 
-    static auto Create(const ModelRenderInfo & renderInfo, const tinygltf::Animation & animation) -> Animation;
+    static auto Create(const ModelRenderInfo & renderInfo, const tg3_animation & animation) -> Animation;
 
     [[nodiscard]] auto name() const -> const std::string & { return m_name; }
     [[nodiscard]] auto duration() const -> float { return m_duration; }

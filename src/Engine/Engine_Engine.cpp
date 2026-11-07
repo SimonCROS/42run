@@ -6,7 +6,7 @@ module;
 
 #include "42runConfig.h"
 #include "glad/gl.h"
-#include "tiny_gltf.h"
+#include "tiny_gltf_v3.h"
 #include "GLFW/glfw3.h"
 
 module Engine;
@@ -241,15 +241,12 @@ auto Engine::run() -> std::expected<void, std::string>
 }
 
 auto Engine::loadModel(const std::string_view & id, const std::string & path,
-                       const bool binary) -> std::expected<ModelRef, std::string>
+                       __unused const bool binary) -> std::expected<ModelRef, std::string>
 {
-    std::string err;
-    std::string warn;
+    tinygltf3::ErrorStack err;
 
-    tinygltf::Model rawModel;
-    bool loadResult = binary
-                          ? m_loader.LoadBinaryFromFile(&rawModel, &err, &warn, path)
-                          : m_loader.LoadASCIIFromFile(&rawModel, &err, &warn, path);
+    tinygltf3::Model rawModel;
+    bool loadResult = parse_file(rawModel, err, path.c_str());
 
     if (!loadResult)
         return std::unexpected("failed to load model: " + std::move(err));

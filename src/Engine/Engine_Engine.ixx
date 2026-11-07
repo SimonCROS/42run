@@ -5,7 +5,7 @@
 module;
 
 #include "glad/gl.h"
-#include "tiny_gltf.h"
+#include "tiny_gltf_v3.h"
 
 export module Engine:Engine;
 import std;
@@ -34,7 +34,6 @@ public:
 
 private:
     Window m_window;
-    tinygltf::TinyGLTF m_loader;
 
     ClockType m_clock{};
     TimePoint m_start{};

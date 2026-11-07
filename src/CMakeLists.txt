@@ -7,13 +7,17 @@ target_compile_features(42run PUBLIC
 target_compile_options(42run PRIVATE -fsanitize=address -g3)
 target_link_options(42run PRIVATE -fsanitize=address -g3)
 
-target_precompile_headers(42run PRIVATE "macros.h")
-
 target_sources(42run
         PUBLIC
                 FILE_SET HEADERS
                 FILES
                         macros.h
+        PUBLIC
+                FILE_SET HEADERS
+                BASE_DIRS
+                        ${PROJECT_BINARY_DIR}
+                FILES
+                        ${PROJECT_BINARY_DIR}/42runConfig.h
         PUBLIC
                 FILE_SET CXX_MODULES
                 FILES
@@ -77,43 +81,49 @@ target_sources(42run
                         Window/Window_Controls.ixx
                         Window/Window_Window.ixx
         PRIVATE
-                Components/Components_Animator.cpp
-                Components/Components_ImguiSingleton.cpp
-                Components/Components_MapController.cpp
-                Components/Components_MeshRenderer.cpp
-                Components/Components_PlayerController.cpp
-                Components/Components_UserInterface.cpp
-                Components/Engine_Camera.cpp
-                DataCache/DataCache.cpp
-                Engine/Animation.cpp
-                Engine/AnimationSampler.cpp
-                Engine/Engine_Engine.cpp
-                Engine/Engine_Model.cpp
-                Engine/Engine_Object.cpp
-                Engine/Engine_ObjectsManager.cpp
-                Engine/Engine_Transform.cpp
-                OpenGL/Buffer/Buffer.cpp
-                OpenGL/Cubemap/Cubemap.cpp
-                OpenGL/Texture2D/Texture2D.cpp
-                Window/Window_Context.cpp
-                Window/Window_Window.cpp
-                main.cpp
-                tiny_gltf_impl.cpp
+                FILE_SET SOURCES
+                FILES
+                        Components/Components_Animator.cpp
+                        Components/Components_ImguiSingleton.cpp
+                        Components/Components_MapController.cpp
+                        Components/Components_MeshRenderer.cpp
+                        Components/Components_PlayerController.cpp
+                        Components/Components_UserInterface.cpp
+                        Components/Engine_Camera.cpp
+                        DataCache/DataCache.cpp
+                        Engine/Animation.cpp
+                        Engine/AnimationSampler.cpp
+                        Engine/Engine_Engine.cpp
+                        Engine/Engine_Model.cpp
+                        Engine/Engine_Object.cpp
+                        Engine/Engine_ObjectsManager.cpp
+                        Engine/Engine_Transform.cpp
+                        OpenGL/Buffer/Buffer.cpp
+                        OpenGL/Cubemap/Cubemap.cpp
+                        OpenGL/Texture2D/Texture2D.cpp
+                        Window/Window_Context.cpp
+                        Window/Window_Window.cpp
+                        main.cpp
         PUBLIC
                 FILE_SET glm
                 TYPE CXX_MODULES
                 BASE_DIRS
-                        ${glm_DIR}/../../_deps/glm-src/glm
+                        ${glm_SOURCE_DIR}/glm
                 FILES
-                        ${glm_DIR}/../../_deps/glm-src/glm/glm.cppm
+                        ${glm_SOURCE_DIR}/glm/glm.cppm
+        PRIVATE
+                FILE_SET tinygltf
+                TYPE SOURCES
+                BASE_DIRS
+                        ${tinygltf_SOURCE_DIR}
+                FILES
+                        ${tinygltf_SOURCE_DIR}/tiny_gltf_v3.c
 )
 
 target_compile_definitions(42run PRIVATE
         GLFW_INCLUDE_NONE
         GLM_EXT_INLINE_NAMESPACE
-        TINYGLTF_NO_STB_IMAGE_WRITE
-        TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
-        TINYGLTF_USE_CPP14
+        TINYGLTF3_ENABLE_FS
         STBI_ONLY_JPEG
         STBI_ONLY_PNG
         STBI_ONLY_TGA
@@ -126,10 +136,8 @@ target_link_libraries(42run PRIVATE
         glm::glm
         imgui
         OpenGL::GL
-        tinygltf
 )
 
 target_include_directories(42run PUBLIC
-        ${PROJECT_BINARY_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${tinygltf_SOURCE_DIR}
 )

@@ -5,7 +5,7 @@
 module;
 
 #include "glad/gl.h"
-#include "tiny_gltf.h"
+#include "tiny_gltf_v3.h"
 
 export module Engine:Mesh;
 import std;
@@ -22,7 +22,7 @@ private:
     ModelRenderInfo m_renderInfo;
 
 public:
-    static auto Create(Engine & engine, const tinygltf::Model & model) -> Model;
+    static auto Create(Engine & engine, const tinygltf3::Model & model) -> Model;
 
     Model(std::vector<GLuint> && textures, std::vector<Animation> && animations,
           ModelRenderInfo && renderInfo) : m_textures(std::move(textures)),
