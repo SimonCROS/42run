@@ -9,6 +9,7 @@ module;
 
 export module Engine:IBL;
 import OpenGL.Cubemap;
+import OpenGL.Texture2D;
 
 constexpr GLuint cubemapSize = 512;
 

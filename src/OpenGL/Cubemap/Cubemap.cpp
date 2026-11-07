@@ -33,7 +33,7 @@ namespace OpenGL
 
         if (info.debugLabel != nullptr && glObjectLabel != nullptr)
         {
-            //glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(info.debugLabel)), info.debugLabel);
+            glObjectLabel(GL_TEXTURE, id, static_cast<GLint>(std::strlen(info.debugLabel)), info.debugLabel);
         }
 
         for (GLint level = info.baseLevel; level <= info.maxLevel; ++level)

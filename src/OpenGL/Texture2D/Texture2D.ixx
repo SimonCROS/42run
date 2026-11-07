@@ -20,20 +20,13 @@ export namespace OpenGL
     private:
         StateCache * m_stateCache;
         GLuint m_id;
-        GLint m_internalFormat;
-        GLsizei m_width;
-        GLsizei m_height;
+        Texture2DCreateInfo m_info;
 
     public:
         Texture2D() = delete;
 
-        explicit Texture2D(StateCache * stateCache,
-                            const GLuint id,
-                            const GLint internalFormat,
-                            const GLsizei width,
-                            const GLsizei height) noexcept
-            : m_stateCache(stateCache), m_id(id), m_internalFormat(internalFormat),
-              m_width(width), m_height(height)
+        Texture2D(StateCache * stateCache, const GLuint id, const Texture2DCreateInfo & info) noexcept
+            : m_stateCache(stateCache), m_id(id), m_info(info)
         {}
 
         Texture2D(const Texture2D &) = delete;
@@ -43,18 +36,14 @@ export namespace OpenGL
         Texture2D(Texture2D && other) noexcept
             : m_stateCache(std::exchange(other.m_stateCache, nullptr))
               , m_id(std::exchange(other.m_id, 0))
-              , m_internalFormat(std::exchange(other.m_internalFormat, 0))
-              , m_width(std::exchange(other.m_width, 0))
-              , m_height(std::exchange(other.m_height, 0))
+              , m_info(std::exchange(other.m_info, {}))
         {}
 
         auto operator=(Texture2D && other) noexcept -> Texture2D &
         {
             std::swap(m_stateCache, other.m_stateCache);
             std::swap(m_id, other.m_id);
-            std::swap(m_internalFormat, other.m_internalFormat);
-            std::swap(m_width, other.m_width);
-            std::swap(m_height, other.m_height);
+            std::swap(m_info, other.m_info);
             return *this;
         }
 
@@ -88,12 +77,6 @@ export namespace OpenGL
                 glActiveTexture(unit);
             if (m_stateCache->setBoundTexture(m_id))
                 glBindTexture(GL_TEXTURE_2D, m_id);
-        }
-
-        [[nodiscard]]
-        static auto builder(StateCache * stateCache) noexcept -> Texture2DBuilder
-        {
-            return Texture2DBuilder(stateCache);
         }
 
         [[nodiscard]]

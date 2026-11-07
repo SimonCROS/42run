@@ -26,6 +26,7 @@ export namespace OpenGL
     public:
         Cubemap() = delete;
 
+        // ReSharper disable once CppNonExplicitConvertingConstructor
         Cubemap(std::nullptr_t) noexcept : m_stateCache(nullptr), m_id(0)
         {}
 
